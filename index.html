@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Tools Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>Web Tools Dashboard</h1>
+        
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-button active" data-tab="display-tool">Display Resolution</button>
+            <button class="tab-button" data-tab="counter-tool">Character Counter</button>
+            <button class="tab-button" data-tab="case-tool">Case Converter</button>
+        </div>
+
+        <!-- Display Resolution Tool -->
+        <div class="tool-panel active" id="display-tool">
+            <h2>Display Resolution Tool</h2>
+            <div class="size-display">
+                <div class="size-box">
+                    <h3>Window Width</h3>
+                    <p id="windowWidth">0px</p>
+                </div>
+                <div class="size-box">
+                    <h3>Window Height</h3>
+                    <p id="windowHeight">0px</p>
+                </div>
+            </div>
+            <div class="additional-info">
+                <div class="info-box">
+                    <h3>Screen Resolution</h3>
+                    <p id="screenResolution">0 x 0</p>
+                </div>
+                <div class="info-box">
+                    <h3>Available Screen Space</h3>
+                    <p id="availableSpace">0 x 0</p>
+                </div>
+                <div class="info-box">
+                    <h3>Display Scale</h3>
+                    <p id="displayScale">100%</p>
+                </div>
+            </div>
+            <p class="tip">Resize your window to see the values update in real-time!</p>
+        </div>
+
+        <!-- Character Counter Tool -->
+        <div class="tool-panel" id="counter-tool">
+            <h2>Character Counter</h2>
+            <div class="counter-container">
+                <div class="input-area">
+                    <textarea 
+                        id="textInput" 
+                        placeholder="Type or paste your text here..."
+                        rows="8"
+                    ></textarea>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <h3>Characters</h3>
+                        <p id="charCount">0</p>
+                        <span class="label">(with spaces)</span>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Characters</h3>
+                        <p id="charNoSpaceCount">0</p>
+                        <span class="label">(without spaces)</span>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Words</h3>
+                        <p id="wordCount">0</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Lines</h3>
+                        <p id="lineCount">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Case Converter Tool -->
+        <div class="tool-panel" id="case-tool">
+            <h2>Case Converter</h2>
+            <div class="case-converter-container">
+                <div class="input-area">
+                    <textarea 
+                        id="caseInput" 
+                        placeholder="Type or paste your text here to convert its case..."
+                        rows="8"
+                    ></textarea>
+                </div>
+                <div class="button-grid">
+                    <button class="convert-btn" data-case="upper">
+                        UPPERCASE
+                        <span class="example">hello → HELLO</span>
+                    </button>
+                    <button class="convert-btn" data-case="lower">
+                        lowercase
+                        <span class="example">HELLO → hello</span>
+                    </button>
+                    <button class="convert-btn" data-case="title">
+                        Title Case
+                        <span class="example">hello world → Hello World</span>
+                    </button>
+                    <button class="convert-btn" data-case="sentence">
+                        Sentence case
+                        <span class="example">hello world → Hello world</span>
+                    </button>
+                    <button class="convert-btn" data-case="camel">
+                        camelCase
+                        <span class="example">hello world → helloWorld</span>
+                    </button>
+                    <button class="convert-btn" data-case="pascal">
+                        PascalCase
+                        <span class="example">hello world → HelloWorld</span>
+                    </button>
+                </div>
+                <div class="action-buttons">
+                    <button id="copyButton" class="action-btn">
+                        Copy to Clipboard
+                    </button>
+                    <button id="clearButton" class="action-btn">
+                        Clear Text
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
