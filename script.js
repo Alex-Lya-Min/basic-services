@@ -213,4 +213,98 @@ window.addEventListener('resize', () => {
         }, 300);
         previousHeight = currentHeight;
     }
-}); 
+});
+
+// Clean Text Tool
+const cleanTextArea = document.getElementById('cleanTextArea');
+const lineNumbers = document.getElementById('lineNumbers');
+const copyCleanText = document.getElementById('copyCleanText');
+const clearCleanText = document.getElementById('clearCleanText');
+
+function updateLineNumbers() {
+    const lines = cleanTextArea.value.split('\n');
+    const numberedLines = lines.map((line, index) => {
+        // Only show line number if the line contains non-whitespace characters
+        return line.trim() ? (index + 1) : '';
+    }).join('\n');
+    lineNumbers.textContent = numberedLines;
+}
+
+function handleCleanTextPaste(e) {
+    // Prevent the default paste
+    e.preventDefault();
+    
+    // Get clipboard data as plain text
+    const text = e.clipboardData.getData('text/plain');
+    
+    // Insert text at cursor position
+    const startPos = cleanTextArea.selectionStart;
+    const endPos = cleanTextArea.selectionEnd;
+    const textBefore = cleanTextArea.value.substring(0, startPos);
+    const textAfter = cleanTextArea.value.substring(endPos);
+    
+    cleanTextArea.value = textBefore + text + textAfter;
+    
+    // Update cursor position
+    cleanTextArea.selectionStart = startPos + text.length;
+    cleanTextArea.selectionEnd = startPos + text.length;
+    
+    // Update line numbers
+    updateLineNumbers();
+}
+
+function handleTab(e) {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        
+        // Insert tab at cursor position
+        const startPos = cleanTextArea.selectionStart;
+        const endPos = cleanTextArea.selectionEnd;
+        const textBefore = cleanTextArea.value.substring(0, startPos);
+        const textAfter = cleanTextArea.value.substring(endPos);
+        
+        cleanTextArea.value = textBefore + '    ' + textAfter;
+        
+        // Update cursor position
+        cleanTextArea.selectionStart = startPos + 4;
+        cleanTextArea.selectionEnd = startPos + 4;
+    }
+}
+
+// Sync scroll between textarea and line numbers
+cleanTextArea.addEventListener('scroll', () => {
+    lineNumbers.scrollTop = cleanTextArea.scrollTop;
+});
+
+// Update line numbers when text changes
+cleanTextArea.addEventListener('input', updateLineNumbers);
+cleanTextArea.addEventListener('paste', handleCleanTextPaste);
+cleanTextArea.addEventListener('keydown', handleTab);
+
+// Copy clean text
+copyCleanText.addEventListener('click', async () => {
+    const text = cleanTextArea.value;
+    if (text.trim() !== '') {
+        try {
+            await navigator.clipboard.writeText(text);
+            
+            // Show success feedback
+            const originalText = copyCleanText.textContent;
+            copyCleanText.textContent = 'Copied!';
+            setTimeout(() => {
+                copyCleanText.textContent = originalText;
+            }, 1500);
+        } catch (err) {
+            console.error('Failed to copy text:', err);
+        }
+    }
+});
+
+// Clear text
+clearCleanText.addEventListener('click', () => {
+    cleanTextArea.value = '';
+    updateLineNumbers();
+});
+
+// Initialize line numbers
+updateLineNumbers(); 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Tools Dashboard</title>
+    <title>LYMN Web Tools Dashboard</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -21,6 +21,7 @@
             <button class="tab-button active" data-tab="display-tool">Display Resolution</button>
             <button class="tab-button" data-tab="counter-tool">Character Counter</button>
             <button class="tab-button" data-tab="case-tool">Case Converter</button>
+            <button class="tab-button" data-tab="clean-text">Clean Text</button>
         </div>
 
         <!-- Display Resolution Tool -->
@@ -130,6 +131,31 @@
                     </button>
                     <button id="clearButton" class="action-btn">
                         Clear Text
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clean Text Tool -->
+        <div class="tool-panel" id="clean-text">
+            <h2>Clean Text</h2>
+            <div class="clean-text-container">
+                <div class="editor-wrapper">
+                    <div class="line-numbers" id="lineNumbers"></div>
+                    <textarea 
+                        id="cleanTextArea" 
+                        class="clean-text-editor" 
+                        spellcheck="false" 
+                        placeholder="Paste your text here to clean formatting..."
+                        wrap="off"
+                    ></textarea>
+                </div>
+                <div class="editor-actions">
+                    <button id="copyCleanText" class="action-btn">
+                        Copy Clean Text
+                    </button>
+                    <button id="clearCleanText" class="action-btn">
+                        Clear
                     </button>
                 </div>
             </div>

@@ -392,4 +392,112 @@ textarea:focus {
     .tab-button {
         width: 100%;
     }
+}
+
+/* Clean Text Tool */
+.clean-text-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 70vh;
+    min-height: 400px;
+}
+
+.editor-wrapper {
+    display: flex;
+    flex: 1;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.line-numbers {
+    padding: 1rem 0.5rem;
+    background: var(--bg-primary);
+    border-right: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    text-align: right;
+    user-select: none;
+    min-width: 3rem;
+    white-space: pre;
+    line-height: 1.5;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.clean-text-editor {
+    flex: 1;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: none;
+    resize: none;
+    outline: none;
+    white-space: pre;
+    overflow-x: auto;
+    tab-size: 4;
+}
+
+.clean-text-editor::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+.editor-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.editor-actions .action-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.editor-actions #copyCleanText {
+    background: var(--accent-color);
+    color: var(--bg-primary);
+}
+
+.editor-actions #copyCleanText:hover {
+    opacity: 0.9;
+}
+
+.editor-actions #clearCleanText {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.editor-actions #clearCleanText:hover {
+    background: var(--bg-primary);
+}
+
+/* Custom Scrollbar */
+.clean-text-editor::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.clean-text-editor::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+.clean-text-editor::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 6px;
+    border: 3px solid var(--bg-primary);
+}
+
+.clean-text-editor::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
 } 
