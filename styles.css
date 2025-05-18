@@ -327,6 +327,51 @@ textarea:focus {
     background: #dc2626;
 }
 
+.loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--bg-secondary);
+    border-top: 4px solid var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.error-message {
+    color: #ef4444;
+    background: #fee2e2;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+    .video-preview {
+        flex-direction: column;
+    }
+
+    .video-preview img {
+        width: 100%;
+        height: auto;
+    }
+}
+
 @media (max-width: 480px) {
     .dashboard-container {
         padding: 1rem;
