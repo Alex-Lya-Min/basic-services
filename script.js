@@ -37,6 +37,7 @@ tabButtons.forEach(button => {
 const windowWidthElement = document.getElementById('windowWidth');
 const windowHeightElement = document.getElementById('windowHeight');
 const screenResolutionElement = document.getElementById('screenResolution');
+const realResolutionElement = document.getElementById('realResolution');
 const availableSpaceElement = document.getElementById('availableSpace');
 const displayScaleElement = document.getElementById('displayScale');
 
@@ -61,6 +62,11 @@ function updateWindowSize() {
     const screenWidth = window.screen.width;
     const screenHeight = window.screen.height;
     screenResolutionElement.textContent = `${screenWidth} x ${screenHeight}`;
+    
+    // Get real display resolution (accounting for device pixel ratio)
+    const realWidth = Math.round(screenWidth * window.devicePixelRatio);
+    const realHeight = Math.round(screenHeight * window.devicePixelRatio);
+    realResolutionElement.textContent = `${realWidth} x ${realHeight}`;
     
     // Get available screen space
     const availWidth = window.screen.availWidth;
@@ -194,6 +200,7 @@ updateCharacterCount();
 let previousWidth = window.innerWidth;
 let previousHeight = window.innerHeight;
 
+// Single resize event listener for all size-related updates
 window.addEventListener('resize', () => {
     const currentWidth = window.innerWidth;
     const currentHeight = window.innerHeight;
@@ -213,6 +220,8 @@ window.addEventListener('resize', () => {
         }, 300);
         previousHeight = currentHeight;
     }
+    
+    updateWindowSize();
 });
 
 // Clean Text Tool
@@ -220,14 +229,69 @@ const cleanTextArea = document.getElementById('cleanTextArea');
 const lineNumbers = document.getElementById('lineNumbers');
 const copyCleanText = document.getElementById('copyCleanText');
 const clearCleanText = document.getElementById('clearCleanText');
+const wrapTextButton = document.getElementById('wrapText');
+
+// Initialize text wrapping state
+let isWrapped = false;
+
+function updateEditorSize() {
+    // Reset height to auto to get the correct scrollHeight
+    cleanTextArea.style.height = 'auto';
+    
+    // Set the height to match the content
+    const newHeight = Math.max(cleanTextArea.scrollHeight, 300); // Minimum height of 300px
+    cleanTextArea.style.height = newHeight + 'px';
+    
+    // Update line numbers container height
+    lineNumbers.style.height = newHeight + 'px';
+    
+    // Update line numbers
+    updateLineNumbers();
+}
 
 function updateLineNumbers() {
-    const lines = cleanTextArea.value.split('\n');
-    const numberedLines = lines.map((line, index) => {
-        // Only show line number if the line contains non-whitespace characters
-        return line.trim() ? (index + 1) : '';
-    }).join('\n');
-    lineNumbers.textContent = numberedLines;
+    const text = cleanTextArea.value;
+    const lines = text.split('\n');
+    
+    if (isWrapped) {
+        // For wrapped text, we need to match the visual lines with logical lines
+        const lineHeight = parseInt(getComputedStyle(cleanTextArea).lineHeight);
+        
+        // Create a temporary div to measure text width
+        const measureDiv = document.createElement('div');
+        measureDiv.style.visibility = 'hidden';
+        measureDiv.style.position = 'absolute';
+        measureDiv.style.whiteSpace = 'pre';
+        measureDiv.style.font = getComputedStyle(cleanTextArea).font;
+        measureDiv.style.lineHeight = getComputedStyle(cleanTextArea).lineHeight;
+        document.body.appendChild(measureDiv);
+        
+        const lineWidth = cleanTextArea.clientWidth - 40; // Account for padding
+        
+        // Generate line numbers based on actual text content
+        let lineNumbersHTML = '';
+        
+        lines.forEach((line, index) => {
+            measureDiv.textContent = line;
+            const lineLength = measureDiv.offsetWidth;
+            const wrappedLines = Math.ceil(lineLength / lineWidth) || 1;
+            
+            // Add the line number for the first wrapped line
+            lineNumbersHTML += (index + 1) + '\n';
+            
+            // Add empty lines for the rest of the wrapped lines
+            for (let i = 1; i < wrappedLines; i++) {
+                lineNumbersHTML += '\n';
+            }
+        });
+        
+        document.body.removeChild(measureDiv);
+        lineNumbers.textContent = lineNumbersHTML;
+    } else {
+        // For non-wrapped text, number all lines including empty ones
+        const numberedLines = lines.map((_, index) => (index + 1)).join('\n');
+        lineNumbers.textContent = numberedLines;
+    }
 }
 
 function handleCleanTextPaste(e) {
@@ -272,39 +336,123 @@ function handleTab(e) {
 }
 
 // Sync scroll between textarea and line numbers
-cleanTextArea.addEventListener('scroll', () => {
+function syncScroll() {
     lineNumbers.scrollTop = cleanTextArea.scrollTop;
+    lineNumbers.scrollLeft = cleanTextArea.scrollLeft;
+}
+
+cleanTextArea.addEventListener('scroll', syncScroll);
+
+// Update line numbers when text changes, editor is resized, or window is resized
+cleanTextArea.addEventListener('input', () => {
+    updateLineNumbers();
+    syncScroll();
 });
 
-// Update line numbers when text changes
-cleanTextArea.addEventListener('input', updateLineNumbers);
-cleanTextArea.addEventListener('paste', handleCleanTextPaste);
-cleanTextArea.addEventListener('keydown', handleTab);
-
-// Copy clean text
-copyCleanText.addEventListener('click', async () => {
-    const text = cleanTextArea.value;
-    if (text.trim() !== '') {
-        try {
-            await navigator.clipboard.writeText(text);
-            
-            // Show success feedback
-            const originalText = copyCleanText.textContent;
-            copyCleanText.textContent = 'Copied!';
-            setTimeout(() => {
-                copyCleanText.textContent = originalText;
-            }, 1500);
-        } catch (err) {
-            console.error('Failed to copy text:', err);
-        }
-    }
+cleanTextArea.addEventListener('paste', (e) => {
+    handleCleanTextPaste(e);
+    syncScroll();
 });
+
+cleanTextArea.addEventListener('keydown', (e) => {
+    handleTab(e);
+    syncScroll();
+});
+
+window.addEventListener('resize', () => {
+    // Debounce resize updates
+    clearTimeout(window.resizeTimeout);
+    window.resizeTimeout = setTimeout(() => {
+        updateLineNumbers();
+        syncScroll();
+    }, 100);
+});
+
+// Initialize line numbers
+function initializeLineNumbers() {
+    // Add initial empty line number
+    lineNumbers.textContent = '1\n';
+    lineNumbers.style.height = cleanTextArea.scrollHeight + 'px';
+    syncScroll();
+}
+
+// Initialize line numbers
+initializeLineNumbers();
 
 // Clear text
 clearCleanText.addEventListener('click', () => {
     cleanTextArea.value = '';
-    updateLineNumbers();
+    initializeLineNumbers();
 });
 
-// Initialize line numbers
-updateLineNumbers(); 
+// Copy to clipboard functionality with error handling
+async function copyToClipboard(text, button) {
+    if (text.trim() === '') return;
+    
+    try {
+        await navigator.clipboard.writeText(text);
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        setTimeout(() => {
+            button.textContent = originalText;
+        }, 1500);
+    } catch (err) {
+        console.error('Failed to copy text:', err);
+        button.textContent = 'Failed to copy';
+        setTimeout(() => {
+            button.textContent = originalText;
+        }, 1500);
+    }
+}
+
+// Copy clean text
+copyCleanText.addEventListener('click', async () => {
+    const text = cleanTextArea.value;
+    await copyToClipboard(text, copyCleanText);
+});
+
+// Toggle text wrapping
+wrapTextButton.addEventListener('click', () => {
+    isWrapped = !isWrapped;
+    cleanTextArea.style.whiteSpace = isWrapped ? 'pre-wrap' : 'pre';
+    wrapTextButton.textContent = isWrapped ? 'Disable Word Wrap' : 'Toggle Word Wrap';
+    updateEditorSize();
+});
+
+// Update editor size when text changes
+cleanTextArea.addEventListener('input', updateEditorSize);
+
+// Update editor size when text is pasted
+cleanTextArea.addEventListener('paste', (e) => {
+    handleCleanTextPaste(e);
+    updateEditorSize();
+});
+
+// Update editor size when tab is pressed
+cleanTextArea.addEventListener('keydown', (e) => {
+    handleTab(e);
+    updateEditorSize();
+});
+
+// Update editor size when window is resized
+window.addEventListener('resize', () => {
+    // Debounce resize updates
+    clearTimeout(window.resizeTimeout);
+    window.resizeTimeout = setTimeout(updateEditorSize, 100);
+});
+
+// Initialize editor
+function initializeEditor() {
+    // Add initial empty line number
+    lineNumbers.textContent = '1\n';
+    updateEditorSize();
+}
+
+// Initialize editor
+initializeEditor();
+
+// Clear text
+clearCleanText.addEventListener('click', () => {
+    cleanTextArea.value = '';
+    initializeEditor();
+}); 

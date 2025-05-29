@@ -44,8 +44,9 @@ body {
     border-radius: 15px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 800px;
+    max-width: 1000px;
     position: relative;
+    min-height: 900px;
 }
 
 .theme-switcher {
@@ -125,10 +126,19 @@ h2 {
 /* Tool Panels */
 .tool-panel {
     display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    min-height: 400px;
+    padding: 1rem 0;
 }
 
 .tool-panel.active {
     display: block;
+    opacity: 1;
+}
+
+.tool-panel h2 {
+    margin-bottom: 1.5rem;
 }
 
 /* Display Resolution Tool */
@@ -177,6 +187,7 @@ h2 {
 
 .input-area {
     width: 100%;
+    margin-bottom: 1.5rem;
 }
 
 textarea {
@@ -200,6 +211,7 @@ textarea:focus {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 1rem;
+    margin-top: 1rem;
 }
 
 .stat-box .label {
@@ -372,25 +384,61 @@ textarea:focus {
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .dashboard-container {
         padding: 1rem;
+        margin: 0.5rem;
     }
 
+    .tab-navigation {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .tab-button {
+        flex: 1 1 calc(50% - 0.5rem);
+        min-width: 120px;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .size-display,
+    .additional-info {
+        grid-template-columns: 1fr;
+    }
+
+    .button-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .editor-actions {
+        flex-direction: column;
+    }
+
+    .editor-actions .action-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
     h1 {
         font-size: 1.5rem;
     }
 
-    .size-box p, .stat-box p {
+    h2 {
         font-size: 1.2rem;
     }
 
-    .tab-navigation {
-        flex-direction: column;
+    .size-box, .info-box {
+        padding: 0.75rem;
     }
 
-    .tab-button {
-        width: 100%;
+    .size-box p, .info-box p {
+        font-size: 1.2rem;
+    }
+
+    .clean-text-container {
+        height: 50vh;
     }
 }
 
@@ -398,23 +446,32 @@ textarea:focus {
 .clean-text-container {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    height: 70vh;
+    gap: 1.5rem;
     min-height: 400px;
+    position: relative;
 }
 
 .editor-wrapper {
     display: flex;
-    flex: 1;
-    background: var(--bg-secondary);
+    background: var(--bg-primary);
     border-radius: 8px;
-    overflow: hidden;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    font-size: 14px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 1rem;
     line-height: 1.5;
+    position: relative;
+    align-items: flex-start;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    min-height: 300px;
+}
+
+.editor-wrapper:focus-within {
+    border-color: var(--accent-color);
 }
 
 .line-numbers {
+    position: sticky;
+    left: 0;
     padding: 1rem 0.5rem;
     background: var(--bg-primary);
     border-right: 1px solid var(--border-color);
@@ -424,20 +481,37 @@ textarea:focus {
     min-width: 3rem;
     white-space: pre;
     line-height: 1.5;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    z-index: 1;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    top: 0;
 }
 
 .clean-text-editor {
     flex: 1;
     padding: 1rem;
-    background: var(--bg-secondary);
+    background: var(--bg-primary);
     color: var(--text-primary);
     border: none;
     resize: none;
     outline: none;
     white-space: pre;
-    overflow-x: auto;
     tab-size: 4;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.5;
+    box-sizing: border-box;
+    margin: 0;
+    font-size: 1rem;
+    min-height: 300px;
+    overflow: hidden;
+}
+
+.clean-text-editor.wrapped {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .clean-text-editor::placeholder {
@@ -445,13 +519,76 @@ textarea:focus {
     opacity: 0.6;
 }
 
+/* Ensure consistent padding and line height */
+.line-numbers, .clean-text-editor {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    line-height: 1.5;
+    font-size: 1rem;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .clean-text-container {
+        min-height: 300px;
+    }
+    
+    .editor-wrapper {
+        min-height: 250px;
+    }
+    
+    .editor-actions {
+        flex-direction: column;
+    }
+    
+    .editor-actions .action-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .clean-text-container {
+        min-height: 250px;
+    }
+    
+    .line-numbers {
+        min-width: 2.5rem;
+        padding: 1rem 0.25rem;
+    }
+    
+    .clean-text-editor {
+        padding: 1rem 0.5rem;
+    }
+}
+
+/* Focus states for interactive elements */
+button:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+/* Improved button states */
+.action-btn:active {
+    transform: scale(0.98);
+}
+
+.convert-btn:active {
+    transform: scale(0.95);
+}
+
+/* Editor actions */
 .editor-actions {
     display: flex;
     gap: 1rem;
+    margin-top: 1rem;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
 }
 
 .editor-actions .action-btn {
-    flex: 1;
+    flex: 0 1 auto;
     padding: 0.75rem 1rem;
     border: none;
     border-radius: 8px;
@@ -461,43 +598,53 @@ textarea:focus {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.editor-actions #copyCleanText {
-    background: var(--accent-color);
-    color: var(--bg-primary);
-}
-
-.editor-actions #copyCleanText:hover {
-    opacity: 0.9;
-}
-
-.editor-actions #clearCleanText {
+    gap: 0.5rem;
     background: var(--bg-secondary);
     color: var(--text-primary);
+    min-width: 120px;
+}
+
+.editor-actions .action-btn:hover {
+    background: var(--accent-color);
+    color: var(--bg-primary);
+    transform: translateY(-2px);
+}
+
+#wrapText {
+    background: var(--bg-secondary);
     border: 1px solid var(--border-color);
+    flex: 0 1 auto;
 }
 
-.editor-actions #clearCleanText:hover {
-    background: var(--bg-primary);
+#wrapText:hover {
+    background: var(--accent-color);
+    color: var(--bg-primary);
+    border-color: var(--accent-color);
 }
 
-/* Custom Scrollbar */
-.clean-text-editor::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .editor-actions {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .editor-actions .action-btn {
+        flex: 1 1 auto;
+        min-width: 100px;
+    }
 }
 
-.clean-text-editor::-webkit-scrollbar-track {
-    background: var(--bg-primary);
-}
-
-.clean-text-editor::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 6px;
-    border: 3px solid var(--bg-primary);
-}
-
-.clean-text-editor::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
+@media (max-width: 480px) {
+    .editor-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .editor-actions .action-btn {
+        flex: 1 1 auto;
+        min-width: 80px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
 } 

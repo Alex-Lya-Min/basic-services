@@ -3,52 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A collection of useful web tools including display resolution checker, character counter, case converter, and text cleaner.">
     <title>LYMN Web Tools Dashboard</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
 </head>
 <body>
     <div class="dashboard-container">
         <h1>Web Tools Dashboard</h1>
         
         <!-- Theme Switcher -->
-        <button id="theme-switcher" class="theme-switcher">
-            <span class="light-icon">🌞</span>
-            <span class="dark-icon">🌙</span>
+        <button id="theme-switcher" class="theme-switcher" aria-label="Toggle dark/light theme">
+            <span class="light-icon" aria-hidden="true">🌞</span>
+            <span class="dark-icon" aria-hidden="true">🌙</span>
         </button>
         
         <!-- Tab Navigation -->
-        <div class="tab-navigation">
-            <button class="tab-button active" data-tab="display-tool">Display Resolution</button>
-            <button class="tab-button" data-tab="counter-tool">Character Counter</button>
-            <button class="tab-button" data-tab="case-tool">Case Converter</button>
-            <button class="tab-button" data-tab="clean-text">Clean Text</button>
+        <div class="tab-navigation" role="tablist">
+            <button class="tab-button active" data-tab="display-tool" role="tab" aria-selected="true" aria-controls="display-tool">Display Resolution</button>
+            <button class="tab-button" data-tab="counter-tool" role="tab" aria-selected="false" aria-controls="counter-tool">Character Counter</button>
+            <button class="tab-button" data-tab="case-tool" role="tab" aria-selected="false" aria-controls="case-tool">Case Converter</button>
+            <button class="tab-button" data-tab="clean-text" role="tab" aria-selected="false" aria-controls="clean-text">Clean Text</button>
         </div>
 
         <!-- Display Resolution Tool -->
-        <div class="tool-panel active" id="display-tool">
+        <div class="tool-panel active" id="display-tool" role="tabpanel" aria-labelledby="display-tool">
             <h2>Display Resolution Tool</h2>
             <div class="size-display">
                 <div class="size-box">
                     <h3>Window Width</h3>
-                    <p id="windowWidth">0px</p>
+                    <p id="windowWidth" aria-live="polite">0px</p>
                 </div>
                 <div class="size-box">
                     <h3>Window Height</h3>
-                    <p id="windowHeight">0px</p>
+                    <p id="windowHeight" aria-live="polite">0px</p>
                 </div>
             </div>
             <div class="additional-info">
                 <div class="info-box">
                     <h3>Screen Resolution</h3>
-                    <p id="screenResolution">0 x 0</p>
+                    <p id="screenResolution" aria-live="polite">0 x 0</p>
+                </div>
+                <div class="info-box">
+                    <h3>Real Display Resolution</h3>
+                    <p id="realResolution" aria-live="polite">0 x 0</p>
                 </div>
                 <div class="info-box">
                     <h3>Available Screen Space</h3>
-                    <p id="availableSpace">0 x 0</p>
+                    <p id="availableSpace" aria-live="polite">0 x 0</p>
                 </div>
                 <div class="info-box">
                     <h3>Display Scale</h3>
-                    <p id="displayScale">100%</p>
+                    <p id="displayScale" aria-live="polite">100%</p>
                 </div>
             </div>
             <p class="tip">Resize your window to see the values update in real-time!</p>
@@ -147,10 +153,12 @@
                         class="clean-text-editor" 
                         spellcheck="false" 
                         placeholder="Paste your text here to clean formatting..."
-                        wrap="off"
                     ></textarea>
                 </div>
                 <div class="editor-actions">
+                    <button id="wrapText" class="action-btn">
+                        Toggle Word Wrap
+                    </button>
                     <button id="copyCleanText" class="action-btn">
                         Copy Clean Text
                     </button>
