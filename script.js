@@ -93,6 +93,49 @@ const charCount = document.getElementById('charCount');
 const charNoSpaceCount = document.getElementById('charNoSpaceCount');
 const wordCount = document.getElementById('wordCount');
 const lineCount = document.getElementById('lineCount');
+const visualLineCount = document.getElementById('visualLineCount');
+const paragraphCount = document.getElementById('paragraphCount');
+
+/**
+ * Counts the total number of lines in a textarea based on character width
+ * @param {HTMLTextAreaElement} textarea - The textarea element to count lines for
+ * @returns {number} The total number of lines
+ */
+function countLinesByChars(textarea) {
+    const value = textarea.value;
+    if (!value) return 0;
+
+    // 1. Получаем стили и размеры
+    const styles = window.getComputedStyle(textarea);
+    const padding = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
+    const scrollbarWidth = textarea.offsetWidth - textarea.clientWidth;
+    const availableWidth = textarea.clientWidth - padding - scrollbarWidth;
+
+    // 2. Создаём временный элемент для измерения ширины символа
+    const tempSpan = document.createElement('span');
+    tempSpan.style.visibility = 'hidden';
+    tempSpan.style.position = 'absolute';
+    tempSpan.style.fontFamily = styles.fontFamily;
+    tempSpan.style.fontSize = styles.fontSize;
+    tempSpan.style.whiteSpace = 'pre';
+    tempSpan.textContent = 'a'; // Измеряем по строчной букве
+    document.body.appendChild(tempSpan);
+    const charWidth = tempSpan.getBoundingClientRect().width;
+    document.body.removeChild(tempSpan);
+
+    if (charWidth === 0) return 1; // Защита от деления на 0
+
+    // 3. Рассчитываем символы в строке
+    const charsPerLine = Math.floor(availableWidth / charWidth);
+    if (charsPerLine <= 0) return 1;
+
+    // 4. Считаем строки
+    const explicitBreaks = (value.match(/\n/g) || []).length; // Явные переносы
+    const implicitBreaks = Math.floor(value.length / charsPerLine); // Автоматические переносы
+    const totalLines = 1 + explicitBreaks + implicitBreaks;
+
+    return totalLines;
+}
 
 function updateCharacterCount() {
     const text = textInput.value;
@@ -103,13 +146,25 @@ function updateCharacterCount() {
     // Update character count (without spaces)
     charNoSpaceCount.textContent = text.replace(/\s/g, '').length;
     
-    // Update word count
-    const words = text.trim().split(/\s+/);
+    // Update word count - excluding en space and em space
+    const words = text.trim()
+        .replace(/[\u2002\u2003\u2000-\u200A\u202F\u205F\u3000]/g, ' ') // Replace en space (\u2002), em space (\u2003), and other Unicode spaces with regular space
+        .replace(/[—–]/g, ' ') // Replace em dash and en dash with space
+        .replace(/[^\p{L}\p{N}\s]/gu, ' ') // Replace all non-letter and non-number characters with space
+        .split(/\s+/)
+        .filter(word => word.length > 0);
     wordCount.textContent = text.trim() === '' ? 0 : words.length;
     
-    // Update line count
+    // Update line breaks count
     const lines = text.split(/\r\n|\r|\n/);
     lineCount.textContent = text.trim() === '' ? 0 : lines.length;
+
+    // Update visual lines count
+    visualLineCount.textContent = text.trim() === '' ? 0 : countLinesByChars(textInput);
+
+    // Update paragraph count
+    const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+    paragraphCount.textContent = text.trim() === '' ? 0 : paragraphs.length;
 }
 
 // Case Converter Tool

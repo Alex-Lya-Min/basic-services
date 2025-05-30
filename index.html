@@ -21,7 +21,7 @@
         <!-- Tab Navigation -->
         <div class="tab-navigation" role="tablist">
             <button class="tab-button active" data-tab="display-tool" role="tab" aria-selected="true" aria-controls="display-tool">Display Resolution</button>
-            <button class="tab-button" data-tab="counter-tool" role="tab" aria-selected="false" aria-controls="counter-tool">Character Counter</button>
+            <button class="tab-button" data-tab="counter-tool" role="tab" aria-selected="false" aria-controls="counter-tool">Word Counter</button>
             <button class="tab-button" data-tab="case-tool" role="tab" aria-selected="false" aria-controls="case-tool">Case Converter</button>
             <button class="tab-button" data-tab="clean-text" role="tab" aria-selected="false" aria-controls="clean-text">Clean Text</button>
         </div>
@@ -62,7 +62,7 @@
 
         <!-- Character Counter Tool -->
         <div class="tool-panel" id="counter-tool">
-            <h2>Character Counter</h2>
+            <h2>Word Counter</h2>
             <div class="counter-container">
                 <div class="input-area">
                     <textarea 
@@ -72,6 +72,10 @@
                     ></textarea>
                 </div>
                 <div class="stats-grid">
+                    <div class="stat-box">
+                        <h3>Words</h3>
+                        <p id="wordCount">0</p>
+                    </div>
                     <div class="stat-box">
                         <h3>Characters</h3>
                         <p id="charCount">0</p>
@@ -83,12 +87,17 @@
                         <span class="label">(without spaces)</span>
                     </div>
                     <div class="stat-box">
-                        <h3>Words</h3>
-                        <p id="wordCount">0</p>
+                        <h3>Line Breaks</h3>
+                        <p id="lineCount">0</p>
                     </div>
                     <div class="stat-box">
-                        <h3>Lines</h3>
-                        <p id="lineCount">0</p>
+                        <h3>Visual Lines</h3>
+                        <p id="visualLineCount">0</p>
+                        <span class="label">(including wrapped)</span>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Paragraphs</h3>
+                        <p id="paragraphCount">0</p>
                     </div>
                 </div>
             </div>
