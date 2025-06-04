@@ -244,7 +244,6 @@ clearButton.addEventListener('click', () => {
 });
 
 // Event Listeners
-window.addEventListener('resize', updateWindowSize);
 textInput.addEventListener('input', updateCharacterCount);
 
 // Initialize
@@ -398,47 +397,32 @@ function syncScroll() {
 
 cleanTextArea.addEventListener('scroll', syncScroll);
 
-// Update line numbers when text changes, editor is resized, or window is resized
-cleanTextArea.addEventListener('input', () => {
-    updateLineNumbers();
-    syncScroll();
-});
-
-cleanTextArea.addEventListener('paste', (e) => {
-    handleCleanTextPaste(e);
-    syncScroll();
-});
-
-cleanTextArea.addEventListener('keydown', (e) => {
-    handleTab(e);
-    syncScroll();
-});
-
-window.addEventListener('resize', () => {
-    // Debounce resize updates
-    clearTimeout(window.resizeTimeout);
-    window.resizeTimeout = setTimeout(() => {
-        updateLineNumbers();
-        syncScroll();
-    }, 100);
-});
-
-// Initialize line numbers
-function initializeLineNumbers() {
-    // Add initial empty line number
-    lineNumbers.textContent = '1\n';
-    lineNumbers.style.height = cleanTextArea.scrollHeight + 'px';
+function handleInput() {
+    updateEditorSize();
     syncScroll();
 }
 
-// Initialize line numbers
-initializeLineNumbers();
+function handlePaste(e) {
+    handleCleanTextPaste(e);
+    handleInput();
+}
 
-// Clear text
-clearCleanText.addEventListener('click', () => {
-    cleanTextArea.value = '';
-    initializeLineNumbers();
-});
+function handleKeydown(e) {
+    handleTab(e);
+    handleInput();
+}
+
+function handleResize() {
+    clearTimeout(window.resizeTimeout);
+    window.resizeTimeout = setTimeout(() => {
+        handleInput();
+    }, 100);
+}
+
+cleanTextArea.addEventListener('input', handleInput);
+cleanTextArea.addEventListener('paste', handlePaste);
+cleanTextArea.addEventListener('keydown', handleKeydown);
+window.addEventListener('resize', handleResize);
 
 // Copy to clipboard functionality with error handling
 async function copyToClipboard(text, button) {
@@ -471,29 +455,7 @@ wrapTextButton.addEventListener('click', () => {
     isWrapped = !isWrapped;
     cleanTextArea.style.whiteSpace = isWrapped ? 'pre-wrap' : 'pre';
     wrapTextButton.textContent = isWrapped ? 'Disable Word Wrap' : 'Toggle Word Wrap';
-    updateEditorSize();
-});
-
-// Update editor size when text changes
-cleanTextArea.addEventListener('input', updateEditorSize);
-
-// Update editor size when text is pasted
-cleanTextArea.addEventListener('paste', (e) => {
-    handleCleanTextPaste(e);
-    updateEditorSize();
-});
-
-// Update editor size when tab is pressed
-cleanTextArea.addEventListener('keydown', (e) => {
-    handleTab(e);
-    updateEditorSize();
-});
-
-// Update editor size when window is resized
-window.addEventListener('resize', () => {
-    // Debounce resize updates
-    clearTimeout(window.resizeTimeout);
-    window.resizeTimeout = setTimeout(updateEditorSize, 100);
+    handleInput();
 });
 
 // Initialize editor
