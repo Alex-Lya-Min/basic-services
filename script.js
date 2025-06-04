@@ -175,24 +175,24 @@ const clearButton = document.getElementById('clearButton');
 
 // Case conversion functions
 const caseConverters = {
-    upper: (text) => text.toUpperCase(),
-    lower: (text) => text.toLowerCase(),
+    upper: (text) => text.toLocaleUpperCase(),
+    lower: (text) => text.toLocaleLowerCase(),
     title: (text) => {
-        return text.toLowerCase().replace(/(?:^|\s)\w/g, match => match.toUpperCase());
+        return text.toLocaleLowerCase().replace(/(?:^|\s)\p{L}/gu, match => match.toLocaleUpperCase());
     },
     sentence: (text) => {
-        return text.toLowerCase().replace(/(^\w|\.\s+\w)/g, match => match.toUpperCase());
+        return text.toLocaleLowerCase().replace(/(^\p{L}|\.\s+\p{L})/gu, match => match.toLocaleUpperCase());
     },
     camel: (text) => {
-        return text.toLowerCase()
-            .replace(/[^\w\s]/g, '')
-            .replace(/\s+(.)/g, (_, char) => char.toUpperCase())
-            .replace(/^[A-Z]/, char => char.toLowerCase());
+        return text.toLocaleLowerCase()
+            .replace(/[^\p{L}\p{N}\s]/gu, '')
+            .replace(/\s+(\p{L})/gu, (_, char) => char.toLocaleUpperCase())
+            .replace(/^\p{L}/u, char => char.toLocaleLowerCase());
     },
     pascal: (text) => {
-        return text.toLowerCase()
-            .replace(/[^\w\s]/g, '')
-            .replace(/(^\w|\s+\w)/g, match => match.trim().toUpperCase());
+        return text.toLocaleLowerCase()
+            .replace(/[^\p{L}\p{N}\s]/gu, '')
+            .replace(/(^\p{L}|\s+\p{L})/gu, match => match.trim().toLocaleUpperCase());
     }
 };
 
