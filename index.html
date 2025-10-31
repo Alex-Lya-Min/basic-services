@@ -24,6 +24,7 @@
             <button class="tab-button" data-tab="counter-tool" role="tab" aria-selected="false" aria-controls="counter-tool">Word Counter</button>
             <button class="tab-button" data-tab="case-tool" role="tab" aria-selected="false" aria-controls="case-tool">Case Converter</button>
             <button class="tab-button" data-tab="clean-text" role="tab" aria-selected="false" aria-controls="clean-text">Clean Text</button>
+            <button class="tab-button" data-tab="device-info" role="tab" aria-selected="false" aria-controls="device-info">Device Details</button>
         </div>
 
         <!-- Display Resolution Tool -->
@@ -177,7 +178,53 @@
                 </div>
             </div>
         </div>
+
+        <!-- Device Details Tool -->
+        <div class="tool-panel" id="device-info">
+            <h2>Device Details</h2>
+            <p class="device-info-intro">Share this information when reporting issues so we can reproduce bugs faster.</p>
+            <div class="device-info-grid">
+                <div class="info-card">
+                    <h3>Browser</h3>
+                    <p id="browserName">—</p>
+                    <span class="info-subtext" id="browserVersion">Version: —</span>
+                </div>
+                <div class="info-card">
+                    <h3>Operating System</h3>
+                    <p id="osName">—</p>
+                    <span class="info-subtext" id="deviceType">Device: —</span>
+                </div>
+                <div class="info-card">
+                    <h3>Platform</h3>
+                    <p id="platformInfo">—</p>
+                    <span class="info-subtext" id="hardwareConcurrency">CPU: —</span>
+                </div>
+                <div class="info-card">
+                    <h3>Memory</h3>
+                    <p id="deviceMemory">—</p>
+                    <span class="info-subtext" id="language">Language: —</span>
+                </div>
+                <div class="info-card">
+                    <h3>Screen Resolution</h3>
+                    <p id="deviceScreenResolution">—</p>
+                    <span class="info-subtext" id="pixelRatio">Pixel Ratio: —</span>
+                </div>
+                <div class="info-card">
+                    <h3>Viewport Size</h3>
+                    <p id="viewportSize">—</p>
+                    <span class="info-subtext" id="timeZone">Time Zone: —</span>
+                </div>
+            </div>
+            <div class="user-agent-section">
+                <h3>User Agent</h3>
+                <pre id="userAgent" class="user-agent-box" aria-live="polite">—</pre>
+            </div>
+            <div class="device-actions">
+                <button id="copyDeviceDetails" class="action-btn">Copy Device Summary</button>
+            </div>
+        </div>
+        <footer class="dashboard-footer" aria-label="Application version">Version 0.3 Nov</footer>
     </div>
     <script src="script.js"></script>
 </body>
-</html> 
+</html>

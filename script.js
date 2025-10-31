@@ -21,6 +21,24 @@ document.getElementById('theme-switcher').addEventListener('click', toggleTheme)
 const tabButtons = document.querySelectorAll('.tab-button');
 const toolPanels = document.querySelectorAll('.tool-panel');
 
+// Device details elements
+const deviceInfoElements = {
+    browserName: document.getElementById('browserName'),
+    browserVersion: document.getElementById('browserVersion'),
+    osName: document.getElementById('osName'),
+    deviceType: document.getElementById('deviceType'),
+    platformInfo: document.getElementById('platformInfo'),
+    hardwareConcurrency: document.getElementById('hardwareConcurrency'),
+    deviceMemory: document.getElementById('deviceMemory'),
+    language: document.getElementById('language'),
+    deviceScreenResolution: document.getElementById('deviceScreenResolution'),
+    pixelRatio: document.getElementById('pixelRatio'),
+    viewportSize: document.getElementById('viewportSize'),
+    timeZone: document.getElementById('timeZone'),
+    userAgent: document.getElementById('userAgent')
+};
+const copyDeviceDetailsButton = document.getElementById('copyDeviceDetails');
+
 tabButtons.forEach(button => {
     button.addEventListener('click', () => {
         // Remove active class from all buttons and panels
@@ -46,6 +64,171 @@ function getDisplayScale() {
     const devicePixelRatio = window.devicePixelRatio;
     const scalePercentage = Math.round(devicePixelRatio * 100 / 25) * 25;
     return scalePercentage;
+}
+
+function detectBrowser(userAgent = navigator.userAgent) {
+    let name = 'Unknown';
+    let version = 'Unknown';
+
+    if (/Edg\//.test(userAgent)) {
+        name = 'Microsoft Edge';
+        version = userAgent.match(/Edg\/([\d.]+)/)[1];
+    } else if (/OPR\//.test(userAgent)) {
+        name = 'Opera';
+        version = userAgent.match(/OPR\/([\d.]+)/)[1];
+    } else if (/Brave\//.test(userAgent)) {
+        name = 'Brave';
+        version = userAgent.match(/Brave\/([\d.]+)/)[1];
+    } else if (/CriOS\//.test(userAgent)) {
+        name = 'Chrome (iOS)';
+        version = userAgent.match(/CriOS\/([\d.]+)/)[1];
+    } else if (/FxiOS\//.test(userAgent)) {
+        name = 'Firefox (iOS)';
+        version = userAgent.match(/FxiOS\/([\d.]+)/)[1];
+    } else if (/Chrome\//.test(userAgent) && !/Chromium/.test(userAgent)) {
+        name = 'Chrome';
+        version = userAgent.match(/Chrome\/([\d.]+)/)[1];
+    } else if (/Safari\//.test(userAgent) && /Version\//.test(userAgent)) {
+        name = 'Safari';
+        version = userAgent.match(/Version\/([\d.]+)/)[1];
+    } else if (/Firefox\//.test(userAgent)) {
+        name = 'Firefox';
+        version = userAgent.match(/Firefox\/([\d.]+)/)[1];
+    } else if (/MSIE\s([\d.]+)/.test(userAgent)) {
+        name = 'Internet Explorer';
+        version = userAgent.match(/MSIE\s([\d.]+)/)[1];
+    } else if (/Trident\/.*rv:([\d.]+)/.test(userAgent)) {
+        name = 'Internet Explorer';
+        version = userAgent.match(/Trident\/.*rv:([\d.]+)/)[1];
+    }
+
+    return { name, version };
+}
+
+function detectOS(userAgent = navigator.userAgent) {
+    if (/Windows NT 10\.0/.test(userAgent)) return 'Windows 10/11';
+    if (/Windows NT 6\.3/.test(userAgent)) return 'Windows 8.1';
+    if (/Windows NT 6\.2/.test(userAgent)) return 'Windows 8';
+    if (/Windows NT 6\.1/.test(userAgent)) return 'Windows 7';
+    if (/Mac OS X (10[._]\d+[._]?\d*)/.test(userAgent)) {
+        return `macOS ${userAgent.match(/Mac OS X (10[._]\d+[._]?\d*)/)[1].replace(/_/g, '.')}`;
+    }
+    if (/Mac OS X/.test(userAgent)) return 'macOS';
+    if (/iPhone|iPad|iPod/.test(userAgent)) return 'iOS';
+    if (/Android/.test(userAgent)) return 'Android';
+    if (/CrOS/.test(userAgent)) return 'Chrome OS';
+    if (/Linux/.test(userAgent)) return 'Linux';
+    return 'Unknown';
+}
+
+function getDeviceType(userAgent = navigator.userAgent) {
+    const isMobile = navigator.userAgentData?.mobile ?? /Mobi|Android/i.test(userAgent);
+    if (isMobile) return 'Mobile';
+    if (/Tablet|iPad/i.test(userAgent)) return 'Tablet';
+    return 'Desktop';
+}
+
+function formatMemory(memory) {
+    if (typeof memory !== 'number' || Number.isNaN(memory)) {
+        return 'Unavailable';
+    }
+    if (memory < 1) {
+        return `${Math.round(memory * 1024)} MB`;
+    }
+    return `${memory} GB`;
+}
+
+function getPreferredLanguages() {
+    if (Array.isArray(navigator.languages) && navigator.languages.length > 0) {
+        const [primary, ...rest] = navigator.languages;
+        return rest.length > 0 ? `${primary} (Preferred: ${navigator.languages.join(', ')})` : primary;
+    }
+    return navigator.language || 'Unavailable';
+}
+
+function updateDeviceDetails() {
+    if (!deviceInfoElements.browserName) {
+        return;
+    }
+
+    const { name, version } = detectBrowser();
+    const operatingSystem = detectOS();
+    const deviceType = getDeviceType();
+    const platform = navigator.userAgentData?.platform || navigator.platform || 'Unavailable';
+    const hardware = typeof navigator.hardwareConcurrency === 'number'
+        ? `${navigator.hardwareConcurrency} logical cores`
+        : 'Unavailable';
+    const memory = formatMemory(navigator.deviceMemory);
+    const languages = getPreferredLanguages();
+    const pixelRatio = window.devicePixelRatio ? window.devicePixelRatio.toFixed(2) : '1';
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unavailable';
+    const viewport = `${window.innerWidth} x ${window.innerHeight}`;
+    const screenResolution = `${window.screen.width} x ${window.screen.height}`;
+
+    deviceInfoElements.browserName.textContent = name;
+    deviceInfoElements.browserVersion.textContent = version !== 'Unknown'
+        ? `Version: ${version}`
+        : 'Version: Unavailable';
+    deviceInfoElements.osName.textContent = operatingSystem;
+    deviceInfoElements.deviceType.textContent = `Device: ${deviceType}`;
+    deviceInfoElements.platformInfo.textContent = platform;
+    deviceInfoElements.hardwareConcurrency.textContent = hardware !== 'Unavailable'
+        ? `CPU: ${hardware}`
+        : 'CPU: Unavailable';
+    deviceInfoElements.deviceMemory.textContent = memory;
+    deviceInfoElements.language.textContent = `Language: ${languages}`;
+    deviceInfoElements.deviceScreenResolution.textContent = `${screenResolution} (CSS pixels)`;
+    deviceInfoElements.pixelRatio.textContent = `Pixel Ratio: ${pixelRatio}`;
+    deviceInfoElements.viewportSize.textContent = viewport;
+    deviceInfoElements.timeZone.textContent = `Time Zone: ${timeZone}`;
+    deviceInfoElements.userAgent.textContent = navigator.userAgent;
+}
+
+function buildDeviceSummary() {
+    const { name, version } = detectBrowser();
+    const operatingSystem = detectOS();
+    const deviceType = getDeviceType();
+    const platform = navigator.userAgentData?.platform || navigator.platform || 'Unavailable';
+    const hardware = typeof navigator.hardwareConcurrency === 'number'
+        ? `${navigator.hardwareConcurrency} logical cores`
+        : 'Unavailable';
+    const memory = formatMemory(navigator.deviceMemory);
+    const languages = getPreferredLanguages();
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unavailable';
+    const screenResolution = `${window.screen.width} x ${window.screen.height}`;
+    const viewport = `${window.innerWidth} x ${window.innerHeight}`;
+    const pixelRatio = window.devicePixelRatio ? window.devicePixelRatio.toFixed(2) : '1';
+    const vendor = navigator.vendor || 'Unavailable';
+    const cookieStatus = typeof navigator.cookieEnabled === 'boolean'
+        ? (navigator.cookieEnabled ? 'Yes' : 'No')
+        : 'Unavailable';
+    const brandVersions = navigator.userAgentData?.brands
+        ?.map(brand => `${brand.brand} ${brand.version}`)
+        .join(', ');
+
+    const summaryLines = [
+        `Browser: ${name}`,
+        `Browser Version: ${version}`,
+        `Vendor: ${vendor}`,
+        `Operating System: ${operatingSystem}`,
+        `Device Type: ${deviceType}`,
+        `Platform: ${platform}`,
+        `Hardware Concurrency: ${hardware}`,
+        `Memory: ${memory}`,
+        `Languages: ${languages}`,
+        `Time Zone: ${timeZone}`,
+        `Screen Resolution: ${screenResolution}`,
+        `Viewport Size: ${viewport}`,
+        `Device Pixel Ratio: ${pixelRatio}`,
+        `Cookies Enabled: ${cookieStatus}`,
+        `User Agent: ${navigator.userAgent}`
+    ];
+
+    if (brandVersions) {
+        summaryLines.splice(3, 0, `Brand Versions: ${brandVersions}`);
+    }
+
+    return summaryLines.join('\n');
 }
 
 // Function to update window size
@@ -81,10 +264,12 @@ function updateWindowSize() {
     if (displayScaleElement.dataset.lastScale !== scale.toString()) {
         displayScaleElement.parentElement.classList.add('highlight');
         setTimeout(() => {
-            displayScaleElement.parentElement.classList.remove('highlight');
-        }, 300);
+        displayScaleElement.parentElement.classList.remove('highlight');
+    }, 300);
         displayScaleElement.dataset.lastScale = scale.toString();
     }
+
+    updateDeviceDetails();
 }
 
 // Character Counter Tool
@@ -427,10 +612,11 @@ window.addEventListener('resize', handleResize);
 // Copy to clipboard functionality with error handling
 async function copyToClipboard(text, button) {
     if (text.trim() === '') return;
-    
+
+    const originalText = button.textContent;
+
     try {
         await navigator.clipboard.writeText(text);
-        const originalText = button.textContent;
         button.textContent = 'Copied!';
         setTimeout(() => {
             button.textContent = originalText;
@@ -449,6 +635,13 @@ copyCleanText.addEventListener('click', async () => {
     const text = cleanTextArea.value;
     await copyToClipboard(text, copyCleanText);
 });
+
+if (copyDeviceDetailsButton) {
+    copyDeviceDetailsButton.addEventListener('click', async () => {
+        const summary = buildDeviceSummary();
+        await copyToClipboard(summary, copyDeviceDetailsButton);
+    });
+}
 
 // Toggle text wrapping
 wrapTextButton.addEventListener('click', () => {
@@ -472,4 +665,4 @@ initializeEditor();
 clearCleanText.addEventListener('click', () => {
     cleanTextArea.value = '';
     initializeEditor();
-}); 
+});

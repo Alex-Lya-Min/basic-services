@@ -124,7 +124,7 @@ h2 {
 }
 
 /* Tool Panels */
-.tool-panel {
+.tool-panel { 
     display: none;
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -176,6 +176,80 @@ h2 {
     color: var(--accent-color);
     font-size: 1.5rem;
     font-weight: bold;
+}
+
+/* Device Details Tool */
+.device-info-intro {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.device-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 150px;
+}
+
+.info-card h3 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.info-card p {
+    color: var(--accent-color);
+    font-size: 1.3rem;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.info-subtext {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.user-agent-section h3 {
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+}
+
+.user-agent-box {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 1rem;
+    font-family: 'Fira Code', 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+}
+
+.device-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.device-actions .action-btn {
+    width: auto;
+    padding: 0.75rem 1.5rem;
+}
+
+/* Footer */
+.dashboard-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
 }
 
 /* Character Counter Tool */
