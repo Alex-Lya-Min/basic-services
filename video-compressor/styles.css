@@ -1,21 +1,21 @@
+:root {
+    --vc-bg: #f7f9ff;
+    --vc-card: #ffffff;
+    --vc-border: #dfe7fb;
+    --vc-primary: #4e6af3;
+    --vc-primary-dark: #3249c0;
+    --vc-text: #1f2452;
+}
+
 body.video-compressor-page {
     margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--vc-bg);
+    color: var(--vc-text);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 2rem 1.5rem;
-    gap: 1.5rem;
-}
-
-.video-compressor-page .vc-container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 1.5rem;
 }
 
 .vc-header {
@@ -27,7 +27,7 @@ body.video-compressor-page {
 
 .back-link {
     text-decoration: none;
-    color: var(--accent-color);
+    color: var(--vc-primary);
     font-weight: 600;
 }
 
@@ -35,7 +35,7 @@ body.video-compressor-page {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: 0.8rem;
-    color: var(--text-secondary);
+    color: #6e76a7;
     margin: 0;
 }
 
@@ -51,11 +51,11 @@ body.video-compressor-page {
 }
 
 .module-card {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
+    background: var(--vc-card);
+    border: 1px solid var(--vc-border);
     border-radius: 1rem;
     padding: 1.5rem;
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 15px 45px rgba(65, 85, 179, 0.12);
 }
 
 .module-card h2 {
@@ -64,30 +64,23 @@ body.video-compressor-page {
 
 .hint {
     margin-top: -0.5rem;
-    color: var(--text-secondary);
+    color: #6e76a7;
 }
 
 .drop-area {
-    border: 2px dashed var(--border-color);
+    border: 2px dashed var(--vc-border);
     border-radius: 0.75rem;
     padding: 2rem;
     text-align: center;
     position: relative;
-    background: var(--bg-secondary);
+    background: #fafbff;
     cursor: pointer;
     transition: border-color 0.2s ease, background 0.2s ease;
-    outline: none;
 }
 
 .drop-area.dragover {
-    border-color: var(--accent-color);
-    background: rgba(0, 0, 0, 0.05);
-    background: color-mix(in srgb, var(--accent-color) 8%, transparent);
-}
-
-.drop-area:focus-visible {
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 20%, transparent);
+    border-color: var(--vc-primary);
+    background: rgba(78, 106, 243, 0.08);
 }
 
 .drop-title {
@@ -97,7 +90,7 @@ body.video-compressor-page {
 
 .drop-subtitle {
     margin: 0.5rem 0 0;
-    color: var(--text-secondary);
+    color: #7f88b8;
 }
 
 #videoInput {
@@ -108,7 +101,7 @@ body.video-compressor-page {
 }
 
 .selected-file {
-    color: var(--text-secondary);
+    color: #4b4f6b;
     margin-top: 0.75rem;
 }
 
@@ -122,7 +115,7 @@ body.video-compressor-page {
     display: flex;
     gap: 0.75rem;
     padding: 1rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--vc-border);
     border-radius: 0.75rem;
     cursor: pointer;
 }
@@ -132,13 +125,13 @@ body.video-compressor-page {
 }
 
 .disclaimer {
-    color: var(--text-secondary);
+    color: #6e76a7;
     margin-top: 1rem;
 }
 
 .primary {
-    background: var(--accent-color);
-    color: var(--bg-primary);
+    background: var(--vc-primary);
+    color: #fff;
     border: none;
     padding: 0.85rem 1.5rem;
     border-radius: 999px;
@@ -149,13 +142,12 @@ body.video-compressor-page {
 }
 
 .primary:hover {
-    background: var(--text-primary);
+    background: var(--vc-primary-dark);
 }
 
 .primary.ghost {
-    background: transparent;
-    border: 1px solid var(--accent-color);
-    color: var(--accent-color);
+    background: rgba(78, 106, 243, 0.1);
+    color: var(--vc-primary);
     text-align: center;
     display: inline-block;
 }
@@ -170,15 +162,15 @@ body.video-compressor-page {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--text-secondary);
+    color: #4b4f6b;
 }
 
 .spinner {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    border: 3px solid rgba(0, 0, 0, 0.08);
-    border-top-color: var(--accent-color);
+    border: 3px solid rgba(78, 106, 243, 0.2);
+    border-top-color: var(--vc-primary);
     animation: spin 0.9s linear infinite;
 }
 
@@ -195,51 +187,37 @@ progress {
 }
 
 progress::-webkit-progress-bar {
-    background: var(--bg-secondary);
+    background: #e4e8ff;
 }
 
 progress::-webkit-progress-value {
-    background: var(--accent-color);
-}
-
-progress::-moz-progress-bar {
-    background: var(--accent-color);
+    background: var(--vc-primary);
 }
 
 .progress-wrapper {
     margin-top: 1rem;
 }
 
-.limits {
-    background: var(--bg-secondary);
-}
-
-.vc-footer {
-    text-align: center;
-    color: var(--text-secondary);
-    margin-top: 2rem;
-}
-
-@media (max-width: 768px) {
-    body.video-compressor-page {
-        padding: 1.25rem;
-    }
-
-    .actions {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}
-
 .limits ul {
     padding-left: 1.25rem;
     margin: 0;
-    color: var(--text-secondary);
+    color: #4b4f6b;
+}
+
+.vc-footer {
+    margin-top: 2rem;
+    text-align: center;
+    color: #6e76a7;
 }
 
 @media (max-width: 600px) {
     body.video-compressor-page {
         padding: 1rem;
+    }
+
+    .actions {
+        flex-direction: column;
+        align-items: flex-start;
     }
 
     .primary {

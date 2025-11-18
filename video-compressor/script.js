@@ -60,17 +60,13 @@ const resetDownloadState = () => {
 const handleFiles = (files) => {
   if (!files || files.length === 0) return;
   const [file] = files;
-  const isMp4ByMime = file.type && file.type.includes('mp4');
-  const isMp4ByName = file.name?.toLowerCase().endsWith('.mp4');
-  if (!isMp4ByMime && !isMp4ByName) {
+  if (!file.type.includes('mp4')) {
     resultMessage.textContent = 'Only mp4 files are supported right now.';
     return;
   }
   currentFile = file;
   resetDownloadState();
   updateSelectedFile();
-  // allow selecting the same file consecutively without needing to clear input manually
-  fileInput.value = '';
 };
 
 const getPreset = () => {
@@ -146,17 +142,6 @@ const runCompression = async () => {
 startButton.addEventListener('click', runCompression);
 
 fileInput.addEventListener('change', (event) => handleFiles(event.target.files));
-
-dropZone.addEventListener('click', () => {
-  fileInput.click();
-});
-
-dropZone.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    fileInput.click();
-  }
-});
 
 dropZone.addEventListener('dragover', (event) => {
   event.preventDefault();
