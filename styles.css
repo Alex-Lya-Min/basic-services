@@ -259,6 +259,50 @@ h2 {
     gap: 1.5rem;
 }
 
+.tool-banner {
+    background: linear-gradient(135deg, rgba(88, 114, 255, 0.12), rgba(88, 114, 255, 0.06));
+    border: 1px solid rgba(88, 114, 255, 0.3);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.tool-banner .badge {
+    display: inline-flex;
+    padding: 0.2rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(88, 114, 255, 0.15);
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+}
+
+.tool-banner h2 {
+    margin: 0;
+}
+
+.banner-link {
+    text-decoration: none;
+    font-weight: 600;
+    color: var(--primary-color);
+    background: #fff;
+    padding: 0.75rem 1.25rem;
+    border-radius: 999px;
+    border: 1px solid rgba(88, 114, 255, 0.3);
+    box-shadow: 0 10px 30px rgba(88, 114, 255, 0.2);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.banner-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 40px rgba(88, 114, 255, 0.25);
+}
+
 .input-area {
     width: 100%;
     margin-bottom: 1.5rem;
