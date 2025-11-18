@@ -156,6 +156,17 @@ dropZone.addEventListener('drop', (event) => {
   handleFiles(event.dataTransfer.files);
 });
 
+dropZone.addEventListener('click', () => {
+  fileInput.click();
+});
+
+dropZone.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    fileInput.click();
+  }
+});
+
 // Provide a button to kick off loading even before selecting a file
 startButton.addEventListener('pointerdown', () => {
   if (!ffmpeg.isLoaded()) {
