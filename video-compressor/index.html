@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Compress MP4 videos directly in the browser with ffmpeg.wasm presets.">
+    <title>Image / Video Compressor · ffmpeg.wasm</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+</head>
+<body>
+    <div class="compressor-wrapper">
+        <header class="compressor-header">
+            <a class="back-link" href="../">← Back to Web Tools Dashboard</a>
+            <h1>Image / Video Compressor</h1>
+            <p class="subtitle">MP4 → MP4 or MP4 → WebM directly in your browser powered by ffmpeg.wasm.</p>
+        </header>
+
+        <main class="compressor-main">
+            <section class="flow-grid">
+                <article class="flow-card">
+                    <div class="step-label">1</div>
+                    <h2>Upload MP4</h2>
+                    <label class="upload-zone" for="videoInput">
+                        <input type="file" id="videoInput" accept="video/mp4" hidden>
+                        <span>Drop a file here or click to browse</span>
+                        <small>Only MP4 inputs are supported right now.</small>
+                    </label>
+                    <p id="fileDetails" class="muted">No file selected.</p>
+                </article>
+
+                <article class="flow-card">
+                    <div class="step-label">2</div>
+                    <h2>Choose Preset</h2>
+                    <label class="field">
+                        <span class="field-label">Compression preset</span>
+                        <select id="presetSelect">
+                            <option value="mp4-small">MP4 → MP4 · Small file (CRF 28, veryfast)</option>
+                            <option value="webm">MP4 → WebM · Efficient (CRF 35, VP9 + Opus)</option>
+                        </select>
+                    </label>
+                    <p class="muted">We focus on two simple scenarios to keep the experience fast and predictable.</p>
+                </article>
+
+                <article class="flow-card">
+                    <div class="step-label">3</div>
+                    <h2>Compress</h2>
+                    <div class="engine-actions">
+                        <button id="prepareEngineBtn" type="button">Load FFmpeg Engine</button>
+                        <button id="compressBtn" type="button">Compress</button>
+                    </div>
+                    <div class="engine-status" aria-live="polite">
+                        <div class="spinner" id="engineSpinner" aria-hidden="true"></div>
+                        <p id="statusMessage">Engine idle. We will load ffmpeg.wasm (~25-30&nbsp;MB) on demand.</p>
+                    </div>
+                    <div class="progress-wrapper">
+                        <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                            <span id="progressFill"></span>
+                        </div>
+                        <span id="progressText">0%</span>
+                    </div>
+                    <div class="log-panel">
+                        <div class="log-header">
+                            <h3>Activity log</h3>
+                            <button id="clearLogBtn" type="button">Clear</button>
+                        </div>
+                        <ul id="logList" aria-live="polite"></ul>
+                    </div>
+                </article>
+
+                <article class="flow-card">
+                    <div class="step-label">4</div>
+                    <h2>Download</h2>
+                    <button id="downloadBtn" type="button" disabled>Download result</button>
+                    <p id="resultSummary" class="muted">The button will unlock after a successful run.</p>
+                </article>
+            </section>
+
+            <section class="limitations">
+                <h2>Practical limitations</h2>
+                <ul>
+                    <li>Browser-based compression works best with clips up to ~300–500&nbsp;MB.</li>
+                    <li>Expect longer processing times on mobile devices or older laptops.</li>
+                    <li>The tab must stay open while the conversion is running.</li>
+                    <li>We currently support MP4 inputs with two ready-made presets (MP4 output or optional WebM).</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
