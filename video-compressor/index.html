@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Lightweight in-browser video compressor powered by ffmpeg.wasm.">
+    <title>Video Compressor | LYMN Web Tools</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body class="video-compressor-page">
+    <header class="vc-header">
+        <a href="../" class="back-link">← Back to Dashboard</a>
+        <div>
+            <p class="version-label">Tool version 1.1</p>
+            <h1>Image / Video Compressor</h1>
+            <p class="intro">Compress mp4 clips right in your browser without uploading them anywhere. The tool uses ffmpeg.wasm and works best for clips up to ~300–500 MB.</p>
+        </div>
+    </header>
+
+    <main class="vc-main">
+        <section class="module-card" aria-label="Video selection">
+            <h2>1. Upload your mp4 file</h2>
+            <p class="hint">Supported input: mp4 (H.264 / HEVC). On older phones or laptops, compression may take a while.</p>
+            <div class="drop-area" id="dropZone">
+                <p class="drop-title">Drop video here or click to browse</p>
+                <p class="drop-subtitle">Maximum recommended size ~500 MB</p>
+                <input type="file" id="videoInput" accept="video/mp4" aria-label="Video input">
+            </div>
+            <p class="selected-file" id="selectedFile">No file selected.</p>
+        </section>
+
+        <section class="module-card" aria-label="Compression settings">
+            <h2>2. Choose preset</h2>
+            <form class="preset-list" id="presetForm">
+                <label class="preset-option">
+                    <input type="radio" name="preset" value="mp4" checked>
+                    <div>
+                        <strong>Smaller MP4 (H.264)</strong>
+                        <p>Converts mp4 to mp4 with CRF 28 and "faster" preset. Keeps audio track.</p>
+                    </div>
+                </label>
+                <label class="preset-option">
+                    <input type="radio" name="preset" value="webm">
+                    <div>
+                        <strong>MP4 → WebM (VP9)</strong>
+                        <p>Produces VP9 + Opus WebM. Useful for browsers that prefer WebM.</p>
+                    </div>
+                </label>
+            </form>
+            <p class="disclaimer">Tip: Use the MP4 preset for the fastest export. WebM looks great but takes longer.</p>
+        </section>
+
+        <section class="module-card" aria-label="Compression controls">
+            <h2>3. Compress</h2>
+            <div class="actions">
+                <button id="startButton" class="primary">Compress video</button>
+                <div class="engine-loader" id="engineLoader" aria-live="polite" hidden>
+                    <span class="spinner" aria-hidden="true"></span>
+                    <span>Загружаем движок…</span>
+                </div>
+            </div>
+            <div class="progress-wrapper" aria-live="polite">
+                <progress id="progressBar" value="0" max="1"></progress>
+                <p id="progressLabel">Waiting for a file…</p>
+            </div>
+        </section>
+
+        <section class="module-card" aria-label="Result">
+            <h2>4. Download</h2>
+            <p id="resultMessage">Your compressed video will appear here.</p>
+            <a id="downloadLink" class="primary ghost" href="#" download hidden>Download result</a>
+        </section>
+
+        <section class="module-card limits" aria-label="Limitations">
+            <h2>Practical limits</h2>
+            <ul>
+                <li>Works best with mp4 files under ~500 MB.</li>
+                <li>Compression runs locally — keep the tab open.</li>
+                <li>Phones and low-end laptops may take several minutes.</li>
+                <li>While ffmpeg.wasm is loading, please wait for the spinner to finish.</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer class="vc-footer">
+        <p>Powered by <code>ffmpeg.wasm</code>. No videos leave your browser.</p>
+    </footer>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
