@@ -23,9 +23,9 @@
         <section class="module-card" aria-label="Video selection">
             <h2>1. Upload your mp4 file</h2>
             <p class="hint">Supported input: mp4 (H.264 / HEVC). On older phones or laptops, compression may take a while.</p>
-            <div class="drop-area" id="dropZone">
+            <div class="drop-area" id="dropZone" role="button" tabindex="0" aria-describedby="dropHint">
                 <p class="drop-title">Drop video here or click to browse</p>
-                <p class="drop-subtitle">Maximum recommended size ~500 MB</p>
+                <p class="drop-subtitle" id="dropHint">Maximum recommended size ~500 MB</p>
                 <input type="file" id="videoInput" accept="video/mp4" aria-label="Video input">
             </div>
             <p class="selected-file" id="selectedFile">No file selected.</p>
