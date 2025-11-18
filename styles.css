@@ -8,6 +8,8 @@
     --border-color: #e5e7eb;
     --gradient-start: #f3f4f6;
     --gradient-end: #e5e7eb;
+    --primary-color: #1f2937;
+    --brand-highlight-rgb: 88, 114, 255;
 }
 
 [data-theme="dark"] {
@@ -19,6 +21,8 @@
     --border-color: #4b5563;
     --gradient-start: #111827;
     --gradient-end: #1f2937;
+    --primary-color: #f9fafb;
+    --brand-highlight-rgb: 165, 180, 252;
 }
 
 * {
@@ -257,6 +261,54 @@ h2 {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+}
+
+.tool-banner {
+    background: linear-gradient(
+        135deg,
+        rgba(var(--brand-highlight-rgb), 0.12),
+        rgba(var(--brand-highlight-rgb), 0.06)
+    );
+    border: 1px solid rgba(var(--brand-highlight-rgb), 0.3);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.tool-banner .badge {
+    display: inline-flex;
+    padding: 0.2rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(var(--brand-highlight-rgb), 0.15);
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+}
+
+.tool-banner h2 {
+    margin: 0;
+}
+
+.banner-link {
+    text-decoration: none;
+    font-weight: 600;
+    color: var(--primary-color);
+    background: var(--bg-primary);
+    padding: 0.75rem 1.25rem;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--brand-highlight-rgb), 0.3);
+    box-shadow: 0 10px 30px rgba(var(--brand-highlight-rgb), 0.2);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.banner-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 40px rgba(var(--brand-highlight-rgb), 0.25);
 }
 
 .input-area {
