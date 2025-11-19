@@ -1,4 +1,5 @@
-import { createFFmpeg, fetchFile } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.4/dist/ffmpeg.min.js';
+import { FFmpeg } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.4/dist/ffmpeg.min.mjs';
+import { fetchFile, toBlobURL } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/util.min.mjs';
 
 const startButton = document.getElementById('startButton');
 const fileInput = document.getElementById('videoInput');
@@ -10,10 +11,10 @@ const engineLoader = document.getElementById('engineLoader');
 const downloadLink = document.getElementById('downloadLink');
 const resultMessage = document.getElementById('resultMessage');
 
-const ffmpeg = createFFmpeg({
-  log: true,
-  corePath: 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/ffmpeg-core.js'
-});
+const CORE_VERSION = '0.12.4';
+const CORE_BASE = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/umd`;
+const ffmpeg = new FFmpeg();
+let ffmpegLoaded = false;
 let currentFile = null;
 let isProcessing = false;
 
@@ -44,12 +45,21 @@ const showEngineLoader = (show) => {
 };
 
 const ensureFFmpegLoaded = async () => {
-  if (!ffmpeg.isLoaded()) {
-    showEngineLoader(true);
-    progressLabel.textContent = 'Loading ffmpeg engine…';
-    await ffmpeg.load();
-    showEngineLoader(false);
+  if (ffmpegLoaded) {
+    return;
   }
+
+  showEngineLoader(true);
+  progressLabel.textContent = 'Loading ffmpeg engine…';
+
+  await ffmpeg.load({
+    coreURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.js`, 'text/javascript'),
+    wasmURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.wasm`, 'application/wasm'),
+    workerURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.worker.js`, 'text/javascript'),
+  });
+
+  ffmpegLoaded = true;
+  showEngineLoader(false);
 };
 
 const resetDownloadState = () => {
@@ -75,6 +85,15 @@ const getPreset = () => {
   return formData.get('preset');
 };
 
+ffmpeg.on('progress', ({ progress }) => {
+  if (!Number.isFinite(progress)) {
+    return;
+  }
+  progressBar.value = Math.min(1, Math.max(0, progress));
+  const percent = Math.min(100, Math.max(0, Math.round(progress * 100)));
+  progressLabel.textContent = `Compressing… ${percent}%`;
+});
+
 const runCompression = async () => {
   if (!currentFile || isProcessing) {
     resultMessage.textContent = currentFile ? 'Another compression is already running…' : 'Please choose a file first.';
@@ -90,29 +109,21 @@ const runCompression = async () => {
 
     await ensureFFmpegLoaded();
 
-    ffmpeg.setProgress(({ ratio }) => {
-      if (Number.isFinite(ratio)) {
-        progressBar.value = ratio;
-        const percent = Math.min(100, Math.max(0, Math.round(ratio * 100)));
-        progressLabel.textContent = `Compressing… ${percent}%`;
-      }
-    });
-
     const inputName = 'input.mp4';
     const preset = getPreset();
     const outputName = preset === 'webm' ? 'output.webm' : 'output.mp4';
 
-    ffmpeg.FS('writeFile', inputName, await fetchFile(currentFile));
+    await ffmpeg.writeFile(inputName, await fetchFile(currentFile));
 
     const command = preset === 'webm'
       ? ['-i', inputName, '-c:v', 'libvpx-vp9', '-b:v', '1.2M', '-crf', '32', '-deadline', 'good', '-c:a', 'libopus', outputName]
       : ['-i', inputName, '-c:v', 'libx264', '-preset', 'faster', '-crf', '28', '-c:a', 'copy', outputName];
 
-    await ffmpeg.run(...command);
+    await ffmpeg.exec(command);
 
-    const data = ffmpeg.FS('readFile', outputName);
+    const data = await ffmpeg.readFile(outputName);
     const mime = preset === 'webm' ? 'video/webm' : 'video/mp4';
-    const blob = new Blob([data.buffer], { type: mime });
+    const blob = new Blob([data], { type: mime });
     const url = URL.createObjectURL(blob);
 
     downloadLink.href = url;
@@ -128,13 +139,21 @@ const runCompression = async () => {
     isProcessing = false;
     startButton.disabled = false;
     if (currentFile) {
-      ffmpeg.FS('unlink', 'input.mp4');
-      try {
-        ffmpeg.FS('unlink', 'output.mp4');
-      } catch (e) {}
-      try {
-        ffmpeg.FS('unlink', 'output.webm');
-      } catch (e) {}
+      const cleanup = async (fileName) => {
+        if (!fileName) return;
+        try {
+          if (typeof ffmpeg.deleteFile === 'function') {
+            await ffmpeg.deleteFile(fileName);
+          } else if (typeof ffmpeg.FS === 'function') {
+            ffmpeg.FS('unlink', fileName);
+          }
+        } catch (e) {
+          // ignore
+        }
+      };
+      await cleanup('input.mp4');
+      await cleanup('output.mp4');
+      await cleanup('output.webm');
     }
   }
 };
@@ -167,9 +186,8 @@ dropZone.addEventListener('keydown', (event) => {
   }
 });
 
-// Provide a button to kick off loading even before selecting a file
 startButton.addEventListener('pointerdown', () => {
-  if (!ffmpeg.isLoaded()) {
+  if (!ffmpegLoaded) {
     ensureFFmpegLoaded().catch(() => {
       progressLabel.textContent = 'Unable to load ffmpeg. Check your connection and retry.';
     });
