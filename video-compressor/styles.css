@@ -1,16 +1,14 @@
-:root {
-    --vc-bg: #f7f9ff;
-    --vc-card: #ffffff;
-    --vc-border: #dfe7fb;
-    --vc-primary: #4e6af3;
-    --vc-primary-dark: #3249c0;
-    --vc-text: #1f2452;
-}
-
 body.video-compressor-page {
+    --vc-bg: var(--bg-secondary, #f3f4f6);
+    --vc-card: var(--bg-primary, #ffffff);
+    --vc-border: var(--border-color, #e5e7eb);
+    --vc-primary: var(--accent-color, #111827);
+    --vc-primary-dark: #000000;
+    --vc-text: var(--text-primary, #1f2937);
+    --vc-muted: var(--text-secondary, #6b7280);
     margin: 0;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--vc-bg);
+    background: linear-gradient(135deg, var(--gradient-start, #f3f4f6), var(--gradient-end, #e5e7eb));
     color: var(--vc-text);
     min-height: 100vh;
     display: flex;
@@ -35,7 +33,7 @@ body.video-compressor-page {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: 0.8rem;
-    color: #6e76a7;
+    color: var(--vc-muted);
     margin: 0;
 }
 
@@ -55,7 +53,7 @@ body.video-compressor-page {
     border: 1px solid var(--vc-border);
     border-radius: 1rem;
     padding: 1.5rem;
-    box-shadow: 0 15px 45px rgba(65, 85, 179, 0.12);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
 }
 
 .module-card h2 {
@@ -64,7 +62,7 @@ body.video-compressor-page {
 
 .hint {
     margin-top: -0.5rem;
-    color: #6e76a7;
+    color: var(--vc-muted);
 }
 
 .drop-area {
@@ -97,7 +95,7 @@ body.video-compressor-page {
 
 .drop-subtitle {
     margin: 0.5rem 0 0;
-    color: #7f88b8;
+    color: var(--vc-muted);
 }
 
 #videoInput {
@@ -110,8 +108,16 @@ body.video-compressor-page {
 }
 
 .selected-file {
-    color: #4b4f6b;
+    color: var(--vc-muted);
     margin-top: 0.75rem;
+}
+
+.upload-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    color: var(--vc-muted);
 }
 
 .preset-list {
@@ -127,6 +133,7 @@ body.video-compressor-page {
     border: 1px solid var(--vc-border);
     border-radius: 0.75rem;
     cursor: pointer;
+    background: var(--bg-secondary, #f9fafb);
 }
 
 .preset-option input {
@@ -134,7 +141,7 @@ body.video-compressor-page {
 }
 
 .disclaimer {
-    color: #6e76a7;
+    color: var(--vc-muted);
     margin-top: 1rem;
 }
 
@@ -150,12 +157,13 @@ body.video-compressor-page {
     transition: background 0.2s ease;
 }
 
-.primary:hover {
+.primary:hover,
+.primary:focus-visible {
     background: var(--vc-primary-dark);
 }
 
 .primary.ghost {
-    background: rgba(78, 106, 243, 0.1);
+    background: rgba(17, 24, 39, 0.05);
     color: var(--vc-primary);
     text-align: center;
     display: inline-block;
@@ -171,16 +179,22 @@ body.video-compressor-page {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    color: #4b4f6b;
+    color: var(--vc-muted);
 }
 
 .spinner {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    border: 3px solid rgba(78, 106, 243, 0.2);
+    border: 3px solid rgba(0, 0, 0, 0.08);
     border-top-color: var(--vc-primary);
     animation: spin 0.9s linear infinite;
+}
+
+.spinner.small {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
 }
 
 @keyframes spin {
@@ -196,7 +210,7 @@ progress {
 }
 
 progress::-webkit-progress-bar {
-    background: #e4e8ff;
+    background: rgba(15, 23, 42, 0.1);
 }
 
 progress::-webkit-progress-value {
@@ -210,13 +224,13 @@ progress::-webkit-progress-value {
 .limits ul {
     padding-left: 1.25rem;
     margin: 0;
-    color: #4b4f6b;
+    color: var(--vc-muted);
 }
 
 .vc-footer {
     margin-top: 2rem;
     text-align: center;
-    color: #6e76a7;
+    color: var(--vc-muted);
 }
 
 @media (max-width: 600px) {

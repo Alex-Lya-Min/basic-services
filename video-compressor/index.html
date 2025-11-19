@@ -29,6 +29,10 @@
                 <input type="file" id="videoInput" accept="video/mp4" aria-label="Video input">
             </div>
             <p class="selected-file" id="selectedFile">No file selected.</p>
+            <div class="upload-status" id="uploadStatus" aria-live="polite" hidden>
+                <span class="spinner small" aria-hidden="true"></span>
+                <span id="uploadStatusText">Preparing file…</span>
+            </div>
         </section>
 
         <section class="module-card" aria-label="Compression settings">
@@ -58,7 +62,7 @@
                 <button id="startButton" class="primary">Compress video</button>
                 <div class="engine-loader" id="engineLoader" aria-live="polite" hidden>
                     <span class="spinner" aria-hidden="true"></span>
-                    <span>Загружаем движок…</span>
+                    <span id="engineLoaderText">Loading compression engine…</span>
                 </div>
             </div>
             <div class="progress-wrapper" aria-live="polite">

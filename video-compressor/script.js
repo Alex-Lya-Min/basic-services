@@ -1,5 +1,5 @@
 import { FFmpeg } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.4/dist/ffmpeg.min.mjs';
-import { fetchFile, toBlobURL } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/util.min.mjs';
+import { toBlobURL } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/util.min.mjs';
 
 const startButton = document.getElementById('startButton');
 const fileInput = document.getElementById('videoInput');
@@ -8,8 +8,11 @@ const progressBar = document.getElementById('progressBar');
 const progressLabel = document.getElementById('progressLabel');
 const selectedFileLabel = document.getElementById('selectedFile');
 const engineLoader = document.getElementById('engineLoader');
+const engineLoaderText = document.getElementById('engineLoaderText');
 const downloadLink = document.getElementById('downloadLink');
 const resultMessage = document.getElementById('resultMessage');
+const uploadStatus = document.getElementById('uploadStatus');
+const uploadStatusText = document.getElementById('uploadStatusText');
 
 const CORE_VERSION = '0.12.4';
 const CORE_BASE = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/umd`;
@@ -40,8 +43,19 @@ const updateSelectedFile = () => {
   }
 };
 
-const showEngineLoader = (show) => {
+const showEngineLoader = (show, message) => {
   engineLoader.hidden = !show;
+  if (typeof message === 'string' && engineLoaderText) {
+    engineLoaderText.textContent = message;
+  }
+};
+
+const toggleUploadStatus = (show, text) => {
+  if (!uploadStatus) return;
+  uploadStatus.hidden = !show;
+  if (typeof text === 'string' && uploadStatusText) {
+    uploadStatusText.textContent = text;
+  }
 };
 
 const ensureFFmpegLoaded = async () => {
@@ -49,17 +63,25 @@ const ensureFFmpegLoaded = async () => {
     return;
   }
 
-  showEngineLoader(true);
+  showEngineLoader(true, 'Loading compression engine…');
   progressLabel.textContent = 'Loading ffmpeg engine…';
 
-  await ffmpeg.load({
-    coreURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.js`, 'text/javascript'),
-    wasmURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.wasm`, 'application/wasm'),
-    workerURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.worker.js`, 'text/javascript'),
-  });
+  try {
+    await ffmpeg.load({
+      coreURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.js`, 'text/javascript'),
+      wasmURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.wasm`, 'application/wasm'),
+      workerURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.worker.js`, 'text/javascript'),
+    });
 
-  ffmpegLoaded = true;
-  showEngineLoader(false);
+    ffmpegLoaded = true;
+  } catch (error) {
+    console.error('Failed to load ffmpeg', error);
+    progressLabel.textContent = 'Unable to load ffmpeg.wasm';
+    resultMessage.textContent = 'ffmpeg.wasm could not be loaded. Please check your connection and refresh the page.';
+    throw error;
+  } finally {
+    showEngineLoader(false);
+  }
 };
 
 const resetDownloadState = () => {
@@ -77,6 +99,8 @@ const handleFiles = (files) => {
   currentFile = file;
   resetDownloadState();
   updateSelectedFile();
+  resultMessage.textContent = 'Choose a preset and click "Compress video" to start.';
+  toggleUploadStatus(false);
 };
 
 const getPreset = () => {
@@ -108,16 +132,20 @@ const runCompression = async () => {
     progressLabel.textContent = 'Preparing…';
 
     await ensureFFmpegLoaded();
+    progressLabel.textContent = 'Preparing…';
 
     const inputName = 'input.mp4';
     const preset = getPreset();
     const outputName = preset === 'webm' ? 'output.webm' : 'output.mp4';
 
-    await ffmpeg.writeFile(inputName, await fetchFile(currentFile));
+    toggleUploadStatus(true, 'Copying file to encoder…');
+    const fileBuffer = new Uint8Array(await currentFile.arrayBuffer());
+    await ffmpeg.writeFile(inputName, fileBuffer);
+    toggleUploadStatus(false);
 
     const command = preset === 'webm'
-      ? ['-i', inputName, '-c:v', 'libvpx-vp9', '-b:v', '1.2M', '-crf', '32', '-deadline', 'good', '-c:a', 'libopus', outputName]
-      : ['-i', inputName, '-c:v', 'libx264', '-preset', 'faster', '-crf', '28', '-c:a', 'copy', outputName];
+      ? ['-y', '-i', inputName, '-c:v', 'libvpx-vp9', '-b:v', '1.2M', '-crf', '32', '-deadline', 'good', '-c:a', 'libopus', outputName]
+      : ['-y', '-i', inputName, '-c:v', 'libx264', '-preset', 'faster', '-crf', '28', '-c:a', 'copy', outputName];
 
     await ffmpeg.exec(command);
 
@@ -133,8 +161,11 @@ const runCompression = async () => {
     progressLabel.textContent = 'Complete ✅';
   } catch (error) {
     console.error(error);
-    resultMessage.textContent = 'Something went wrong while compressing the file. Please try again or refresh the page.';
+    if (ffmpegLoaded) {
+      resultMessage.textContent = 'Something went wrong while compressing the file. Please try again or refresh the page.';
+    }
     progressLabel.textContent = 'Error';
+    toggleUploadStatus(false);
   } finally {
     isProcessing = false;
     startButton.disabled = false;
@@ -160,7 +191,10 @@ const runCompression = async () => {
 
 startButton.addEventListener('click', runCompression);
 
-fileInput.addEventListener('change', (event) => handleFiles(event.target.files));
+fileInput.addEventListener('change', (event) => {
+  handleFiles(event.target.files);
+  event.target.value = '';
+});
 
 dropZone.addEventListener('dragover', (event) => {
   event.preventDefault();
