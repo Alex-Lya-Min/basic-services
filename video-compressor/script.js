@@ -1,5 +1,4 @@
-import { FFmpeg } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.4/dist/ffmpeg.min.mjs';
-import { toBlobURL } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/util.min.mjs';
+import { createFFmpeg } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.4/dist/ffmpeg.min.mjs';
 
 const startButton = document.getElementById('startButton');
 const fileInput = document.getElementById('videoInput');
@@ -15,8 +14,10 @@ const uploadStatus = document.getElementById('uploadStatus');
 const uploadStatusText = document.getElementById('uploadStatusText');
 
 const CORE_VERSION = '0.12.4';
-const CORE_BASE = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/umd`;
-const ffmpeg = new FFmpeg();
+const CORE_PATH = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/umd/ffmpeg-core.js`;
+const ffmpeg = createFFmpeg({
+  corePath: CORE_PATH,
+});
 let ffmpegLoaded = false;
 let currentFile = null;
 let isProcessing = false;
@@ -67,11 +68,7 @@ const ensureFFmpegLoaded = async () => {
   progressLabel.textContent = 'Loading ffmpeg engine…';
 
   try {
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.js`, 'text/javascript'),
-      wasmURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.wasm`, 'application/wasm'),
-      workerURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.worker.js`, 'text/javascript'),
-    });
+    await ffmpeg.load();
 
     ffmpegLoaded = true;
   } catch (error) {
@@ -140,16 +137,16 @@ const runCompression = async () => {
 
     toggleUploadStatus(true, 'Copying file to encoder…');
     const fileBuffer = new Uint8Array(await currentFile.arrayBuffer());
-    await ffmpeg.writeFile(inputName, fileBuffer);
+    ffmpeg.FS('writeFile', inputName, fileBuffer);
     toggleUploadStatus(false);
 
     const command = preset === 'webm'
       ? ['-y', '-i', inputName, '-c:v', 'libvpx-vp9', '-b:v', '1.2M', '-crf', '32', '-deadline', 'good', '-c:a', 'libopus', outputName]
       : ['-y', '-i', inputName, '-c:v', 'libx264', '-preset', 'faster', '-crf', '28', '-c:a', 'copy', outputName];
 
-    await ffmpeg.exec(command);
+    await ffmpeg.run(...command);
 
-    const data = await ffmpeg.readFile(outputName);
+    const data = ffmpeg.FS('readFile', outputName);
     const mime = preset === 'webm' ? 'video/webm' : 'video/mp4';
     const blob = new Blob([data], { type: mime });
     const url = URL.createObjectURL(blob);
@@ -173,9 +170,7 @@ const runCompression = async () => {
       const cleanup = async (fileName) => {
         if (!fileName) return;
         try {
-          if (typeof ffmpeg.deleteFile === 'function') {
-            await ffmpeg.deleteFile(fileName);
-          } else if (typeof ffmpeg.FS === 'function') {
+          if (typeof ffmpeg.FS === 'function') {
             ffmpeg.FS('unlink', fileName);
           }
         } catch (e) {
