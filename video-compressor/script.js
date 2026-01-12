@@ -1,6 +1,16 @@
-const expectedFfmpegScriptUrl = new URL('./vendor/ffmpeg.js', import.meta.url).toString();
-const coreURL = new URL('./vendor/ffmpeg-core.js', import.meta.url).toString();
-const wasmURL = new URL('./vendor/ffmpeg-core.wasm', import.meta.url).toString();
+// ffmpeg.js is loaded as a UMD script in index.html and exposes globals.
+// In this UMD build (unpkg @ffmpeg/ffmpeg@0.12.4), the API is the FFmpeg CLASS,
+// not createFFmpeg/fetchFile/run/FS.
+
+function getFFmpegClass() {
+  // UMD can expose: window.FFmpegWASM.FFmpeg (your case), window.FFmpegWasm.FFmpeg, or window.FFmpeg
+  return (
+    window.FFmpegWASM?.FFmpeg ||
+    window.FFmpegWasm?.FFmpeg ||
+    window.FFmpeg ||
+    null
+  );
+}
 
 const startButton = document.getElementById('startButton');
 const fileInput = document.getElementById('videoInput');
@@ -15,13 +25,16 @@ const resultMessage = document.getElementById('resultMessage');
 const uploadStatus = document.getElementById('uploadStatus');
 const uploadStatusText = document.getElementById('uploadStatusText');
 
+const CORE_URL = new URL('./vendor/ffmpeg-core.js', import.meta.url).toString();
+const WASM_URL = new URL('./vendor/ffmpeg-core.wasm', import.meta.url).toString();
+const expectedFfmpegScriptUrl = new URL('./vendor/ffmpeg.js', import.meta.url).toString();
+
 let ffmpeg = null;
 let ffmpegLoaded = false;
-let ffmpegLoadPromise = null;
 let progressHandlerAttached = false;
+
 let currentFile = null;
 let isProcessing = false;
-let currentDownloadUrl = null;
 
 const readerFriendlySize = (size) => {
   if (!size && size !== 0) return '';
@@ -35,13 +48,6 @@ const readerFriendlySize = (size) => {
   return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
 };
 
-const getFFmpegClass = () => {
-  if (window.FFmpegWASM?.FFmpeg) return window.FFmpegWASM.FFmpeg;
-  if (window.FFmpegWasm?.FFmpeg) return window.FFmpegWasm.FFmpeg;
-  if (window.FFmpeg) return window.FFmpeg;
-  return null;
-};
-
 const updateSelectedFile = () => {
   if (currentFile) {
     selectedFileLabel.textContent = `${currentFile.name} (${readerFriendlySize(currentFile.size)})`;
@@ -53,7 +59,7 @@ const updateSelectedFile = () => {
 };
 
 const showEngineLoader = (show, message) => {
-  engineLoader.hidden = !show;
+  if (engineLoader) engineLoader.hidden = !show;
   if (typeof message === 'string' && engineLoaderText) {
     engineLoaderText.textContent = message;
   }
@@ -70,72 +76,67 @@ const toggleUploadStatus = (show, text) => {
 const resetDownloadState = () => {
   downloadLink.hidden = true;
   downloadLink.removeAttribute('href');
-  if (currentDownloadUrl) {
-    URL.revokeObjectURL(currentDownloadUrl);
-    currentDownloadUrl = null;
-  }
 };
 
 const attachProgressHandler = () => {
-  if (!ffmpeg || typeof ffmpeg.on !== 'function' || progressHandlerAttached) {
-    return;
-  }
+  if (!ffmpeg || typeof ffmpeg.on !== 'function') return;
+  if (progressHandlerAttached) return;
   progressHandlerAttached = true;
+
   ffmpeg.on('progress', ({ progress }) => {
-    if (!Number.isFinite(progress)) {
-      return;
-    }
-    const clampedProgress = Math.min(1, Math.max(0, progress));
-    progressBar.value = clampedProgress;
-    const percent = Math.min(100, Math.max(0, Math.round(clampedProgress * 100)));
-    progressLabel.textContent = `Compressing… ${percent}%`;
+    if (!Number.isFinite(progress)) return;
+    const p = Math.min(1, Math.max(0, progress));
+    progressBar.value = p;
+    progressLabel.textContent = `Compressing… ${Math.round(p * 100)}%`;
   });
 };
 
 const ensureFFmpegLoaded = async () => {
-  if (ffmpegLoaded) {
-    return;
+  if (ffmpegLoaded) return;
+
+  const FFmpegClass = getFFmpegClass();
+  if (!FFmpegClass) {
+    throw new Error(
+      `FFmpeg UMD class not found. Ensure this script is loaded before script.js: ${expectedFfmpegScriptUrl}`
+    );
   }
 
-  if (!ffmpegLoadPromise) {
-    const FFmpegClass = getFFmpegClass();
-    if (!FFmpegClass) {
-      throw new Error(
-        `FFmpeg could not initialize because the UMD build is missing. Expected: ${expectedFfmpegScriptUrl}`,
-      );
+  showEngineLoader(true, 'Loading compression engine…');
+  progressLabel.textContent = 'Loading ffmpeg engine…';
+
+  try {
+    if (!ffmpeg) {
+      ffmpeg = new FFmpegClass();
+      attachProgressHandler();
     }
 
-    ffmpeg = new FFmpegClass();
-    attachProgressHandler();
+    // New API: load({ coreURL, wasmURL })
+    await ffmpeg.load({
+      coreURL: CORE_URL,
+      wasmURL: WASM_URL,
+    });
 
-    ffmpegLoadPromise = (async () => {
-      showEngineLoader(true, 'Loading compression engine…');
-      progressLabel.textContent = 'Loading ffmpeg engine…';
-      try {
-        await ffmpeg.load({ coreURL, wasmURL });
-        ffmpegLoaded = true;
-      } catch (error) {
-        ffmpegLoaded = false;
-        throw error;
-      } finally {
-        showEngineLoader(false);
-      }
-    })();
+    ffmpegLoaded = true;
+  } finally {
+    showEngineLoader(false);
   }
-
-  await ffmpegLoadPromise;
 };
 
 const handleFiles = (files) => {
   if (!files || files.length === 0) return;
   const [file] = files;
+
+  // Keep it simple: accept mp4 only (like your UI copy)
   if (!file.type.includes('mp4')) {
     resultMessage.textContent = 'Only mp4 files are supported right now.';
     return;
   }
+
   currentFile = file;
   resetDownloadState();
+  progressBar.value = 0;
   updateSelectedFile();
+
   resultMessage.textContent = 'Choose a preset and click "Compress video" to start.';
   toggleUploadStatus(false);
 };
@@ -146,14 +147,15 @@ const getPreset = () => {
   return formData.get('preset');
 };
 
-const safeDelete = async (fileName) => {
-  if (!ffmpeg || !fileName) return;
+async function safeDelete(name) {
+  if (!ffmpeg) return;
+  if (typeof ffmpeg.deleteFile !== 'function') return;
   try {
-    await ffmpeg.deleteFile(fileName);
-  } catch (error) {
-    // ignore cleanup errors
+    await ffmpeg.deleteFile(name);
+  } catch (_) {
+    // ignore
   }
-};
+}
 
 const runCompression = async () => {
   if (isProcessing) {
@@ -168,14 +170,12 @@ const runCompression = async () => {
   isProcessing = true;
   startButton.disabled = true;
   resetDownloadState();
+
   progressBar.value = 0;
   progressLabel.textContent = 'Preparing…';
 
   try {
     await ensureFFmpegLoaded();
-
-    progressBar.value = 0;
-    progressLabel.textContent = 'Preparing…';
 
     const inputName = 'input.mp4';
     const preset = getPreset();
@@ -184,45 +184,44 @@ const runCompression = async () => {
     toggleUploadStatus(true, 'Copying file to encoder…');
     const fileBuffer = new Uint8Array(await currentFile.arrayBuffer());
     await ffmpeg.writeFile(inputName, fileBuffer);
-    toggleUploadStatus(false, '');
+    toggleUploadStatus(false);
 
     const command = preset === 'webm'
       ? ['-y', '-i', inputName, '-c:v', 'libvpx-vp9', '-b:v', '1.2M', '-crf', '32', '-deadline', 'good', '-c:a', 'libopus', outputName]
       : ['-y', '-i', inputName, '-c:v', 'libx264', '-preset', 'faster', '-crf', '28', '-c:a', 'copy', outputName];
 
+    progressBar.value = 0;
+    progressLabel.textContent = 'Compressing… 0%';
+
     await ffmpeg.exec(command);
 
     const data = await ffmpeg.readFile(outputName);
-    if (!data) {
+    if (!data || data.length === 0) {
       throw new Error('Compression failed to produce an output file.');
     }
 
     const mime = preset === 'webm' ? 'video/webm' : 'video/mp4';
-    const blob = new Blob([data.buffer ?? data], { type: mime });
+    const blob = new Blob([data], { type: mime });
     const url = URL.createObjectURL(blob);
 
-    currentDownloadUrl = url;
     downloadLink.href = url;
     downloadLink.download = preset === 'webm' ? 'compressed.webm' : 'compressed.mp4';
     downloadLink.hidden = false;
+
     resultMessage.textContent = 'Done! Click the button below to download the compressed video.';
-    progressLabel.textContent = 'Complete ✅';
+    progressLabel.textContent = 'Complete';
+    progressBar.value = 1;
   } catch (error) {
     console.error(error);
-    progressBar.value = 0;
-    if (!ffmpegLoaded) {
-      progressLabel.textContent = 'Unable to load ffmpeg.wasm';
-      resultMessage.textContent = 'Compression engine failed to load. Please refresh the page.';
-    } else {
-      resultMessage.textContent = 'Something went wrong while compressing the file. Please try again or refresh the page.';
-      progressLabel.textContent = 'Error';
-    }
-    toggleUploadStatus(false);
+    resultMessage.textContent = 'Something went wrong while compressing the file. Please try again or refresh the page.';
+    progressLabel.textContent = 'Error';
   } finally {
-    isProcessing = false;
-    startButton.disabled = false;
-    showEngineLoader(false);
     toggleUploadStatus(false);
+    showEngineLoader(false);
+    startButton.disabled = false;
+    isProcessing = false;
+
+    // Cleanup temp files
     await safeDelete('input.mp4');
     await safeDelete('output.mp4');
     await safeDelete('output.webm');
