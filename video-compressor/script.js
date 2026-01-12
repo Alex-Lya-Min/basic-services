@@ -1,4 +1,4 @@
-import { createFFmpeg } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.4/dist/ffmpeg.min.mjs';
+import { createFFmpeg } from './vendor/ffmpeg.min.mjs';
 
 const startButton = document.getElementById('startButton');
 const fileInput = document.getElementById('videoInput');
@@ -14,7 +14,7 @@ const uploadStatus = document.getElementById('uploadStatus');
 const uploadStatusText = document.getElementById('uploadStatusText');
 
 const CORE_VERSION = '0.12.4';
-const CORE_PATH = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/ffmpeg-core.js`;
+const CORE_PATH = './vendor/ffmpeg-core.js';
 const ffmpeg = createFFmpeg({
   corePath: CORE_PATH,
 });
