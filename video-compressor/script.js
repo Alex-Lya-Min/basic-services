@@ -1,13 +1,6 @@
-// ffmpeg.js is loaded as a UMD script in index.html and exposes globals.
 const expectedFfmpegScriptUrl = new URL('./vendor/ffmpeg.js', import.meta.url).toString();
-function getFFmpegUMD() {
-  if (window.FFmpeg) return window.FFmpeg;
-  if (window.FFmpegWASM?.FFmpeg) return window.FFmpegWASM.FFmpeg;
-  if (window.FFmpegWasm?.FFmpeg) return window.FFmpegWasm.FFmpeg;
-  return null;
-}
-let createFFmpeg;
-let fetchFile;
+const coreURL = new URL('./vendor/ffmpeg-core.js', import.meta.url).toString();
+const wasmURL = new URL('./vendor/ffmpeg-core.wasm', import.meta.url).toString();
 
 const startButton = document.getElementById('startButton');
 const fileInput = document.getElementById('videoInput');
@@ -22,12 +15,13 @@ const resultMessage = document.getElementById('resultMessage');
 const uploadStatus = document.getElementById('uploadStatus');
 const uploadStatusText = document.getElementById('uploadStatusText');
 
-const CORE_PATH = new URL('./vendor/ffmpeg-core.js', import.meta.url).toString();
 let ffmpeg = null;
 let ffmpegLoaded = false;
+let ffmpegLoadPromise = null;
 let progressHandlerAttached = false;
 let currentFile = null;
 let isProcessing = false;
+let currentDownloadUrl = null;
 
 const readerFriendlySize = (size) => {
   if (!size && size !== 0) return '';
@@ -39,6 +33,13 @@ const readerFriendlySize = (size) => {
     i += 1;
   }
   return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
+};
+
+const getFFmpegClass = () => {
+  if (window.FFmpegWASM?.FFmpeg) return window.FFmpegWASM.FFmpeg;
+  if (window.FFmpegWasm?.FFmpeg) return window.FFmpegWasm.FFmpeg;
+  if (window.FFmpeg) return window.FFmpeg;
+  return null;
 };
 
 const updateSelectedFile = () => {
@@ -66,11 +67,17 @@ const toggleUploadStatus = (show, text) => {
   }
 };
 
-const attachProgressHandler = () => {
-  if (!ffmpeg || typeof ffmpeg.on !== 'function') {
-    return;
+const resetDownloadState = () => {
+  downloadLink.hidden = true;
+  downloadLink.removeAttribute('href');
+  if (currentDownloadUrl) {
+    URL.revokeObjectURL(currentDownloadUrl);
+    currentDownloadUrl = null;
   }
-  if (progressHandlerAttached) {
+};
+
+const attachProgressHandler = () => {
+  if (!ffmpeg || typeof ffmpeg.on !== 'function' || progressHandlerAttached) {
     return;
   }
   progressHandlerAttached = true;
@@ -78,53 +85,45 @@ const attachProgressHandler = () => {
     if (!Number.isFinite(progress)) {
       return;
     }
-    progressBar.value = Math.min(1, Math.max(0, progress));
-    const percent = Math.min(100, Math.max(0, Math.round(progress * 100)));
+    const clampedProgress = Math.min(1, Math.max(0, progress));
+    progressBar.value = clampedProgress;
+    const percent = Math.min(100, Math.max(0, Math.round(clampedProgress * 100)));
     progressLabel.textContent = `Compressing… ${percent}%`;
   });
 };
 
 const ensureFFmpegLoaded = async () => {
-  const FF = getFFmpegUMD();
-  if (!FF) {
-    throw new Error(
-      `FFmpeg could not initialize because the UMD build is missing. Expected: ${expectedFfmpegScriptUrl}`,
-    );
-  }
-  ({ createFFmpeg, fetchFile } = FF);
-  if (!ffmpeg && typeof createFFmpeg === 'function') {
-    ffmpeg = createFFmpeg({
-      corePath: CORE_PATH,
-    });
-    attachProgressHandler();
-  }
-  if (!ffmpeg) {
-    throw new Error('Compression engine failed to initialize.');
-  }
   if (ffmpegLoaded) {
     return;
   }
 
-  showEngineLoader(true, 'Loading compression engine…');
-  progressLabel.textContent = 'Loading ffmpeg engine…';
-
-  try {
-    if (ffmpeg) {
-      await ffmpeg.load();
+  if (!ffmpegLoadPromise) {
+    const FFmpegClass = getFFmpegClass();
+    if (!FFmpegClass) {
+      throw new Error(
+        `FFmpeg could not initialize because the UMD build is missing. Expected: ${expectedFfmpegScriptUrl}`,
+      );
     }
 
-    ffmpegLoaded = true;
-  } catch (error) {
-    console.error('Failed to load ffmpeg', error);
-    throw error;
-  } finally {
-    showEngineLoader(false);
-  }
-};
+    ffmpeg = new FFmpegClass();
+    attachProgressHandler();
 
-const resetDownloadState = () => {
-  downloadLink.hidden = true;
-  downloadLink.removeAttribute('href');
+    ffmpegLoadPromise = (async () => {
+      showEngineLoader(true, 'Loading compression engine…');
+      progressLabel.textContent = 'Loading ffmpeg engine…';
+      try {
+        await ffmpeg.load({ coreURL, wasmURL });
+        ffmpegLoaded = true;
+      } catch (error) {
+        ffmpegLoaded = false;
+        throw error;
+      } finally {
+        showEngineLoader(false);
+      }
+    })();
+  }
+
+  await ffmpegLoadPromise;
 };
 
 const handleFiles = (files) => {
@@ -147,24 +146,34 @@ const getPreset = () => {
   return formData.get('preset');
 };
 
-const runCompression = async () => {
+const safeDelete = async (fileName) => {
+  if (!ffmpeg || !fileName) return;
   try {
-    if (isProcessing) {
-      resultMessage.textContent = 'Another compression is already running…';
-      return;
-    }
-    if (!currentFile) {
-      resultMessage.textContent = 'Please choose a file first.';
-      return;
-    }
+    await ffmpeg.deleteFile(fileName);
+  } catch (error) {
+    // ignore cleanup errors
+  }
+};
 
-    isProcessing = true;
-    startButton.disabled = true;
-    resetDownloadState();
-    progressBar.value = 0;
-    progressLabel.textContent = 'Preparing…';
+const runCompression = async () => {
+  if (isProcessing) {
+    resultMessage.textContent = 'Another compression is already running…';
+    return;
+  }
+  if (!currentFile) {
+    resultMessage.textContent = 'Please choose a file first.';
+    return;
+  }
 
+  isProcessing = true;
+  startButton.disabled = true;
+  resetDownloadState();
+  progressBar.value = 0;
+  progressLabel.textContent = 'Preparing…';
+
+  try {
     await ensureFFmpegLoaded();
+
     progressBar.value = 0;
     progressLabel.textContent = 'Preparing…';
 
@@ -173,30 +182,26 @@ const runCompression = async () => {
     const outputName = preset === 'webm' ? 'output.webm' : 'output.mp4';
 
     toggleUploadStatus(true, 'Copying file to encoder…');
-    const fileBuffer = fetchFile
-      ? await fetchFile(currentFile)
-      : new Uint8Array(await currentFile.arrayBuffer());
-    if (ffmpeg) {
-      ffmpeg.FS('writeFile', inputName, fileBuffer);
-    }
-    toggleUploadStatus(false);
+    const fileBuffer = new Uint8Array(await currentFile.arrayBuffer());
+    await ffmpeg.writeFile(inputName, fileBuffer);
+    toggleUploadStatus(false, '');
 
     const command = preset === 'webm'
       ? ['-y', '-i', inputName, '-c:v', 'libvpx-vp9', '-b:v', '1.2M', '-crf', '32', '-deadline', 'good', '-c:a', 'libopus', outputName]
       : ['-y', '-i', inputName, '-c:v', 'libx264', '-preset', 'faster', '-crf', '28', '-c:a', 'copy', outputName];
 
-    if (ffmpeg) {
-      await ffmpeg.run(...command);
-    }
+    await ffmpeg.exec(command);
 
-    const data = ffmpeg ? ffmpeg.FS('readFile', outputName) : null;
+    const data = await ffmpeg.readFile(outputName);
     if (!data) {
       throw new Error('Compression failed to produce an output file.');
     }
+
     const mime = preset === 'webm' ? 'video/webm' : 'video/mp4';
-    const blob = new Blob([data], { type: mime });
+    const blob = new Blob([data.buffer ?? data], { type: mime });
     const url = URL.createObjectURL(blob);
 
+    currentDownloadUrl = url;
     downloadLink.href = url;
     downloadLink.download = preset === 'webm' ? 'compressed.webm' : 'compressed.mp4';
     downloadLink.hidden = false;
@@ -204,6 +209,7 @@ const runCompression = async () => {
     progressLabel.textContent = 'Complete ✅';
   } catch (error) {
     console.error(error);
+    progressBar.value = 0;
     if (!ffmpegLoaded) {
       progressLabel.textContent = 'Unable to load ffmpeg.wasm';
       resultMessage.textContent = 'Compression engine failed to load. Please refresh the page.';
@@ -217,21 +223,9 @@ const runCompression = async () => {
     startButton.disabled = false;
     showEngineLoader(false);
     toggleUploadStatus(false);
-    if (currentFile) {
-      const cleanup = async (fileName) => {
-        if (!fileName) return;
-        try {
-          if (ffmpeg && typeof ffmpeg.FS === 'function') {
-            ffmpeg.FS('unlink', fileName);
-          }
-        } catch (e) {
-          // ignore
-        }
-      };
-      await cleanup('input.mp4');
-      await cleanup('output.mp4');
-      await cleanup('output.webm');
-    }
+    await safeDelete('input.mp4');
+    await safeDelete('output.mp4');
+    await safeDelete('output.webm');
   }
 };
 
