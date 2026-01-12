@@ -25,6 +25,7 @@ const uploadStatusText = document.getElementById('uploadStatusText');
 const CORE_PATH = new URL('./vendor/ffmpeg-core.js', import.meta.url).toString();
 let ffmpeg = null;
 let ffmpegLoaded = false;
+let progressHandlerAttached = false;
 let currentFile = null;
 let isProcessing = false;
 
@@ -69,6 +70,10 @@ const attachProgressHandler = () => {
   if (!ffmpeg || typeof ffmpeg.on !== 'function') {
     return;
   }
+  if (progressHandlerAttached) {
+    return;
+  }
+  progressHandlerAttached = true;
   ffmpeg.on('progress', ({ progress }) => {
     if (!Number.isFinite(progress)) {
       return;
@@ -82,16 +87,9 @@ const attachProgressHandler = () => {
 const ensureFFmpegLoaded = async () => {
   const FF = getFFmpegUMD();
   if (!FF) {
-    console.error(
+    throw new Error(
       `FFmpeg could not initialize because the UMD build is missing. Expected: ${expectedFfmpegScriptUrl}`,
     );
-    progressLabel.textContent = 'Unable to load ffmpeg engine.';
-    resultMessage.textContent = 'Compression engine failed to load. Please refresh the page.';
-    showEngineLoader(false);
-    toggleUploadStatus(false);
-    startButton.disabled = false;
-    isProcessing = false;
-    return;
   }
   ({ createFFmpeg, fetchFile } = FF);
   if (!ffmpeg && typeof createFFmpeg === 'function') {
@@ -101,9 +99,7 @@ const ensureFFmpegLoaded = async () => {
     attachProgressHandler();
   }
   if (!ffmpeg) {
-    progressLabel.textContent = 'Unable to load ffmpeg engine.';
-    resultMessage.textContent = 'Compression engine failed to load. Please refresh the page.';
-    return;
+    throw new Error('Compression engine failed to initialize.');
   }
   if (ffmpegLoaded) {
     return;
@@ -120,8 +116,6 @@ const ensureFFmpegLoaded = async () => {
     ffmpegLoaded = true;
   } catch (error) {
     console.error('Failed to load ffmpeg', error);
-    progressLabel.textContent = 'Unable to load ffmpeg.wasm';
-    resultMessage.textContent = 'ffmpeg.wasm could not be loaded. Please check your connection and refresh the page.';
     throw error;
   } finally {
     showEngineLoader(false);
@@ -154,12 +148,16 @@ const getPreset = () => {
 };
 
 const runCompression = async () => {
-  if (!currentFile || isProcessing) {
-    resultMessage.textContent = currentFile ? 'Another compression is already running…' : 'Please choose a file first.';
-    return;
-  }
-
   try {
+    if (isProcessing) {
+      resultMessage.textContent = 'Another compression is already running…';
+      return;
+    }
+    if (!currentFile) {
+      resultMessage.textContent = 'Please choose a file first.';
+      return;
+    }
+
     isProcessing = true;
     startButton.disabled = true;
     resetDownloadState();
@@ -167,11 +165,7 @@ const runCompression = async () => {
     progressLabel.textContent = 'Preparing…';
 
     await ensureFFmpegLoaded();
-    if (!ffmpeg) {
-      resultMessage.textContent = 'Compression engine failed to load. Please refresh the page.';
-      progressLabel.textContent = 'Unable to load ffmpeg engine.';
-      return;
-    }
+    progressBar.value = 0;
     progressLabel.textContent = 'Preparing…';
 
     const inputName = 'input.mp4';
@@ -210,16 +204,19 @@ const runCompression = async () => {
     progressLabel.textContent = 'Complete ✅';
   } catch (error) {
     console.error(error);
-    if (ffmpegLoaded) {
+    if (!ffmpegLoaded) {
+      progressLabel.textContent = 'Unable to load ffmpeg.wasm';
+      resultMessage.textContent = 'Compression engine failed to load. Please refresh the page.';
+    } else {
       resultMessage.textContent = 'Something went wrong while compressing the file. Please try again or refresh the page.';
+      progressLabel.textContent = 'Error';
     }
-    progressLabel.textContent = 'Error';
     toggleUploadStatus(false);
   } finally {
-    showEngineLoader(false);
-    toggleUploadStatus(false);
     isProcessing = false;
     startButton.disabled = false;
+    showEngineLoader(false);
+    toggleUploadStatus(false);
     if (currentFile) {
       const cleanup = async (fileName) => {
         if (!fileName) return;
@@ -266,14 +263,6 @@ dropZone.addEventListener('keydown', (event) => {
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault();
     fileInput.click();
-  }
-});
-
-startButton.addEventListener('pointerdown', () => {
-  if (!ffmpegLoaded) {
-    ensureFFmpegLoaded().catch(() => {
-      progressLabel.textContent = 'Unable to load ffmpeg. Check your connection and retry.';
-    });
   }
 });
 
