@@ -1,4 +1,5 @@
-import { createFFmpeg } from './vendor/ffmpeg.min.mjs';
+// ffmpeg.js is loaded as a UMD script in index.html and exposes global `FFmpeg`
+const { createFFmpeg } = window.FFmpeg;
 
 const startButton = document.getElementById('startButton');
 const fileInput = document.getElementById('videoInput');
@@ -13,7 +14,6 @@ const resultMessage = document.getElementById('resultMessage');
 const uploadStatus = document.getElementById('uploadStatus');
 const uploadStatusText = document.getElementById('uploadStatusText');
 
-const CORE_VERSION = '0.12.4';
 const CORE_PATH = './vendor/ffmpeg-core.js';
 const ffmpeg = createFFmpeg({
   corePath: CORE_PATH,
