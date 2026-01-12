@@ -14,7 +14,7 @@ const uploadStatus = document.getElementById('uploadStatus');
 const uploadStatusText = document.getElementById('uploadStatusText');
 
 const CORE_VERSION = '0.12.4';
-const CORE_PATH = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/umd/ffmpeg-core.js`;
+const CORE_PATH = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/ffmpeg-core.js`;
 const ffmpeg = createFFmpeg({
   corePath: CORE_PATH,
 });
