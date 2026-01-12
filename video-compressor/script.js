@@ -1,16 +1,4 @@
 // ffmpeg.js is loaded as a UMD script in index.html and exposes globals.
-// In this UMD build (unpkg @ffmpeg/ffmpeg@0.12.4), the API is the FFmpeg CLASS,
-// not createFFmpeg/fetchFile/run/FS.
-
-function getFFmpegClass() {
-  // UMD can expose: window.FFmpegWASM.FFmpeg (your case), window.FFmpegWasm.FFmpeg, or window.FFmpeg
-  return (
-    window.FFmpegWASM?.FFmpeg ||
-    window.FFmpegWasm?.FFmpeg ||
-    window.FFmpeg ||
-    null
-  );
-}
 
 const startButton = document.getElementById('startButton');
 const fileInput = document.getElementById('videoInput');
@@ -31,6 +19,7 @@ const expectedFfmpegScriptUrl = new URL('./vendor/ffmpeg.js', import.meta.url).t
 
 let ffmpeg = null;
 let ffmpegLoaded = false;
+let ffmpegApiMode = null;
 let progressHandlerAttached = false;
 
 let currentFile = null;
@@ -78,12 +67,36 @@ const resetDownloadState = () => {
   downloadLink.removeAttribute('href');
 };
 
-const attachProgressHandler = () => {
-  if (!ffmpeg || typeof ffmpeg.on !== 'function') return;
-  if (progressHandlerAttached) return;
+const attachNamespaceProgressHandler = (instance) => {
+  if (!instance || progressHandlerAttached) return;
+
+  if (typeof instance.setProgress === 'function') {
+    instance.setProgress(({ ratio }) => {
+      if (!Number.isFinite(ratio)) return;
+      const p = Math.min(1, Math.max(0, ratio));
+      progressBar.value = p;
+      progressLabel.textContent = `Compressing… ${Math.round(p * 100)}%`;
+    });
+    progressHandlerAttached = true;
+    return;
+  }
+
+  if (typeof instance.on === 'function') {
+    instance.on('progress', ({ ratio }) => {
+      if (!Number.isFinite(ratio)) return;
+      const p = Math.min(1, Math.max(0, ratio));
+      progressBar.value = p;
+      progressLabel.textContent = `Compressing… ${Math.round(p * 100)}%`;
+    });
+    progressHandlerAttached = true;
+  }
+};
+
+const attachClassProgressHandler = (instance) => {
+  if (!instance || typeof instance.on !== 'function' || progressHandlerAttached) return;
   progressHandlerAttached = true;
 
-  ffmpeg.on('progress', ({ progress }) => {
+  instance.on('progress', ({ progress }) => {
     if (!Number.isFinite(progress)) return;
     const p = Math.min(1, Math.max(0, progress));
     progressBar.value = p;
@@ -91,13 +104,38 @@ const attachProgressHandler = () => {
   });
 };
 
+const resolveFfmpegNamespaceApi = () => {
+  if (window.FFmpegWASM?.FFmpeg?.createFFmpeg) {
+    return { namespace: window.FFmpegWASM.FFmpeg, mode: 'namespace' };
+  }
+  if (window.FFmpegWasm?.FFmpeg?.createFFmpeg) {
+    return { namespace: window.FFmpegWasm.FFmpeg, mode: 'namespace' };
+  }
+  if (window.FFmpeg?.createFFmpeg) {
+    return { namespace: window.FFmpeg, mode: 'namespace' };
+  }
+  return null;
+};
+
+const resolveFfmpegClassApi = () => {
+  if (typeof window.FFmpegWASM?.FFmpeg === 'function' && window.FFmpegWASM.FFmpeg.prototype?.load) {
+    return { ctor: window.FFmpegWASM.FFmpeg, mode: 'class' };
+  }
+  if (typeof window.FFmpeg === 'function') {
+    return { ctor: window.FFmpeg, mode: 'class' };
+  }
+  return null;
+};
+
 const ensureFFmpegLoaded = async () => {
   if (ffmpegLoaded) return;
 
-  const FFmpegClass = getFFmpegClass();
-  if (!FFmpegClass) {
+  const namespaceResult = resolveFfmpegNamespaceApi();
+  const classResult = namespaceResult ? null : resolveFfmpegClassApi();
+
+  if (!namespaceResult && !classResult) {
     throw new Error(
-      `FFmpeg UMD class not found. Ensure this script is loaded before script.js: ${expectedFfmpegScriptUrl}`
+      `Compression engine failed to initialize. Expected ffmpeg UMD script at ${expectedFfmpegScriptUrl}`
     );
   }
 
@@ -105,16 +143,19 @@ const ensureFFmpegLoaded = async () => {
   progressLabel.textContent = 'Loading ffmpeg engine…';
 
   try {
-    if (!ffmpeg) {
-      ffmpeg = new FFmpegClass();
-      attachProgressHandler();
+    if (namespaceResult) {
+      const { createFFmpeg, fetchFile } = namespaceResult.namespace;
+      ffmpeg = createFFmpeg({ corePath: CORE_URL });
+      ffmpegApiMode = 'namespace';
+      attachNamespaceProgressHandler(ffmpeg);
+      await ffmpeg.load();
+      ffmpeg.fetchFile = fetchFile;
+    } else if (classResult) {
+      ffmpeg = new classResult.ctor();
+      ffmpegApiMode = 'class';
+      attachClassProgressHandler(ffmpeg);
+      await ffmpeg.load({ coreURL: CORE_URL, wasmURL: WASM_URL });
     }
-
-    // New API: load({ coreURL, wasmURL })
-    await ffmpeg.load({
-      coreURL: CORE_URL,
-      wasmURL: WASM_URL,
-    });
 
     ffmpegLoaded = true;
   } finally {
@@ -126,7 +167,6 @@ const handleFiles = (files) => {
   if (!files || files.length === 0) return;
   const [file] = files;
 
-  // Keep it simple: accept mp4 only (like your UI copy)
   if (!file.type.includes('mp4')) {
     resultMessage.textContent = 'Only mp4 files are supported right now.';
     return;
@@ -149,11 +189,12 @@ const getPreset = () => {
 
 async function safeDelete(name) {
   if (!ffmpeg) return;
-  if (typeof ffmpeg.deleteFile !== 'function') return;
-  try {
-    await ffmpeg.deleteFile(name);
-  } catch (_) {
-    // ignore
+  if (ffmpegApiMode === 'class' && typeof ffmpeg.deleteFile === 'function') {
+    try {
+      await ffmpeg.deleteFile(name);
+    } catch (_) {
+      // ignore
+    }
   }
 }
 
@@ -183,7 +224,16 @@ const runCompression = async () => {
 
     toggleUploadStatus(true, 'Copying file to encoder…');
     const fileBuffer = new Uint8Array(await currentFile.arrayBuffer());
-    await ffmpeg.writeFile(inputName, fileBuffer);
+
+    if (ffmpegApiMode === 'namespace') {
+      if (!ffmpeg.fetchFile) {
+        throw new Error('ffmpeg fetchFile helper is missing.');
+      }
+      ffmpeg.FS('writeFile', inputName, await ffmpeg.fetchFile(currentFile));
+    } else {
+      await ffmpeg.writeFile(inputName, fileBuffer);
+    }
+
     toggleUploadStatus(false);
 
     const command = preset === 'webm'
@@ -193,9 +243,16 @@ const runCompression = async () => {
     progressBar.value = 0;
     progressLabel.textContent = 'Compressing… 0%';
 
-    await ffmpeg.exec(command);
+    if (ffmpegApiMode === 'namespace') {
+      await ffmpeg.run(...command);
+    } else {
+      await ffmpeg.exec(command);
+    }
 
-    const data = await ffmpeg.readFile(outputName);
+    const data = ffmpegApiMode === 'namespace'
+      ? ffmpeg.FS('readFile', outputName)
+      : await ffmpeg.readFile(outputName);
+
     if (!data || data.length === 0) {
       throw new Error('Compression failed to produce an output file.');
     }
@@ -221,7 +278,24 @@ const runCompression = async () => {
     startButton.disabled = false;
     isProcessing = false;
 
-    // Cleanup temp files
+    if (ffmpegApiMode === 'namespace' && ffmpeg) {
+      try {
+        ffmpeg.FS('unlink', 'input.mp4');
+      } catch (_) {
+        // ignore
+      }
+      try {
+        ffmpeg.FS('unlink', 'output.mp4');
+      } catch (_) {
+        // ignore
+      }
+      try {
+        ffmpeg.FS('unlink', 'output.webm');
+      } catch (_) {
+        // ignore
+      }
+    }
+
     await safeDelete('input.mp4');
     await safeDelete('output.mp4');
     await safeDelete('output.webm');
