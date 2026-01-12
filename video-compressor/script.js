@@ -2,13 +2,14 @@
 const expectedFfmpegScriptUrl = new URL('./vendor/ffmpeg.js', import.meta.url).toString();
 let createFFmpeg;
 let fetchFile;
+const FF = window.FFmpeg || window.FFmpegWASM || window.FFmpegWasm || null;
 
-if (typeof FFmpeg === 'undefined') {
+if (!FF) {
   console.error(
     `FFmpeg UMD build is not available. Ensure the script loaded: ${expectedFfmpegScriptUrl}`,
   );
 } else {
-  ({ createFFmpeg, fetchFile } = FFmpeg);
+  ({ createFFmpeg, fetchFile } = FF);
 }
 
 const startButton = document.getElementById('startButton');
@@ -131,14 +132,16 @@ const getPreset = () => {
   return formData.get('preset');
 };
 
-ffmpeg.on('progress', ({ progress }) => {
-  if (!Number.isFinite(progress)) {
-    return;
-  }
-  progressBar.value = Math.min(1, Math.max(0, progress));
-  const percent = Math.min(100, Math.max(0, Math.round(progress * 100)));
-  progressLabel.textContent = `Compressing… ${percent}%`;
-});
+if (ffmpeg && typeof ffmpeg.on === 'function') {
+  ffmpeg.on('progress', ({ progress }) => {
+    if (!Number.isFinite(progress)) {
+      return;
+    }
+    progressBar.value = Math.min(1, Math.max(0, progress));
+    const percent = Math.min(100, Math.max(0, Math.round(progress * 100)));
+    progressLabel.textContent = `Compressing… ${percent}%`;
+  });
+}
 
 const runCompression = async () => {
   if (!currentFile || isProcessing) {
