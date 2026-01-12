@@ -13,8 +13,8 @@ const resultMessage = document.getElementById('resultMessage');
 const uploadStatus = document.getElementById('uploadStatus');
 const uploadStatusText = document.getElementById('uploadStatusText');
 
-const CORE_URL = new URL('./vendor/ffmpeg-core.js', import.meta.url).toString();
-const WASM_URL = new URL('./vendor/ffmpeg-core.wasm', import.meta.url).toString();
+const coreJsUrl = new URL('./vendor/ffmpeg-core.js', import.meta.url).toString();
+const coreWasmUrl = new URL('./vendor/ffmpeg-core.wasm', import.meta.url).toString();
 const expectedFfmpegScriptUrl = new URL('./vendor/ffmpeg.js', import.meta.url).toString();
 
 let ffmpeg = null;
@@ -24,6 +24,13 @@ let progressHandlerAttached = false;
 
 let currentFile = null;
 let isProcessing = false;
+
+console.info('[vc] script loaded');
+console.info('[vc] ffmpeg globals', {
+  FFmpeg: window.FFmpeg,
+  FFmpegWASM: window.FFmpegWASM,
+  FFmpegWasm: window.FFmpegWasm
+});
 
 const readerFriendlySize = (size) => {
   if (!size && size !== 0) return '';
@@ -104,6 +111,15 @@ const attachClassProgressHandler = (instance) => {
   });
 };
 
+const fetchHead = async (url) => {
+  const response = await fetch(url, { method: 'GET', cache: 'no-store' });
+  const buffer = await response.arrayBuffer();
+  const prefix = new TextDecoder().decode(buffer.slice(0, 32)).trim().toLowerCase();
+  if (prefix.startsWith('<!doctype') || prefix.startsWith('<html')) {
+    throw new Error(`Unexpected HTML response for ${url}`);
+  }
+};
+
 const resolveFfmpegNamespaceApi = () => {
   if (window.FFmpegWASM?.FFmpeg?.createFFmpeg) {
     return { namespace: window.FFmpegWASM.FFmpeg, mode: 'namespace' };
@@ -140,21 +156,47 @@ const ensureFFmpegLoaded = async () => {
   }
 
   showEngineLoader(true, 'Loading compression engine…');
-  progressLabel.textContent = 'Loading ffmpeg engine…';
+  progressLabel.textContent = 'Loading engine…';
 
   try {
+    console.info('[vc] core urls', { coreJsUrl, coreWasmUrl });
+    await fetchHead(coreJsUrl);
+    await fetchHead(coreWasmUrl);
+
     if (namespaceResult) {
       const { createFFmpeg, fetchFile } = namespaceResult.namespace;
-      ffmpeg = createFFmpeg({ corePath: CORE_URL });
+      ffmpeg = createFFmpeg({ corePath: coreJsUrl });
       ffmpegApiMode = 'namespace';
       attachNamespaceProgressHandler(ffmpeg);
-      await ffmpeg.load();
+      const loadPromise = ffmpeg.load();
+      const loadTimeout = new Promise((_, reject) => {
+        const timer = setTimeout(() => {
+          reject(
+            new Error(
+              `FFmpeg load timed out after 30 seconds. Check Network for ffmpeg-core.wasm at ${coreJsUrl} and ${coreWasmUrl}.`
+            )
+          );
+        }, 30000);
+        loadPromise.finally(() => clearTimeout(timer));
+      });
+      await Promise.race([loadPromise, loadTimeout]);
       ffmpeg.fetchFile = fetchFile;
     } else if (classResult) {
       ffmpeg = new classResult.ctor();
       ffmpegApiMode = 'class';
       attachClassProgressHandler(ffmpeg);
-      await ffmpeg.load({ coreURL: CORE_URL, wasmURL: WASM_URL });
+      const loadPromise = ffmpeg.load({ coreURL: coreJsUrl, wasmURL: coreWasmUrl });
+      const loadTimeout = new Promise((_, reject) => {
+        const timer = setTimeout(() => {
+          reject(
+            new Error(
+              `FFmpeg load timed out after 30 seconds. Check Network for ffmpeg-core.wasm at ${coreJsUrl} and ${coreWasmUrl}.`
+            )
+          );
+        }, 30000);
+        loadPromise.finally(() => clearTimeout(timer));
+      });
+      await Promise.race([loadPromise, loadTimeout]);
     }
 
     ffmpegLoaded = true;
@@ -199,12 +241,18 @@ async function safeDelete(name) {
 }
 
 const runCompression = async () => {
+  console.info('[vc] runCompression clicked');
+
   if (isProcessing) {
     resultMessage.textContent = 'Another compression is already running…';
+    toggleUploadStatus(false);
+    showEngineLoader(false);
     return;
   }
   if (!currentFile) {
     resultMessage.textContent = 'Please choose a file first.';
+    toggleUploadStatus(false);
+    showEngineLoader(false);
     return;
   }
 
@@ -213,10 +261,12 @@ const runCompression = async () => {
   resetDownloadState();
 
   progressBar.value = 0;
-  progressLabel.textContent = 'Preparing…';
+  showEngineLoader(true, 'Loading compression engine…');
+  progressLabel.textContent = 'Loading engine…';
 
   try {
     await ensureFFmpegLoaded();
+    showEngineLoader(false);
 
     const inputName = 'input.mp4';
     const preset = getPreset();
@@ -302,7 +352,11 @@ const runCompression = async () => {
   }
 };
 
-startButton.addEventListener('click', runCompression);
+startButton.addEventListener('click', (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  runCompression();
+});
 
 fileInput.addEventListener('change', (event) => {
   handleFiles(event.target.files);
