@@ -1,8 +1,9 @@
 // ffmpeg.js is loaded as a UMD script in index.html and exposes global `FFmpeg`
 const expectedFfmpegScriptUrl = new URL('./vendor/ffmpeg.js', import.meta.url).toString();
+const getFFmpegUMD = () => window.FFmpeg || window.FFmpegWASM || window.FFmpegWasm || null;
 let createFFmpeg;
 let fetchFile;
-const FF = window.FFmpeg || window.FFmpegWASM || window.FFmpegWasm || null;
+const FF = getFFmpegUMD();
 
 if (!FF) {
   console.error(
@@ -78,14 +79,20 @@ const toggleUploadStatus = (show, text) => {
 };
 
 const ensureFFmpegLoaded = async () => {
-  if (!ffmpeg) {
+  const FF = getFFmpegUMD();
+  if (!FF) {
     console.error(
       `FFmpeg could not initialize because the UMD build is missing. Expected: ${expectedFfmpegScriptUrl}`,
     );
     progressLabel.textContent = 'Unable to load ffmpeg engine.';
     resultMessage.textContent = 'Compression engine failed to load. Please refresh the page.';
+    showEngineLoader(false);
+    toggleUploadStatus(false);
+    startButton.disabled = false;
+    isProcessing = false;
     return;
   }
+  ({ createFFmpeg, fetchFile } = FF);
   if (ffmpegLoaded) {
     return;
   }
