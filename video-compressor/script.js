@@ -157,7 +157,7 @@ const resolveFfmpegNamespaceApi = () => {
 };
 
 const resolveFfmpegClassApi = () => {
-  if (typeof globalThis.FFmpegWASM?.FFmpeg === 'function' && globalThis.FFmpegWASM.FFmpeg.prototype?.load) {
+  if (typeof globalThis.FFmpegWASM?.FFmpeg === 'function') {
     return { ctor: globalThis.FFmpegWASM.FFmpeg, mode: 'class' };
   }
   if (typeof globalThis.FFmpeg === 'function') {
