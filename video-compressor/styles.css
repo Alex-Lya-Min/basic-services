@@ -29,10 +29,8 @@ body.video-compressor-page[data-theme="dark"] {
 }
 
 .theme-switcher {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: var(--vc-card);
+    position: static;
+    background: transparent;
     border: 1px solid var(--vc-border);
     padding: 0.5rem;
     border-radius: 50%;
@@ -43,6 +41,7 @@ body.video-compressor-page[data-theme="dark"] {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
+    color: var(--vc-text);
 }
 
 .theme-switcher:hover {
@@ -62,9 +61,36 @@ body.video-compressor-page:not([data-theme="dark"]) .dark-icon {
 .vc-header {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-    position: relative;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.vc-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--vc-border);
+}
+
+.vc-nav-links {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.nav-link {
+    color: var(--vc-muted);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover,
+.nav-link.home {
+    color: var(--vc-primary);
 }
 
 .back-btn {

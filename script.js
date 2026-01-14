@@ -44,19 +44,44 @@ tabButtons.forEach(button => {
         // If it's a link (like Video Compressor), let the default navigation happen
         if (!button.dataset.tab) return;
 
-        // Remove active class from all buttons and panels
-        tabButtons.forEach(btn => {
-            btn.classList.remove('active');
-            btn.setAttribute('aria-selected', 'false');
-        });
-        toolPanels.forEach(panel => panel.classList.remove('active'));
+        // Perform tab switch
+        switchTab(button.dataset.tab);
 
-        // Add active class to clicked button and corresponding panel
-        button.classList.add('active');
-        button.setAttribute('aria-selected', 'true');
-        document.getElementById(button.dataset.tab).classList.add('active');
+        // Update URL hash without scrolling
+        history.pushState(null, null, `#${button.dataset.tab}`);
     });
 });
+
+function switchTab(tabId) {
+    // Remove active class from all buttons and panels
+    tabButtons.forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+        if (btn.dataset.tab === tabId) {
+            btn.classList.add('active');
+            btn.setAttribute('aria-selected', 'true');
+        }
+    });
+
+    toolPanels.forEach(panel => {
+        panel.classList.remove('active');
+        if (panel.id === tabId) {
+            panel.classList.add('active');
+        }
+    });
+}
+
+// Handle hash change for direct linking
+function handleHashNavigation() {
+    const hash = window.location.hash.slice(1);
+    if (hash && document.getElementById(hash)) {
+        switchTab(hash);
+    }
+}
+
+// Initialize navigation
+window.addEventListener('load', handleHashNavigation);
+window.addEventListener('hashchange', handleHashNavigation);
 
 // Display Resolution Tool
 const windowWidthElement = document.getElementById('windowWidth');
