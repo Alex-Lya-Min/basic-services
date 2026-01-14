@@ -26,10 +26,10 @@ let currentFile = null;
 let isProcessing = false;
 
 console.info('[vc] script loaded');
-console.info('[vc] ffmpeg globals', {
-  FFmpeg: window.FFmpeg,
-  FFmpegWASM: window.FFmpegWASM,
-  FFmpegWasm: window.FFmpegWasm
+console.info('[vc] globals snapshot', {
+  FFmpeg: typeof globalThis.FFmpeg,
+  FFmpegWASMKeys: Object.keys(globalThis.FFmpegWASM || {}),
+  FFmpegWasmKeys: Object.keys(globalThis.FFmpegWasm || {})
 });
 
 const readerFriendlySize = (size) => {
@@ -120,25 +120,47 @@ const fetchHead = async (url) => {
   }
 };
 
+const normalizeFFmpegExport = (candidate) => {
+  if (!candidate) return null;
+  if (candidate.createFFmpeg) return candidate;
+  if (candidate.FFmpeg?.createFFmpeg) return candidate.FFmpeg;
+  if (candidate.default?.createFFmpeg) return candidate.default;
+  return null;
+};
+
+const getFFmpegUMD = () => {
+  const candidates = [
+    globalThis.FFmpeg,
+    globalThis.FFmpegWASM?.FFmpeg,
+    globalThis.FFmpegWASM?.default,
+    globalThis.FFmpegWASM,
+    globalThis.FFmpegWasm?.FFmpeg,
+    globalThis.FFmpegWasm?.default,
+    globalThis.FFmpegWasm
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeFFmpegExport(candidate);
+    if (normalized) return normalized;
+  }
+
+  return null;
+};
+
 const resolveFfmpegNamespaceApi = () => {
-  if (window.FFmpegWASM?.FFmpeg?.createFFmpeg) {
-    return { namespace: window.FFmpegWASM.FFmpeg, mode: 'namespace' };
-  }
-  if (window.FFmpegWasm?.FFmpeg?.createFFmpeg) {
-    return { namespace: window.FFmpegWasm.FFmpeg, mode: 'namespace' };
-  }
-  if (window.FFmpeg?.createFFmpeg) {
-    return { namespace: window.FFmpeg, mode: 'namespace' };
+  const namespace = getFFmpegUMD();
+  if (namespace) {
+    return { namespace, mode: 'namespace' };
   }
   return null;
 };
 
 const resolveFfmpegClassApi = () => {
-  if (typeof window.FFmpegWASM?.FFmpeg === 'function' && window.FFmpegWASM.FFmpeg.prototype?.load) {
-    return { ctor: window.FFmpegWASM.FFmpeg, mode: 'class' };
+  if (typeof globalThis.FFmpegWASM?.FFmpeg === 'function' && globalThis.FFmpegWASM.FFmpeg.prototype?.load) {
+    return { ctor: globalThis.FFmpegWASM.FFmpeg, mode: 'class' };
   }
-  if (typeof window.FFmpeg === 'function') {
-    return { ctor: window.FFmpeg, mode: 'class' };
+  if (typeof globalThis.FFmpeg === 'function') {
+    return { ctor: globalThis.FFmpeg, mode: 'class' };
   }
   return null;
 };
@@ -151,7 +173,13 @@ const ensureFFmpegLoaded = async () => {
 
   if (!namespaceResult && !classResult) {
     throw new Error(
-      `Compression engine failed to initialize. Expected ffmpeg UMD script at ${expectedFfmpegScriptUrl}`
+      [
+        'Compression engine failed to initialize.',
+        `Expected ffmpeg UMD script at ${expectedFfmpegScriptUrl}.`,
+        `globalThis.FFmpeg is ${typeof globalThis.FFmpeg}.`,
+        `globalThis.FFmpegWASM keys: ${Object.keys(globalThis.FFmpegWASM || {}).join(', ') || '(none)'}.`,
+        `globalThis.FFmpegWasm keys: ${Object.keys(globalThis.FFmpegWasm || {}).join(', ') || '(none)'}.`
+      ].join(' ')
     );
   }
 
