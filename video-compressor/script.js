@@ -13,8 +13,9 @@ const resultMessage = document.getElementById('resultMessage');
 const uploadStatus = document.getElementById('uploadStatus');
 const uploadStatusText = document.getElementById('uploadStatusText');
 
-const coreJsUrl = new URL('./vendor/ffmpeg-core.js', import.meta.url).toString();
-const coreWasmUrl = new URL('./vendor/ffmpeg-core.wasm', import.meta.url).toString();
+const CORE_JS_URL = new URL('./vendor/ffmpeg-core.js', import.meta.url).toString();
+const CORE_WASM_URL = new URL('./vendor/ffmpeg-core.wasm', import.meta.url).toString();
+const CORE_WORKER_URL = new URL('./vendor/ffmpeg-core.worker.js', import.meta.url).toString();
 const expectedFfmpegScriptUrl = new URL('./vendor/ffmpeg.js', import.meta.url).toString();
 
 let ffmpeg = null;
@@ -187,13 +188,16 @@ const ensureFFmpegLoaded = async () => {
   progressLabel.textContent = 'Loading engine…';
 
   try {
-    console.info('[vc] core urls', { coreJsUrl, coreWasmUrl });
-    await fetchHead(coreJsUrl);
-    await fetchHead(coreWasmUrl);
+    console.info('[vc] core urls', { coreJsUrl: CORE_JS_URL, coreWasmUrl: CORE_WASM_URL, coreWorkerUrl: CORE_WORKER_URL });
+    await fetchHead(CORE_JS_URL);
+    await fetchHead(CORE_WASM_URL);
+    if (classResult) {
+      await fetchHead(CORE_WORKER_URL);
+    }
 
     if (namespaceResult) {
       const { createFFmpeg, fetchFile } = namespaceResult.namespace;
-      ffmpeg = createFFmpeg({ corePath: coreJsUrl });
+      ffmpeg = createFFmpeg({ corePath: CORE_JS_URL });
       ffmpegApiMode = 'namespace';
       attachNamespaceProgressHandler(ffmpeg);
       const loadPromise = ffmpeg.load();
@@ -201,7 +205,7 @@ const ensureFFmpegLoaded = async () => {
         const timer = setTimeout(() => {
           reject(
             new Error(
-              `FFmpeg load timed out after 30 seconds. Check Network for ffmpeg-core.wasm at ${coreJsUrl} and ${coreWasmUrl}.`
+              `FFmpeg load timed out after 30 seconds. Check Network for ffmpeg-core.wasm at ${CORE_JS_URL} and ${CORE_WASM_URL}.`
             )
           );
         }, 30000);
@@ -213,12 +217,12 @@ const ensureFFmpegLoaded = async () => {
       ffmpeg = new classResult.ctor();
       ffmpegApiMode = 'class';
       attachClassProgressHandler(ffmpeg);
-      const loadPromise = ffmpeg.load({ coreURL: coreJsUrl, wasmURL: coreWasmUrl });
+      const loadPromise = ffmpeg.load({ coreURL: CORE_JS_URL, wasmURL: CORE_WASM_URL, workerURL: CORE_WORKER_URL });
       const loadTimeout = new Promise((_, reject) => {
         const timer = setTimeout(() => {
           reject(
             new Error(
-              `FFmpeg load timed out after 30 seconds. Check Network for ffmpeg-core.wasm at ${coreJsUrl} and ${coreWasmUrl}.`
+              `FFmpeg load timed out after 30 seconds. Check Network for ffmpeg-core.wasm at ${CORE_JS_URL} and ${CORE_WASM_URL}.`
             )
           );
         }, 30000);
@@ -348,7 +352,10 @@ const runCompression = async () => {
     progressBar.value = 1;
   } catch (error) {
     console.error(error);
-    resultMessage.textContent = 'Something went wrong while compressing the file. Please try again or refresh the page.';
+    const errorMessage = error instanceof Error
+      ? error.message
+      : 'Something went wrong while compressing the file. Please try again or refresh the page.';
+    resultMessage.textContent = errorMessage;
     progressLabel.textContent = 'Error';
   } finally {
     toggleUploadStatus(false);
