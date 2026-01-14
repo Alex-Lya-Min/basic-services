@@ -57,10 +57,11 @@ body.video-compressor-page {
     display: flex;
     gap: 1rem;
     flex-wrap: nowrap;
-    overflow-x: auto;
 }
 
 .module-card {
+    flex: 1 1 0;
+    min-width: 0;
     background: var(--vc-card);
     border: 1px solid var(--vc-border);
     border-radius: 1rem;
@@ -70,6 +71,47 @@ body.video-compressor-page {
 
 .module-card h2 {
     margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    background: var(--vc-primary);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.vc-limits {
+    margin-top: 1.5rem;
+    background: var(--vc-card);
+    border: 1px solid var(--vc-border);
+    border-radius: 1rem;
+    padding: 1.5rem;
+}
+
+.vc-limits h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.vc-limits ul {
+    padding-left: 1.25rem;
+    margin: 0;
+    color: var(--vc-muted);
+}
+
+.vc-cta-wrapper {
+    margin-top: 1.5rem;
+    text-align: center;
 }
 
 .hint {

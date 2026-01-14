@@ -15,7 +15,6 @@
 
 <body class="video-compressor-page">
     <header class="vc-header">
-        <a href="../" class="back-btn">← Back to Dashboard</a>
         <div>
             <h1>Video Compressor</h1>
             <p class="intro">Compress mp4 clips right in your browser without uploading them anywhere.<br>The tool uses
@@ -25,12 +24,12 @@
 
     <main class="vc-main">
         <section class="module-card" aria-label="Video selection">
-            <h2>1. Upload your mp4 file</h2>
+            <h2><span class="step-number">1</span> Upload your mp4 file</h2>
             <p class="hint">Supported input: mp4 (H.264 / HEVC). On older phones or laptops, compression may take a
                 while.</p>
             <div class="drop-area" id="dropZone" role="button" tabindex="0" aria-describedby="dropHint">
                 <p class="drop-title">Drop video here or click to browse</p>
-                <p class="drop-subtitle" id="dropHint">Maximum recommended size ~500 MB</p>
+                <p class="drop-subtitle" id="dropHint">Maximum recommended size ~150 MB</p>
                 <input type="file" id="videoInput" accept="video/mp4" aria-label="Video input">
             </div>
             <p class="selected-file" id="selectedFile">No file selected.</p>
@@ -41,7 +40,7 @@
         </section>
 
         <section class="module-card" aria-label="Compression settings">
-            <h2>2. Choose preset</h2>
+            <h2><span class="step-number">2</span> Choose preset</h2>
             <form class="preset-list" id="presetForm">
                 <label class="preset-option">
                     <input type="radio" name="preset" value="mp4" checked>
@@ -55,7 +54,7 @@
         </section>
 
         <section class="module-card" aria-label="Compression controls">
-            <h2>3. Compress</h2>
+            <h2><span class="step-number">3</span> Compress</h2>
             <div class="actions">
                 <button id="startButton" class="primary">Compress video</button>
                 <div class="engine-loader" id="engineLoader" aria-live="polite" hidden>
@@ -70,25 +69,29 @@
         </section>
 
         <section class="module-card" aria-label="Result">
-            <h2>4. Download</h2>
+            <h2><span class="step-number">4</span> Download</h2>
             <p id="resultMessage">Your compressed video will appear here.</p>
             <a id="downloadLink" class="primary ghost" href="#" download hidden>Download result</a>
         </section>
-
-        <section class="module-card limits" aria-label="Limitations">
-            <h2>Practical limits</h2>
-            <ul>
-                <li>Works best with mp4 files under ~150 MB.</li>
-                <li>Compression runs locally — keep the tab open.</li>
-                <li>Phones and low-end laptops may take several minutes.</li>
-                <li>While ffmpeg.wasm is loading, please wait for the spinner to finish.</li>
-            </ul>
-        </section>
     </main>
+
+    <section class="vc-limits" aria-label="Limitations">
+        <h2>Practical limits</h2>
+        <ul>
+            <li>Works best with mp4 files under ~150 MB.</li>
+            <li>Compression runs locally — keep the tab open.</li>
+            <li>Phones and low-end laptops may take several minutes.</li>
+            <li>While ffmpeg.wasm is loading, please wait for the spinner to finish.</li>
+        </ul>
+    </section>
+
+    <div class="vc-cta-wrapper">
+        <a href="../" class="back-btn">← Back to Dashboard</a>
+    </div>
 
     <footer class="vc-footer">
         <p>Powered by <code>ffmpeg.wasm</code>. No videos leave your browser.</p>
-        <p class="version-label">Tool version 1.5</p>
+        <p class="version-label">Tool Version 1.5</p>
     </footer>
 
     <script src="./vendor/ffmpeg.js"></script>
