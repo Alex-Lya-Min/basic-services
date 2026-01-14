@@ -43,9 +43,9 @@ body.video-compressor-page {
 }
 
 .vc-main {
-    display: flex;
-    flex-direction: column;
+    display: grid;
     gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .module-card {

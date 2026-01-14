@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A collection of useful web tools including display resolution checker, character counter, case converter, and text cleaner.">
+    <meta name="description"
+        content="A collection of useful web tools including display resolution checker, character counter, case converter, and text cleaner.">
     <title>LYMN Web Tools Dashboard</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
 </head>
+
 <body>
     <div class="dashboard-container">
         <h1>Web Tools Dashboard</h1>
@@ -17,14 +21,20 @@
             <span class="light-icon" aria-hidden="true">🌞</span>
             <span class="dark-icon" aria-hidden="true">🌙</span>
         </button>
-        
+
         <!-- Tab Navigation -->
         <div class="tab-navigation" role="tablist">
-            <button class="tab-button active" data-tab="display-tool" role="tab" aria-selected="true" aria-controls="display-tool">Display Resolution</button>
-            <button class="tab-button" data-tab="counter-tool" role="tab" aria-selected="false" aria-controls="counter-tool">Word Counter</button>
-            <button class="tab-button" data-tab="case-tool" role="tab" aria-selected="false" aria-controls="case-tool">Case Converter</button>
-            <button class="tab-button" data-tab="clean-text" role="tab" aria-selected="false" aria-controls="clean-text">Clean Text</button>
-            <button class="tab-button" data-tab="device-info" role="tab" aria-selected="false" aria-controls="device-info">Device Details</button>
+            <button class="tab-button active" data-tab="display-tool" role="tab" aria-selected="true"
+                aria-controls="display-tool">Display Resolution</button>
+            <button class="tab-button" data-tab="counter-tool" role="tab" aria-selected="false"
+                aria-controls="counter-tool">Word Counter</button>
+            <button class="tab-button" data-tab="case-tool" role="tab" aria-selected="false"
+                aria-controls="case-tool">Case Converter</button>
+            <button class="tab-button" data-tab="clean-text" role="tab" aria-selected="false"
+                aria-controls="clean-text">Clean Text</button>
+            <button class="tab-button" data-tab="device-info" role="tab" aria-selected="false"
+                aria-controls="device-info">Device Details</button>
+            <a href="./video-compressor/" class="tab-button tab-link">🎬 Video Compressor</a>
         </div>
 
         <!-- Display Resolution Tool -->
@@ -66,11 +76,7 @@
             <h2>Word Counter</h2>
             <div class="counter-container">
                 <div class="input-area">
-                    <textarea 
-                        id="textInput" 
-                        placeholder="Type or paste your text here..."
-                        rows="8"
-                    ></textarea>
+                    <textarea id="textInput" placeholder="Type or paste your text here..." rows="8"></textarea>
                 </div>
                 <div class="stats-grid">
                     <div class="stat-box">
@@ -109,11 +115,8 @@
             <h2>Case Converter</h2>
             <div class="case-converter-container">
                 <div class="input-area">
-                    <textarea 
-                        id="caseInput" 
-                        placeholder="Type or paste your text here to convert its case..."
-                        rows="8"
-                    ></textarea>
+                    <textarea id="caseInput" placeholder="Type or paste your text here to convert its case..."
+                        rows="8"></textarea>
                 </div>
                 <div class="button-grid">
                     <button class="convert-btn" data-case="upper">
@@ -158,12 +161,8 @@
             <div class="clean-text-container">
                 <div class="editor-wrapper">
                     <div class="line-numbers" id="lineNumbers"></div>
-                    <textarea 
-                        id="cleanTextArea" 
-                        class="clean-text-editor" 
-                        spellcheck="false" 
-                        placeholder="Paste your text here to clean formatting..."
-                    ></textarea>
+                    <textarea id="cleanTextArea" class="clean-text-editor" spellcheck="false"
+                        placeholder="Paste your text here to clean formatting..."></textarea>
                 </div>
                 <div class="editor-actions">
                     <button id="wrapText" class="action-btn">
@@ -182,7 +181,8 @@
         <!-- Device Details Tool -->
         <div class="tool-panel" id="device-info">
             <h2>Device Details</h2>
-            <p class="device-info-intro">Share this information when reporting issues so we can reproduce bugs faster.</p>
+            <p class="device-info-intro">Share this information when reporting issues so we can reproduce bugs faster.
+            </p>
             <div class="device-info-grid">
                 <div class="info-card">
                     <h3>Browser</h3>
@@ -227,4 +227,5 @@
     </div>
     <script src="script.js"></script>
 </body>
+
 </html>
