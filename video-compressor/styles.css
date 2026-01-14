@@ -43,9 +43,9 @@ body.video-compressor-page {
 }
 
 .vc-main {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .module-card {
@@ -113,11 +113,18 @@ body.video-compressor-page {
 }
 
 .upload-status {
-    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     margin-top: 0.5rem;
     color: var(--vc-muted);
+}
+
+.upload-status[hidden] {
+    display: none;
+}
+
+.upload-status:not([hidden]) {
+    display: inline-flex;
 }
 
 .preset-list {
@@ -182,10 +189,17 @@ body.video-compressor-page {
 }
 
 .engine-loader {
-    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     color: var(--vc-muted);
+}
+
+.engine-loader[hidden] {
+    display: none;
+}
+
+.engine-loader:not([hidden]) {
+    display: inline-flex;
 }
 
 .spinner {
@@ -204,7 +218,9 @@ body.video-compressor-page {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 progress {

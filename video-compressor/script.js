@@ -318,9 +318,7 @@ const runCompression = async () => {
 
     toggleUploadStatus(false);
 
-    const command = preset === 'webm'
-      ? ['-y', '-i', inputName, '-c:v', 'libvpx-vp9', '-b:v', '1.2M', '-crf', '32', '-deadline', 'good', '-c:a', 'libopus', outputName]
-      : ['-y', '-i', inputName, '-c:v', 'libx264', '-preset', 'faster', '-crf', '28', '-c:a', 'copy', outputName];
+    const command = ['-y', '-i', inputName, '-c:v', 'libx264', '-preset', 'faster', '-crf', '28', '-c:a', 'copy', outputName];
 
     progressBar.value = 0;
     progressLabel.textContent = 'Compressing… 0%';

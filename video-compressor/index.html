@@ -17,7 +17,7 @@
     <header class="vc-header">
         <a href="../" class="back-link">← Back to Dashboard</a>
         <div>
-            <p class="version-label">Tool version 1.1</p>
+            <p class="version-label">Tool version 1.5</p>
             <h1>Image / Video Compressor</h1>
             <p class="intro">Compress mp4 clips right in your browser without uploading them anywhere. The tool uses
                 ffmpeg.wasm and works best for clips up to ~300–500 MB.</p>
@@ -51,15 +51,8 @@
                         <p>Converts mp4 to mp4 with CRF 28 and "faster" preset. Keeps audio track.</p>
                     </div>
                 </label>
-                <label class="preset-option">
-                    <input type="radio" name="preset" value="webm">
-                    <div>
-                        <strong>MP4 → WebM (VP9)</strong>
-                        <p>Produces VP9 + Opus WebM. Useful for browsers that prefer WebM.</p>
-                    </div>
-                </label>
             </form>
-            <p class="disclaimer">Tip: Use the MP4 preset for the fastest export. WebM looks great but takes longer.</p>
+            <p class="disclaimer">Tip: H.264 MP4 provides good compression and wide compatibility.</p>
         </section>
 
         <section class="module-card" aria-label="Compression controls">
