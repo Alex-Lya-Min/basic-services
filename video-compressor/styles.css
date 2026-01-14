@@ -162,6 +162,12 @@ body.video-compressor-page {
     background: var(--vc-primary-dark);
 }
 
+.primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background: var(--vc-muted);
+}
+
 .primary.ghost {
     background: rgba(17, 24, 39, 0.05);
     color: var(--vc-primary);
