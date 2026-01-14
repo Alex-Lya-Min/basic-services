@@ -23,10 +23,21 @@ body.video-compressor-page {
     margin-bottom: 1.5rem;
 }
 
-.back-link {
+.back-btn {
+    display: inline-block;
     text-decoration: none;
-    color: var(--vc-primary);
+    background: var(--vc-primary);
+    color: #fff;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
     font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s ease;
+}
+
+.back-btn:hover,
+.back-btn:focus-visible {
+    background: var(--vc-primary-dark);
 }
 
 .version-label {
@@ -43,9 +54,10 @@ body.video-compressor-page {
 }
 
 .vc-main {
-    display: grid;
+    display: flex;
     gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    flex-wrap: nowrap;
+    overflow-x: auto;
 }
 
 .module-card {

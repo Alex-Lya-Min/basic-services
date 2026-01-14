@@ -123,8 +123,12 @@ h2 {
     color: var(--bg-primary);
 }
 
+.tab-button.tab-link {
+    text-decoration: none;
+}
+
 /* Tool Panels */
-.tool-panel { 
+.tool-panel {
     display: none;
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -149,7 +153,8 @@ h2 {
     margin-bottom: 2rem;
 }
 
-.size-box, .stat-box {
+.size-box,
+.stat-box {
     background: var(--bg-secondary);
     padding: 1.5rem;
     border-radius: 10px;
@@ -157,22 +162,26 @@ h2 {
     transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
-.size-box:hover, .stat-box:hover {
+.size-box:hover,
+.stat-box:hover {
     transform: translateY(-5px);
 }
 
-.size-box.highlight, .info-box.highlight {
+.size-box.highlight,
+.info-box.highlight {
     background-color: #dbeafe;
     animation: pulse 0.3s ease-in-out;
 }
 
-.size-box h3, .stat-box h3 {
+.size-box h3,
+.stat-box h3 {
     color: var(--text-primary);
     font-size: 1.1rem;
     margin-bottom: 0.5rem;
 }
 
-.size-box p, .stat-box p {
+.size-box p,
+.stat-box p {
     color: var(--accent-color);
     font-size: 1.5rem;
     font-weight: bold;
@@ -363,9 +372,17 @@ textarea:focus {
 }
 
 @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 /* Case Converter Tool */
@@ -487,8 +504,13 @@ textarea:focus {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 @media (max-width: 600px) {
@@ -547,11 +569,13 @@ textarea:focus {
         font-size: 1.2rem;
     }
 
-    .size-box, .info-box {
+    .size-box,
+    .info-box {
         padding: 0.75rem;
     }
 
-    .size-box p, .info-box p {
+    .size-box p,
+    .info-box p {
         font-size: 1.2rem;
     }
 
@@ -638,7 +662,8 @@ textarea:focus {
 }
 
 /* Ensure consistent padding and line height */
-.line-numbers, .clean-text-editor {
+.line-numbers,
+.clean-text-editor {
     padding-top: 1rem;
     padding-bottom: 1rem;
     line-height: 1.5;
@@ -650,15 +675,15 @@ textarea:focus {
     .clean-text-container {
         min-height: 300px;
     }
-    
+
     .editor-wrapper {
         min-height: 250px;
     }
-    
+
     .editor-actions {
         flex-direction: column;
     }
-    
+
     .editor-actions .action-btn {
         width: 100%;
     }
@@ -668,12 +693,12 @@ textarea:focus {
     .clean-text-container {
         min-height: 250px;
     }
-    
+
     .line-numbers {
         min-width: 2.5rem;
         padding: 1rem 0.25rem;
     }
-    
+
     .clean-text-editor {
         padding: 1rem 0.5rem;
     }
@@ -746,7 +771,7 @@ textarea:focus-visible {
         flex-wrap: wrap;
         gap: 0.5rem;
     }
-    
+
     .editor-actions .action-btn {
         flex: 1 1 auto;
         min-width: 100px;
@@ -758,11 +783,11 @@ textarea:focus-visible {
         flex-direction: row;
         flex-wrap: wrap;
     }
-    
+
     .editor-actions .action-btn {
         flex: 1 1 auto;
         min-width: 80px;
         padding: 0.5rem 0.75rem;
         font-size: 0.9rem;
     }
-} 
+}

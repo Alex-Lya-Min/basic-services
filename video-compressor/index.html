@@ -15,12 +15,11 @@
 
 <body class="video-compressor-page">
     <header class="vc-header">
-        <a href="../" class="back-link">← Back to Dashboard</a>
+        <a href="../" class="back-btn">← Back to Dashboard</a>
         <div>
-            <p class="version-label">Tool version 1.5</p>
-            <h1>Image / Video Compressor</h1>
-            <p class="intro">Compress mp4 clips right in your browser without uploading them anywhere. The tool uses
-                ffmpeg.wasm and works best for clips up to ~300–500 MB.</p>
+            <h1>Video Compressor</h1>
+            <p class="intro">Compress mp4 clips right in your browser without uploading them anywhere.<br>The tool uses
+                ffmpeg.wasm and works best for clips up to ~150–200 MB.</p>
         </div>
     </header>
 
@@ -79,7 +78,7 @@
         <section class="module-card limits" aria-label="Limitations">
             <h2>Practical limits</h2>
             <ul>
-                <li>Works best with mp4 files under ~500 MB.</li>
+                <li>Works best with mp4 files under ~150 MB.</li>
                 <li>Compression runs locally — keep the tab open.</li>
                 <li>Phones and low-end laptops may take several minutes.</li>
                 <li>While ffmpeg.wasm is loading, please wait for the spinner to finish.</li>
@@ -89,6 +88,7 @@
 
     <footer class="vc-footer">
         <p>Powered by <code>ffmpeg.wasm</code>. No videos leave your browser.</p>
+        <p class="version-label">Tool version 1.5</p>
     </footer>
 
     <script src="./vendor/ffmpeg.js"></script>
