@@ -16,11 +16,55 @@ body.video-compressor-page {
     padding: 1.5rem;
 }
 
+[data-theme="dark"] body.video-compressor-page,
+body.video-compressor-page[data-theme="dark"] {
+    --vc-bg: #374151;
+    --vc-card: #1f2937;
+    --vc-border: #4b5563;
+    --vc-primary: #ffffff;
+    --vc-primary-dark: #e5e7eb;
+    --vc-text: #f9fafb;
+    --vc-muted: #9ca3af;
+    background: linear-gradient(135deg, #111827, #1f2937);
+}
+
+.theme-switcher {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--vc-card);
+    border: 1px solid var(--vc-border);
+    padding: 0.5rem;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.theme-switcher:hover {
+    transform: scale(1.1);
+}
+
+.light-icon,
+.dark-icon {
+    font-size: 1.2rem;
+}
+
+body.video-compressor-page[data-theme="dark"] .light-icon,
+body.video-compressor-page:not([data-theme="dark"]) .dark-icon {
+    display: none;
+}
+
 .vc-header {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
     margin-bottom: 1.5rem;
+    position: relative;
 }
 
 .back-btn {

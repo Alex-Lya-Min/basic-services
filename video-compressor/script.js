@@ -421,3 +421,35 @@ dropZone.addEventListener('keydown', (event) => {
 });
 
 updateSelectedFile();
+
+// Theme switcher
+const themeSwitcher = document.getElementById('theme-switcher');
+const body = document.body;
+
+const initTheme = () => {
+  const savedTheme = localStorage.getItem('vc-theme');
+  if (savedTheme === 'dark') {
+    body.setAttribute('data-theme', 'dark');
+  } else if (savedTheme === 'light') {
+    body.removeAttribute('data-theme');
+  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    body.setAttribute('data-theme', 'dark');
+  }
+};
+
+const toggleTheme = () => {
+  const isDark = body.getAttribute('data-theme') === 'dark';
+  if (isDark) {
+    body.removeAttribute('data-theme');
+    localStorage.setItem('vc-theme', 'light');
+  } else {
+    body.setAttribute('data-theme', 'dark');
+    localStorage.setItem('vc-theme', 'dark');
+  }
+};
+
+if (themeSwitcher) {
+  themeSwitcher.addEventListener('click', toggleTheme);
+}
+
+initTheme();
