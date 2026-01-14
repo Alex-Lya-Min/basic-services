@@ -427,7 +427,7 @@ const themeSwitcher = document.getElementById('theme-switcher');
 const body = document.body;
 
 const initTheme = () => {
-  const savedTheme = localStorage.getItem('vc-theme');
+  const savedTheme = localStorage.getItem('theme');
   if (savedTheme === 'dark') {
     body.setAttribute('data-theme', 'dark');
   } else if (savedTheme === 'light') {
@@ -441,10 +441,10 @@ const toggleTheme = () => {
   const isDark = body.getAttribute('data-theme') === 'dark';
   if (isDark) {
     body.removeAttribute('data-theme');
-    localStorage.setItem('vc-theme', 'light');
+    localStorage.setItem('theme', 'light');
   } else {
     body.setAttribute('data-theme', 'dark');
-    localStorage.setItem('vc-theme', 'dark');
+    localStorage.setItem('theme', 'dark');
   }
 };
 

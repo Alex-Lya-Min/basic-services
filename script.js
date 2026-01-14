@@ -41,12 +41,19 @@ const copyDeviceDetailsButton = document.getElementById('copyDeviceDetails');
 
 tabButtons.forEach(button => {
     button.addEventListener('click', () => {
+        // If it's a link (like Video Compressor), let the default navigation happen
+        if (!button.dataset.tab) return;
+
         // Remove active class from all buttons and panels
-        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabButtons.forEach(btn => {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-selected', 'false');
+        });
         toolPanels.forEach(panel => panel.classList.remove('active'));
-        
+
         // Add active class to clicked button and corresponding panel
         button.classList.add('active');
+        button.setAttribute('aria-selected', 'true');
         document.getElementById(button.dataset.tab).classList.add('active');
     });
 });
@@ -236,21 +243,21 @@ function updateWindowSize() {
     // Get window dimensions
     const width = window.innerWidth;
     const height = window.innerHeight;
-    
+
     // Update window size display
     windowWidthElement.textContent = `${width}px`;
     windowHeightElement.textContent = `${height}px`;
-    
+
     // Get screen resolution
     const screenWidth = window.screen.width;
     const screenHeight = window.screen.height;
     screenResolutionElement.textContent = `${screenWidth} x ${screenHeight}`;
-    
+
     // Get real display resolution (accounting for device pixel ratio)
     const realWidth = Math.round(screenWidth * window.devicePixelRatio);
     const realHeight = Math.round(screenHeight * window.devicePixelRatio);
     realResolutionElement.textContent = `${realWidth} x ${realHeight}`;
-    
+
     // Get available screen space
     const availWidth = window.screen.availWidth;
     const availHeight = window.screen.availHeight;
@@ -264,8 +271,8 @@ function updateWindowSize() {
     if (displayScaleElement.dataset.lastScale !== scale.toString()) {
         displayScaleElement.parentElement.classList.add('highlight');
         setTimeout(() => {
-        displayScaleElement.parentElement.classList.remove('highlight');
-    }, 300);
+            displayScaleElement.parentElement.classList.remove('highlight');
+        }, 300);
         displayScaleElement.dataset.lastScale = scale.toString();
     }
 
@@ -324,13 +331,13 @@ function countLinesByChars(textarea) {
 
 function updateCharacterCount() {
     const text = textInput.value;
-    
+
     // Update character count (with spaces)
     charCount.textContent = text.length;
-    
+
     // Update character count (without spaces)
     charNoSpaceCount.textContent = text.replace(/\s/g, '').length;
-    
+
     // Update word count - excluding en space and em space
     const words = text.trim()
         .replace(/[\u2002\u2003\u2000-\u200A\u202F\u205F\u3000]/g, ' ') // Replace en space (\u2002), em space (\u2003), and other Unicode spaces with regular space
@@ -339,7 +346,7 @@ function updateCharacterCount() {
         .split(/\s+/)
         .filter(word => word.length > 0);
     wordCount.textContent = text.trim() === '' ? 0 : words.length;
-    
+
     // Update line breaks count
     const lines = text.split(/\r\n|\r|\n/);
     lineCount.textContent = text.trim() === '' ? 0 : lines.length;
@@ -386,14 +393,14 @@ convertButtons.forEach(button => {
     button.addEventListener('click', () => {
         const caseType = button.dataset.case;
         const text = caseInput.value;
-        
+
         if (text.trim() !== '') {
             caseInput.value = caseConverters[caseType](text);
-            
+
             // Update active state
             convertButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            
+
             // Show success feedback
             button.style.transform = 'scale(0.95)';
             setTimeout(() => {
@@ -409,7 +416,7 @@ copyButton.addEventListener('click', async () => {
     if (text.trim() !== '') {
         try {
             await navigator.clipboard.writeText(text);
-            
+
             // Show success feedback
             const originalText = copyButton.textContent;
             copyButton.textContent = 'Copied!';
@@ -443,7 +450,7 @@ let previousHeight = window.innerHeight;
 window.addEventListener('resize', () => {
     const currentWidth = window.innerWidth;
     const currentHeight = window.innerHeight;
-    
+
     if (currentWidth !== previousWidth) {
         windowWidthElement.parentElement.classList.add('highlight');
         setTimeout(() => {
@@ -451,7 +458,7 @@ window.addEventListener('resize', () => {
         }, 300);
         previousWidth = currentWidth;
     }
-    
+
     if (currentHeight !== previousHeight) {
         windowHeightElement.parentElement.classList.add('highlight');
         setTimeout(() => {
@@ -459,7 +466,7 @@ window.addEventListener('resize', () => {
         }, 300);
         previousHeight = currentHeight;
     }
-    
+
     updateWindowSize();
 });
 
@@ -476,14 +483,14 @@ let isWrapped = false;
 function updateEditorSize() {
     // Reset height to auto to get the correct scrollHeight
     cleanTextArea.style.height = 'auto';
-    
+
     // Set the height to match the content
     const newHeight = Math.max(cleanTextArea.scrollHeight, 300); // Minimum height of 300px
     cleanTextArea.style.height = newHeight + 'px';
-    
+
     // Update line numbers container height
     lineNumbers.style.height = newHeight + 'px';
-    
+
     // Update line numbers
     updateLineNumbers();
 }
@@ -491,11 +498,11 @@ function updateEditorSize() {
 function updateLineNumbers() {
     const text = cleanTextArea.value;
     const lines = text.split('\n');
-    
+
     if (isWrapped) {
         // For wrapped text, we need to match the visual lines with logical lines
         const lineHeight = parseInt(getComputedStyle(cleanTextArea).lineHeight);
-        
+
         // Create a temporary div to measure text width
         const measureDiv = document.createElement('div');
         measureDiv.style.visibility = 'hidden';
@@ -504,26 +511,26 @@ function updateLineNumbers() {
         measureDiv.style.font = getComputedStyle(cleanTextArea).font;
         measureDiv.style.lineHeight = getComputedStyle(cleanTextArea).lineHeight;
         document.body.appendChild(measureDiv);
-        
+
         const lineWidth = cleanTextArea.clientWidth - 40; // Account for padding
-        
+
         // Generate line numbers based on actual text content
         let lineNumbersHTML = '';
-        
+
         lines.forEach((line, index) => {
             measureDiv.textContent = line;
             const lineLength = measureDiv.offsetWidth;
             const wrappedLines = Math.ceil(lineLength / lineWidth) || 1;
-            
+
             // Add the line number for the first wrapped line
             lineNumbersHTML += (index + 1) + '\n';
-            
+
             // Add empty lines for the rest of the wrapped lines
             for (let i = 1; i < wrappedLines; i++) {
                 lineNumbersHTML += '\n';
             }
         });
-        
+
         document.body.removeChild(measureDiv);
         lineNumbers.textContent = lineNumbersHTML;
     } else {
@@ -536,22 +543,22 @@ function updateLineNumbers() {
 function handleCleanTextPaste(e) {
     // Prevent the default paste
     e.preventDefault();
-    
+
     // Get clipboard data as plain text
     const text = e.clipboardData.getData('text/plain');
-    
+
     // Insert text at cursor position
     const startPos = cleanTextArea.selectionStart;
     const endPos = cleanTextArea.selectionEnd;
     const textBefore = cleanTextArea.value.substring(0, startPos);
     const textAfter = cleanTextArea.value.substring(endPos);
-    
+
     cleanTextArea.value = textBefore + text + textAfter;
-    
+
     // Update cursor position
     cleanTextArea.selectionStart = startPos + text.length;
     cleanTextArea.selectionEnd = startPos + text.length;
-    
+
     // Update line numbers
     updateLineNumbers();
 }
@@ -559,15 +566,15 @@ function handleCleanTextPaste(e) {
 function handleTab(e) {
     if (e.key === 'Tab') {
         e.preventDefault();
-        
+
         // Insert tab at cursor position
         const startPos = cleanTextArea.selectionStart;
         const endPos = cleanTextArea.selectionEnd;
         const textBefore = cleanTextArea.value.substring(0, startPos);
         const textAfter = cleanTextArea.value.substring(endPos);
-        
+
         cleanTextArea.value = textBefore + '    ' + textAfter;
-        
+
         // Update cursor position
         cleanTextArea.selectionStart = startPos + 4;
         cleanTextArea.selectionEnd = startPos + 4;
