@@ -4,8 +4,8 @@ body.video-compressor-page {
     color: var(--text);
     min-height: 100vh;
     display: flex;
-    justify-content: flex-start;
-    align-items: center;
+    justify-content: center;
+    align-items: flex-start;
     padding: var(--space-lg);
 }
 
@@ -53,9 +53,16 @@ body.video-compressor-page {
     background: var(--accent-color);
     color: #ffffff;
     border-radius: var(--border-radius);
+    border: 1px solid transparent;
     font-size: 0.9rem;
     font-weight: 700;
     flex-shrink: 0;
+}
+
+[data-theme="dark"] .step-number {
+    background: var(--card);
+    color: var(--text);
+    border-color: var(--border-color);
 }
 
 .vc-limits {
@@ -94,10 +101,16 @@ body.video-compressor-page {
     padding: 24px;
     text-align: center;
     position: relative;
-    background: var(--card);
+    background: var(--bg-secondary);
     cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
     outline: none;
+}
+
+.drop-area:hover {
+    border-color: var(--text);
+    background: var(--bg);
+    box-shadow: var(--shadow);
 }
 
 .drop-area.dragover {
@@ -108,7 +121,7 @@ body.video-compressor-page {
 .drop-area:focus-visible {
     border-color: var(--accent-color);
     background: var(--bg);
-    box-shadow: none;
+    box-shadow: var(--shadow);
 }
 
 .drop-title {
@@ -185,13 +198,16 @@ body.video-compressor-page {
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .primary:hover,
 .primary:focus-visible {
-    background: var(--text);
+    background: #1a1a1a;
     color: var(--card);
+    border-color: #1a1a1a;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
 }
 
 .primary:disabled {
@@ -211,8 +227,21 @@ body.video-compressor-page {
 }
 
 .primary.ghost:hover {
-    background: var(--bg);
+    background: var(--bg-secondary);
     color: var(--text);
+    border-color: var(--text-secondary);
+}
+
+[data-theme="dark"] .primary:hover,
+[data-theme="dark"] .primary:focus-visible {
+    background: #e6e6e6;
+    color: #0f0f10;
+    border-color: #e6e6e6;
+}
+
+[data-theme="dark"] .primary.ghost:hover {
+    background: #2a2a2d;
+    border-color: #3a3a3d;
 }
 
 .actions {
