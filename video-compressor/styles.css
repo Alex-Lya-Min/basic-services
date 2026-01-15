@@ -14,7 +14,6 @@ body.video-compressor-page {
 }
 
 .version-label {
-    text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: 0.8rem;
     color: var(--text-secondary);
