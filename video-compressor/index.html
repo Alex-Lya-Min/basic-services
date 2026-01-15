@@ -14,7 +14,7 @@
 </head>
 
 <body class="video-compressor-page">
-    <div class="app-shell vc-shell">
+    <div class="app-shell vc-shell page-shell">
         <header class="page-header">
             <div class="header-top">
                 <h1>Video Compressor</h1>
@@ -24,12 +24,12 @@
                 </button>
             </div>
             <div class="tab-navigation" role="tablist">
-                <a href="./" class="tab-button tab-link active" aria-current="page">Video Compressor</a>
                 <a href="../#display-tool" class="tab-button tab-link">Display Resolution</a>
                 <a href="../#counter-tool" class="tab-button tab-link">Word Counter</a>
                 <a href="../#case-tool" class="tab-button tab-link">Case Converter</a>
                 <a href="../#clean-text" class="tab-button tab-link">Clean Text</a>
                 <a href="../#device-info" class="tab-button tab-link">Device Details</a>
+                <a href="./" class="tab-button tab-link active" aria-current="page">Video Compressor</a>
             </div>
             <p class="page-intro">Compress mp4 clips right in your browser without uploading them anywhere.<br>The tool uses
                 ffmpeg.wasm and works best for clips up to ~150–200 MB.</p>
@@ -52,22 +52,8 @@
                 </div>
             </section>
 
-            <section class="module-card" aria-label="Compression settings">
-                <h2><span class="step-number">2</span> Choose preset</h2>
-                <form class="preset-list" id="presetForm">
-                    <label class="preset-option">
-                        <input type="radio" name="preset" value="mp4" checked>
-                        <div>
-                            <strong>Smaller MP4 (H.264)</strong>
-                            <p>Converts mp4 to mp4 with CRF 28 and "faster" preset. Keeps audio track.</p>
-                        </div>
-                    </label>
-                </form>
-                <p class="disclaimer">Tip: H.264 MP4 provides good compression and wide compatibility.</p>
-            </section>
-
             <section class="module-card" aria-label="Compression controls">
-                <h2><span class="step-number">3</span> Compress</h2>
+                <h2><span class="step-number">2</span> Compress</h2>
                 <div class="actions">
                     <button id="startButton" class="primary">Compress video</button>
                     <div class="engine-loader" id="engineLoader" aria-live="polite" hidden>
@@ -79,6 +65,20 @@
                     <progress id="progressBar" value="0" max="1"></progress>
                     <p id="progressLabel">Waiting for a file…</p>
                 </div>
+            </section>
+
+            <section class="module-card" aria-label="Compression settings">
+                <h2><span class="step-number">3</span> Preset that will be used</h2>
+                <form class="preset-list" id="presetForm">
+                    <label class="preset-option">
+                        <input type="radio" name="preset" value="mp4" checked>
+                        <div>
+                            <strong>Smaller MP4 (H.264)</strong>
+                            <p>Converts mp4 to mp4 with CRF 28 and "faster" preset. Keeps audio track.</p>
+                        </div>
+                    </label>
+                </form>
+                <p class="disclaimer">Tip: H.264 MP4 provides good compression and wide compatibility.</p>
             </section>
 
             <section class="module-card" aria-label="Result">
