@@ -1,24 +1,27 @@
 :root {
-    /* Light theme variables */
+    /* Light theme variables (Kontur Style: Sharp, B/W) */
     --bg-primary: #ffffff;
-    --bg-secondary: #f3f4f6;
-    --text-primary: #1f2937;
-    --text-secondary: #4b5563;
+    --bg-secondary: #f0f0f0;
+    --text-primary: #000000;
+    --text-secondary: #555555;
     --accent-color: #000000;
-    --border-color: #e5e7eb;
-    --gradient-start: #f3f4f6;
-    --gradient-end: #e5e7eb;
+    --border-color: #e0e0e0;
+    --border-radius: 2px;
+    --shadow-main: none;
+    --gradient-start: #ffffff;
+    --gradient-end: #fafafa;
 }
 
 [data-theme="dark"] {
-    --bg-primary: #1f2937;
-    --bg-secondary: #374151;
-    --text-primary: #f9fafb;
-    --text-secondary: #e5e7eb;
+    /* Dark theme variables */
+    --bg-primary: #111111;
+    --bg-secondary: #222222;
+    --text-primary: #ffffff;
+    --text-secondary: #aaaaaa;
     --accent-color: #ffffff;
-    --border-color: #4b5563;
-    --gradient-start: #111827;
-    --gradient-end: #1f2937;
+    --border-color: #333333;
+    --gradient-start: #000000;
+    --gradient-end: #111111;
 }
 
 * {
@@ -30,19 +33,22 @@
 
 body {
     min-height: 100vh;
-    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    background: var(--bg-primary);
+    color: var(--text-primary);
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
-    transition: background 0.3s ease;
+    padding: 2px;
+    /* Minimal padding */
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 .dashboard-container {
     background: var(--bg-primary);
     padding: 2rem;
-    border-radius: 15px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    box-shadow: none;
     width: 100%;
     max-width: 1000px;
     position: relative;
@@ -104,13 +110,13 @@ h2 {
 
 .tab-button {
     background: none;
-    border: none;
+    border: 1px solid transparent;
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
     color: var(--text-secondary);
     cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    border-radius: var(--border-radius);
+    transition: all 0.2s ease;
 }
 
 .tab-button:hover {
@@ -157,9 +163,10 @@ h2 {
 .stat-box {
     background: var(--bg-secondary);
     padding: 1.5rem;
-    border-radius: 10px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
     text-align: center;
-    transition: transform 0.3s ease, background-color 0.3s ease;
+    transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .size-box:hover,
@@ -203,7 +210,8 @@ h2 {
 .info-card {
     background: var(--bg-secondary);
     padding: 1.5rem;
-    border-radius: 10px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -269,9 +277,9 @@ h2 {
 }
 
 .tool-banner {
-    background: linear-gradient(135deg, rgba(88, 114, 255, 0.12), rgba(88, 114, 255, 0.06));
-    border: 1px solid rgba(88, 114, 255, 0.3);
-    border-radius: 1.25rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
     padding: 1.5rem;
     display: flex;
     flex-wrap: wrap;
@@ -301,7 +309,7 @@ h2 {
     color: var(--primary-color);
     background: #fff;
     padding: 0.75rem 1.25rem;
-    border-radius: 999px;
+    border-radius: var(--border-radius);
     border: 1px solid rgba(88, 114, 255, 0.3);
     box-shadow: 0 10px 30px rgba(88, 114, 255, 0.2);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -320,8 +328,8 @@ h2 {
 textarea {
     width: 100%;
     padding: 1rem;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
     font-size: 1rem;
     resize: vertical;
     transition: all 0.3s ease;
@@ -399,10 +407,10 @@ textarea:focus {
 }
 
 .convert-btn {
-    background: #f3f4f6;
-    border: none;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     padding: 1rem;
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -445,8 +453,8 @@ textarea:focus {
 .action-btn {
     flex: 1;
     padding: 0.75rem 1rem;
-    border: none;
-    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 1rem;

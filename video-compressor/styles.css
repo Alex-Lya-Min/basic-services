@@ -86,7 +86,7 @@ body.video-compressor-page:not([data-theme="dark"]) .dark-icon {
     font-weight: 500;
     font-size: 1rem;
     padding: 0.75rem 1.5rem;
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     transition: all 0.3s ease;
 }
 
@@ -131,9 +131,9 @@ body.video-compressor-page:not([data-theme="dark"]) .dark-icon {
     min-width: 0;
     background: var(--vc-card);
     border: 1px solid var(--vc-border);
-    border-radius: 15px;
+    border-radius: var(--border-radius);
     padding: 1.5rem;
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+    box-shadow: none;
 }
 
 .module-card h2 {
@@ -161,7 +161,7 @@ body.video-compressor-page:not([data-theme="dark"]) .dark-icon {
     margin-top: 1.5rem;
     background: var(--vc-card);
     border: 1px solid var(--vc-border);
-    border-radius: 15px;
+    border-radius: var(--border-radius);
     padding: 1.5rem;
 }
 
@@ -188,7 +188,7 @@ body.video-compressor-page:not([data-theme="dark"]) .dark-icon {
 
 .drop-area {
     border: 2px dashed var(--vc-border);
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     padding: 2rem;
     text-align: center;
     position: relative;
@@ -259,7 +259,7 @@ body.video-compressor-page:not([data-theme="dark"]) .dark-icon {
     gap: 0.75rem;
     padding: 1rem;
     border: 1px solid var(--vc-border);
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     background: var(--bg-secondary, #f9fafb);
 }
@@ -278,7 +278,7 @@ body.video-compressor-page:not([data-theme="dark"]) .dark-icon {
     color: var(--vc-primary);
     border: 2px solid var(--vc-primary);
     padding: 0.75rem 1rem;
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
