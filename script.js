@@ -65,7 +65,7 @@ function switchTab(tabId) {
 
     toolPanels.forEach(panel => {
         panel.classList.remove('active');
-        if (panel.id === tabId + '-panel') {
+        if (panel.id === tabId) {
             panel.classList.add('active');
         }
     });
@@ -74,8 +74,8 @@ function switchTab(tabId) {
 // Handle hash change for direct linking
 function handleHashNavigation() {
     const hash = window.location.hash.slice(1);
-    if (hash && document.getElementById(hash + '-panel')) {
-        switchTab(hash); // switchTab will append -panel internally
+    if (hash && document.getElementById(hash)) {
+        switchTab(hash);
     }
 }
 
