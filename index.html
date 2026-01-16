@@ -25,78 +25,207 @@
 
             <div class="tab-navigation" role="tablist">
                 <button class="tab-button active" data-tab="display-tool" role="tab" aria-selected="true"
-                    aria-controls="display-tool">Display Resolution</button>
+                    aria-controls="display-tool-panel">Display Resolution</button>
                 <button class="tab-button" data-tab="counter-tool" role="tab" aria-selected="false"
-                    aria-controls="counter-tool">Word Counter</button>
+                    aria-controls="counter-tool-panel">Word Counter</button>
                 <button class="tab-button" data-tab="case-tool" role="tab" aria-selected="false"
-                    aria-controls="case-tool">Case Converter</button>
+                    aria-controls="case-tool-panel">Case Converter</button>
                 <button class="tab-button" data-tab="clean-text" role="tab" aria-selected="false"
-                    aria-controls="clean-text">Clean Text</button>
+                    aria-controls="clean-text-panel">Clean Text</button>
                 <button class="tab-button" data-tab="device-info" role="tab" aria-selected="false"
-                    aria-controls="device-info">Device Details</button>
+                    aria-controls="device-info-panel">Device Details</button>
                 <a href="./video-compressor/" class="tab-button tab-link">Video Compressor</a>
             </div>
         </header>
-        <div class="editor-actions">
-            <button id="wrapText" class="action-btn">
-                Toggle Word Wrap
-            </button>
-            <button id="copyCleanText" class="action-btn">
-                Copy Clean Text
-            </button>
-            <button id="clearCleanText" class="action-btn">
-                Clear
-            </button>
-        </div>
-    </div>
-    </div>
 
-    <!-- Device Details Tool -->
-    <div class="tool-panel" id="device-info">
-        <h2>Device Details</h2>
-        <p class="device-info-intro">Share this information when reporting issues so we can reproduce bugs faster.
-        </p>
-        <div class="device-info-grid">
-            <div class="info-card">
-                <h3>Browser</h3>
-                <p id="browserName">—</p>
-                <span class="info-subtext" id="browserVersion">Version: —</span>
+        <!-- Display Resolution Tool -->
+        <div class="tool-panel active" id="display-tool-panel" role="tabpanel" aria-labelledby="display-tool">
+            <h2>Display Resolution Tool</h2>
+            <div class="size-display">
+                <div class="size-box">
+                    <h3>Window Width</h3>
+                    <p id="windowWidth" aria-live="polite">0px</p>
+                </div>
+                <div class="size-box">
+                    <h3>Window Height</h3>
+                    <p id="windowHeight" aria-live="polite">0px</p>
+                </div>
             </div>
-            <div class="info-card">
-                <h3>Operating System</h3>
-                <p id="osName">—</p>
-                <span class="info-subtext" id="deviceType">Device: —</span>
+            <div class="additional-info">
+                <div class="info-box">
+                    <h3>Screen Resolution</h3>
+                    <p id="screenResolution" aria-live="polite">0 x 0</p>
+                </div>
+                <div class="info-box">
+                    <h3>Real Display Resolution</h3>
+                    <p id="realResolution" aria-live="polite">0 x 0</p>
+                </div>
+                <div class="info-box">
+                    <h3>Available Screen Space</h3>
+                    <p id="availableSpace" aria-live="polite">0 x 0</p>
+                </div>
+                <div class="info-box">
+                    <h3>Display Scale</h3>
+                    <p id="displayScale" aria-live="polite">100%</p>
+                </div>
             </div>
-            <div class="info-card">
-                <h3>Platform</h3>
-                <p id="platformInfo">—</p>
-                <span class="info-subtext" id="hardwareConcurrency">CPU: —</span>
-            </div>
-            <div class="info-card">
-                <h3>Memory</h3>
-                <p id="deviceMemory">—</p>
-                <span class="info-subtext" id="language">Language: —</span>
-            </div>
-            <div class="info-card">
-                <h3>Screen Resolution</h3>
-                <p id="deviceScreenResolution">—</p>
-                <span class="info-subtext" id="pixelRatio">Pixel Ratio: —</span>
-            </div>
-            <div class="info-card">
-                <h3>Viewport Size</h3>
-                <p id="viewportSize">—</p>
-                <span class="info-subtext" id="timeZone">Time Zone: —</span>
+            <p class="tip">Resize your window to see the values update in real-time!</p>
+        </div>
+
+        <!-- Character Counter Tool -->
+        <div class="tool-panel" id="counter-tool-panel" role="tabpanel" aria-labelledby="counter-tool">
+            <h2>Word Counter</h2>
+            <div class="counter-container">
+                <div class="input-area">
+                    <textarea id="textInput" placeholder="Type or paste your text here..." rows="8"></textarea>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <h3>Words</h3>
+                        <p id="wordCount">0</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Characters</h3>
+                        <p id="charCount">0</p>
+                        <span class="label">(with spaces)</span>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Characters</h3>
+                        <p id="charNoSpaceCount">0</p>
+                        <span class="label">(without spaces)</span>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Line Breaks</h3>
+                        <p id="lineCount">0</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Visual Lines</h3>
+                        <p id="visualLineCount">0</p>
+                        <span class="label">(including wrapped)</span>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Paragraphs</h3>
+                        <p id="paragraphCount">0</p>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="user-agent-section">
-            <h3>User Agent</h3>
-            <pre id="userAgent" class="user-agent-box" aria-live="polite">—</pre>
+
+        <!-- Case Converter Tool -->
+        <div class="tool-panel" id="case-tool-panel" role="tabpanel" aria-labelledby="case-tool">
+            <h2>Case Converter</h2>
+            <div class="case-converter-container">
+                <div class="input-area">
+                    <textarea id="caseInput" placeholder="Type or paste your text here to convert its case..."
+                        rows="8"></textarea>
+                </div>
+                <div class="button-grid">
+                    <button class="convert-btn" data-case="upper">
+                        UPPERCASE
+                        <span class="example">hello → HELLO</span>
+                    </button>
+                    <button class="convert-btn" data-case="lower">
+                        lowercase
+                        <span class="example">HELLO → hello</span>
+                    </button>
+                    <button class="convert-btn" data-case="title">
+                        Title Case
+                        <span class="example">hello world → Hello World</span>
+                    </button>
+                    <button class="convert-btn" data-case="sentence">
+                        Sentence case
+                        <span class="example">hello world → Hello world</span>
+                    </button>
+                    <button class="convert-btn" data-case="camel">
+                        camelCase
+                        <span class="example">hello world → helloWorld</span>
+                    </button>
+                    <button class="convert-btn" data-case="pascal">
+                        PascalCase
+                        <span class="example">hello world → HelloWorld</span>
+                    </button>
+                </div>
+                <div class="action-buttons">
+                    <button id="copyButton" class="action-btn">
+                        Copy to Clipboard
+                    </button>
+                    <button id="clearButton" class="action-btn">
+                        Clear Text
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="device-actions">
-            <button id="copyDeviceDetails" class="action-btn">Copy Device Summary</button>
+
+        <!-- Clean Text Tool -->
+        <div class="tool-panel" id="clean-text-panel" role="tabpanel" aria-labelledby="clean-text">
+            <h2>Clean Text</h2>
+            <div class="clean-text-container">
+                <div class="editor-wrapper">
+                    <div class="line-numbers" id="lineNumbers"></div>
+                    <textarea id="cleanTextArea" class="clean-text-editor" spellcheck="false"
+                        placeholder="Paste your text here to clean formatting..."></textarea>
+                </div>
+                <div class="editor-actions">
+                    <button id="wrapText" class="action-btn">
+                        Toggle Word Wrap
+                    </button>
+                    <button id="copyCleanText" class="action-btn">
+                        Copy Clean Text
+                    </button>
+                    <button id="clearCleanText" class="action-btn">
+                        Clear
+                    </button>
+                </div>
+            </div>
         </div>
-    </div>
-    <footer class="dashboard-footer" aria-label="Application version">Version December 0.0.6 </footer>
+
+        <!-- Device Details Tool -->
+        <div class="tool-panel" id="device-info-panel" role="tabpanel" aria-labelledby="device-info">
+            <h2>Device Details</h2>
+            <p class="device-info-intro">Share this information when reporting issues so we can reproduce bugs faster.
+            </p>
+            <div class="device-info-grid">
+                <div class="info-card">
+                    <h3>Browser</h3>
+                    <p id="browserName">—</p>
+                    <span class="info-subtext" id="browserVersion">Version: —</span>
+                </div>
+                <div class="info-card">
+                    <h3>Operating System</h3>
+                    <p id="osName">—</p>
+                    <span class="info-subtext" id="deviceType">Device: —</span>
+                </div>
+                <div class="info-card">
+                    <h3>Platform</h3>
+                    <p id="platformInfo">—</p>
+                    <span class="info-subtext" id="hardwareConcurrency">CPU: —</span>
+                </div>
+                <div class="info-card">
+                    <h3>Memory</h3>
+                    <p id="deviceMemory">—</p>
+                    <span class="info-subtext" id="language">Language: —</span>
+                </div>
+                <div class="info-card">
+                    <h3>Screen Resolution</h3>
+                    <p id="deviceScreenResolution">—</p>
+                    <span class="info-subtext" id="pixelRatio">Pixel Ratio: —</span>
+                </div>
+                <div class="info-card">
+                    <h3>Viewport Size</h3>
+                    <p id="viewportSize">—</p>
+                    <span class="info-subtext" id="timeZone">Time Zone: —</span>
+                </div>
+            </div>
+            <div class="user-agent-section">
+                <h3>User Agent</h3>
+                <pre id="userAgent" class="user-agent-box" aria-live="polite">—</pre>
+            </div>
+            <div class="device-actions">
+                <button id="copyDeviceDetails" class="action-btn">Copy Device Summary</button>
+            </div>
+        </div>
+
+        <footer class="dashboard-footer" aria-label="Application version">Version December 0.0.6 </footer>
     </div>
     <script src="script.js"></script>
 </body>
