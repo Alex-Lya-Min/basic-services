@@ -1,0 +1,129 @@
+.time-frame-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.time-frame-intro {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.time-frame-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.time-frame-card {
+    min-height: 170px;
+}
+
+.time-frame-progress {
+    width: 100%;
+    height: 10px;
+    background: var(--bg);
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.time-frame-progress-fill {
+    height: 100%;
+    background: var(--accent-color);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+.time-frame-timer {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+}
+
+.time-frame-timer.is-overdue {
+    background: var(--bg);
+    border-style: dashed;
+}
+
+.time-frame-timer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.time-frame-timer-display {
+    font-size: 2.25rem;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.time-frame-timer-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.time-frame-timer-status.overdue {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.time-frame-timer-presets,
+.time-frame-timer-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+}
+
+.time-frame-btn {
+    flex: initial;
+    width: 100%;
+}
+
+.time-frame-timer-custom {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.time-frame-custom-controls {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+}
+
+.time-frame-custom-controls input {
+    padding: 12px 16px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.time-frame-custom-controls input:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+    .time-frame-timer-display {
+        font-size: 1.8rem;
+    }
+
+    .time-frame-custom-controls {
+        grid-template-columns: 1fr;
+    }
+}
