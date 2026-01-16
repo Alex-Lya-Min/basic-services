@@ -27,6 +27,10 @@
     --gradient-end: #ffffff;
 }
 
+html {
+    overflow-y: scroll;
+}
+
 [data-theme="dark"] {
     /* Dark theme variables */
     --bg: #0f0f10;
