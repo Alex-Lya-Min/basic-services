@@ -14,8 +14,7 @@ body.video-compressor-page {
 }
 
 .version-label {
-    letter-spacing: 0.08em;
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: var(--text-secondary);
     margin: 0;
 }
