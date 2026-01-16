@@ -16,6 +16,12 @@
     gap: 16px;
 }
 
+.time-frame-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
 .time-frame-card {
     min-height: 170px;
 }
