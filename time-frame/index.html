@@ -39,51 +39,54 @@
             <h2>Time Frame</h2>
             <p class="time-frame-intro">Keep track of the current ISO week, year progress, and countdown timers at a glance.</p>
 
-            <div class="time-frame-grid">
-                <div class="info-card time-frame-card">
-                    <h3>Current Week</h3>
-                    <p id="weekNumber">Week 00</p>
-                    <span class="info-subtext" id="weekHint">ISO-8601 week number</span>
-                </div>
-                <div class="info-card time-frame-card">
-                    <h3>Year Progress</h3>
-                    <p id="yearProgressText">0 days 0 hours 0 min elapsed</p>
-                    <div class="time-frame-progress">
-                        <div class="time-frame-progress-fill" id="yearProgressBar" style="width: 0%"></div>
+            <div class="time-frame-cards">
+                <div class="time-frame-grid">
+                    <div class="info-card time-frame-card">
+                        <h3>Current Week</h3>
+                        <p id="weekNumber">Week 00</p>
+                        <span class="info-subtext" id="weekHint">ISO-8601 week number</span>
                     </div>
-                    <span class="info-subtext" id="yearProgressPercent">0% of the year</span>
+                    <div class="info-card time-frame-card">
+                        <h3>Year Progress</h3>
+                        <p id="yearProgressText">0 days 0 hours 0 min elapsed</p>
+                        <div class="time-frame-progress">
+                            <div class="time-frame-progress-fill" id="yearProgressBar" style="width: 0%"></div>
+                        </div>
+                        <span class="info-subtext" id="yearProgressPercent">0% of the year</span>
+                    </div>
                 </div>
+
+                <section class="time-frame-timer" aria-labelledby="timerTitle">
+                    <div class="time-frame-timer-header">
+                        <div>
+                            <h3 id="timerTitle">Timer</h3>
+                            <p class="time-frame-timer-display" id="timerDisplay">00:30:00</p>
+                            <span class="time-frame-timer-status" id="timerStatus">Ready</span>
+                        </div>
+                    </div>
+
+                    <div class="time-frame-timer-presets">
+                        <button class="action-btn time-frame-btn" data-duration="1800000">30 min</button>
+                        <button class="action-btn time-frame-btn" data-duration="2700000">45 min</button>
+                        <button class="action-btn time-frame-btn" data-duration="3600000">1 hour</button>
+                    </div>
+
+                    <div class="time-frame-timer-custom">
+                        <label for="customMinutes">Custom minutes</label>
+                        <div class="time-frame-custom-controls">
+                            <input id="customMinutes" type="number" min="1" max="1440" step="1" placeholder="Enter minutes" />
+                            <button class="action-btn time-frame-btn" id="applyCustom">Set</button>
+                        </div>
+                    </div>
+
+                    <div class="time-frame-timer-controls">
+                        <button class="action-btn time-frame-btn" id="clearTimer">Clear</button>
+                        <button class="action-btn time-frame-btn" id="resetTimer">Reset</button>
+                        <button class="action-btn time-frame-btn" id="pauseResumeTimer">Pause</button>
+                        <button class="action-btn time-frame-btn" id="startTimer">Start</button>
+                    </div>
+                </section>
             </div>
-
-            <section class="time-frame-timer" aria-labelledby="timerTitle">
-                <div class="time-frame-timer-header">
-                    <div>
-                        <h3 id="timerTitle">Timer</h3>
-                        <p class="time-frame-timer-display" id="timerDisplay">00:30:00</p>
-                        <span class="time-frame-timer-status" id="timerStatus">Ready</span>
-                    </div>
-                </div>
-
-                <div class="time-frame-timer-presets">
-                    <button class="action-btn time-frame-btn" data-duration="1800000">30 min</button>
-                    <button class="action-btn time-frame-btn" data-duration="2700000">45 min</button>
-                    <button class="action-btn time-frame-btn" data-duration="3600000">1 hour</button>
-                </div>
-
-                <div class="time-frame-timer-custom">
-                    <label for="customMinutes">Custom minutes</label>
-                    <div class="time-frame-custom-controls">
-                        <input id="customMinutes" type="number" min="1" max="1440" step="1" placeholder="Enter minutes" />
-                        <button class="action-btn time-frame-btn" id="applyCustom">Set</button>
-                    </div>
-                </div>
-
-                <div class="time-frame-timer-controls">
-                    <button class="action-btn time-frame-btn" id="startTimer">Start</button>
-                    <button class="action-btn time-frame-btn" id="pauseResumeTimer">Pause</button>
-                    <button class="action-btn time-frame-btn" id="resetTimer">Reset</button>
-                </div>
-            </section>
         </div>
 
         <footer class="dashboard-footer" aria-label="Application version">Version December 0.0.6 </footer>

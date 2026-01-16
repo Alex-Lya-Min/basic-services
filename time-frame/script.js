@@ -29,6 +29,7 @@ const timerStatus = document.getElementById('timerStatus');
 const startButton = document.getElementById('startTimer');
 const pauseResumeButton = document.getElementById('pauseResumeTimer');
 const resetButton = document.getElementById('resetTimer');
+const clearButton = document.getElementById('clearTimer');
 const presetButtons = document.querySelectorAll('[data-duration]');
 const customMinutesInput = document.getElementById('customMinutes');
 const applyCustomButton = document.getElementById('applyCustom');
@@ -39,7 +40,8 @@ const defaultTimerState = {
     startedAt: null,
     pausedAt: null,
     accumulatedPausedMs: 0,
-    isRunning: false
+    isRunning: false,
+    isCleared: false
 };
 
 let timerState = { ...defaultTimerState };
@@ -119,6 +121,7 @@ function setDuration(durationMs) {
     timerState.pausedAt = null;
     timerState.accumulatedPausedMs = 0;
     timerState.isRunning = false;
+    timerState.isCleared = false;
     saveTimerState();
     updateTimerDisplay();
     updateTimerControls();
@@ -140,6 +143,13 @@ function getRemainingMs() {
 
 function updateTimerDisplay() {
     if (!timerDisplay || !timerStatus || !timerContainer) return;
+    if (timerState.isCleared) {
+        timerDisplay.textContent = '00:00:00';
+        timerContainer.classList.remove('is-overdue');
+        timerStatus.classList.remove('overdue');
+        timerStatus.textContent = 'Ready';
+        return;
+    }
     const remainingMs = getRemainingMs();
     timerDisplay.textContent = formatTime(remainingMs);
 
@@ -178,6 +188,7 @@ function startTimer() {
     timerState.isRunning = true;
     timerState.pausedAt = null;
     timerState.accumulatedPausedMs = 0;
+    timerState.isCleared = false;
     saveTimerState();
     updateTimerControls();
 }
@@ -205,7 +216,20 @@ function resetTimer() {
     timerState.pausedAt = null;
     timerState.accumulatedPausedMs = 0;
     timerState.isRunning = false;
+    timerState.isCleared = false;
     saveTimerState();
+    updateTimerControls();
+    updateTimerDisplay();
+}
+
+function clearTimer() {
+    timerState.startedAt = null;
+    timerState.pausedAt = null;
+    timerState.accumulatedPausedMs = 0;
+    timerState.isRunning = false;
+    timerState.isCleared = true;
+    localStorage.removeItem(TIMER_STORAGE_KEY);
+    sessionStorage.removeItem(TIMER_STORAGE_KEY);
     updateTimerControls();
     updateTimerDisplay();
 }
@@ -242,6 +266,10 @@ if (pauseResumeButton) {
 
 if (resetButton) {
     resetButton.addEventListener('click', resetTimer);
+}
+
+if (clearButton) {
+    clearButton.addEventListener('click', clearTimer);
 }
 
 function updateTimer() {
