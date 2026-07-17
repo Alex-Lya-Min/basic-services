@@ -70,9 +70,15 @@ const toggleUploadStatus = (show, text) => {
   }
 };
 
+let lastObjectUrl = null;
+
 const resetDownloadState = () => {
   downloadLink.hidden = true;
   downloadLink.removeAttribute('href');
+  if (lastObjectUrl) {
+    URL.revokeObjectURL(lastObjectUrl);
+    lastObjectUrl = null;
+  }
 };
 
 const attachNamespaceProgressHandler = (instance) => {
@@ -112,13 +118,38 @@ const attachClassProgressHandler = (instance) => {
   });
 };
 
+// Sanity-check that the URL serves the real asset and not an HTML 404 page.
+// Only the first chunk of the body is read, then the request is cancelled,
+// so the 30 MB wasm core is not downloaded twice.
 const fetchHead = async (url) => {
-  const response = await fetch(url, { method: 'GET', cache: 'no-store' });
-  const buffer = await response.arrayBuffer();
-  const prefix = new TextDecoder().decode(buffer.slice(0, 32)).trim().toLowerCase();
+  const response = await fetch(url, { headers: { Range: 'bytes=0-63' } });
+  if (!response.ok && response.status !== 206) {
+    throw new Error(`Failed to fetch ${url}: HTTP ${response.status}`);
+  }
+  if (!response.body) return;
+  const reader = response.body.getReader();
+  const { value } = await reader.read();
+  reader.cancel().catch(() => {});
+  const prefix = new TextDecoder().decode((value || new Uint8Array()).slice(0, 32)).trim().toLowerCase();
   if (prefix.startsWith('<!doctype') || prefix.startsWith('<html')) {
     throw new Error(`Unexpected HTML response for ${url}`);
   }
+};
+
+const loadWithTimeout = (loadPromise, ms = 30000) => {
+  let timer = null;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      reject(
+        new Error(
+          `FFmpeg load timed out after ${ms / 1000} seconds. Check Network for ffmpeg-core.wasm at ${CORE_JS_URL} and ${CORE_WASM_URL}.`
+        )
+      );
+    }, ms);
+  });
+  const clearTimer = () => clearTimeout(timer);
+  loadPromise.then(clearTimer, clearTimer);
+  return Promise.race([loadPromise, timeout]);
 };
 
 const normalizeFFmpegExport = (candidate) => {
@@ -200,35 +231,13 @@ const ensureFFmpegLoaded = async () => {
       ffmpeg = createFFmpeg({ corePath: CORE_JS_URL });
       ffmpegApiMode = 'namespace';
       attachNamespaceProgressHandler(ffmpeg);
-      const loadPromise = ffmpeg.load();
-      const loadTimeout = new Promise((_, reject) => {
-        const timer = setTimeout(() => {
-          reject(
-            new Error(
-              `FFmpeg load timed out after 30 seconds. Check Network for ffmpeg-core.wasm at ${CORE_JS_URL} and ${CORE_WASM_URL}.`
-            )
-          );
-        }, 30000);
-        loadPromise.finally(() => clearTimeout(timer));
-      });
-      await Promise.race([loadPromise, loadTimeout]);
+      await loadWithTimeout(ffmpeg.load());
       ffmpeg.fetchFile = fetchFile;
     } else if (classResult) {
       ffmpeg = new classResult.ctor();
       ffmpegApiMode = 'class';
       attachClassProgressHandler(ffmpeg);
-      const loadPromise = ffmpeg.load({ coreURL: CORE_JS_URL, wasmURL: CORE_WASM_URL, workerURL: CORE_WORKER_URL });
-      const loadTimeout = new Promise((_, reject) => {
-        const timer = setTimeout(() => {
-          reject(
-            new Error(
-              `FFmpeg load timed out after 30 seconds. Check Network for ffmpeg-core.wasm at ${CORE_JS_URL} and ${CORE_WASM_URL}.`
-            )
-          );
-        }, 30000);
-        loadPromise.finally(() => clearTimeout(timer));
-      });
-      await Promise.race([loadPromise, loadTimeout]);
+      await loadWithTimeout(ffmpeg.load({ coreURL: CORE_JS_URL, wasmURL: CORE_WASM_URL, workerURL: CORE_WORKER_URL }));
     }
 
     ffmpegLoaded = true;
@@ -237,11 +246,19 @@ const ensureFFmpegLoaded = async () => {
   }
 };
 
+// Some platforms (notably drag-and-drop on Windows) deliver files with an
+// empty MIME type, so fall back to the file extension.
+const isMp4File = (file) => {
+  if (file.type && file.type.includes('mp4')) return true;
+  if (!file.type) return /\.(mp4|m4v)$/i.test(file.name || '');
+  return false;
+};
+
 const handleFiles = (files) => {
   if (!files || files.length === 0) return;
   const [file] = files;
 
-  if (!file.type.includes('mp4')) {
+  if (!isMp4File(file)) {
     resultMessage.textContent = 'Only mp4 files are supported right now.';
     return;
   }
@@ -253,12 +270,6 @@ const handleFiles = (files) => {
 
   resultMessage.textContent = 'Choose a preset and click "Compress video" to start.';
   toggleUploadStatus(false);
-};
-
-const getPreset = () => {
-  const form = document.getElementById('presetForm');
-  const formData = new FormData(form);
-  return formData.get('preset');
 };
 
 async function safeDelete(name) {
@@ -301,8 +312,7 @@ const runCompression = async () => {
     showEngineLoader(false);
 
     const inputName = 'input.mp4';
-    const preset = getPreset();
-    const outputName = preset === 'webm' ? 'output.webm' : 'output.mp4';
+    const outputName = 'output.mp4';
 
     toggleUploadStatus(true, 'Copying file to encoder…');
     const fileBuffer = new Uint8Array(await currentFile.arrayBuffer());
@@ -337,12 +347,12 @@ const runCompression = async () => {
       throw new Error('Compression failed to produce an output file.');
     }
 
-    const mime = preset === 'webm' ? 'video/webm' : 'video/mp4';
-    const blob = new Blob([data], { type: mime });
+    const blob = new Blob([data], { type: 'video/mp4' });
     const url = URL.createObjectURL(blob);
+    lastObjectUrl = url;
 
     downloadLink.href = url;
-    downloadLink.download = preset === 'webm' ? 'compressed.webm' : 'compressed.mp4';
+    downloadLink.download = 'compressed.mp4';
     downloadLink.hidden = false;
 
     resultMessage.textContent = 'Done! Click the button below to download the compressed video.';
@@ -372,16 +382,10 @@ const runCompression = async () => {
       } catch (_) {
         // ignore
       }
-      try {
-        ffmpeg.FS('unlink', 'output.webm');
-      } catch (_) {
-        // ignore
-      }
     }
 
     await safeDelete('input.mp4');
     await safeDelete('output.mp4');
-    await safeDelete('output.webm');
   }
 };
 
@@ -422,34 +426,4 @@ dropZone.addEventListener('keydown', (event) => {
 
 updateSelectedFile();
 
-// Theme switcher
-const themeSwitcher = document.getElementById('theme-switcher');
-const body = document.body;
-
-const initTheme = () => {
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'dark') {
-    body.setAttribute('data-theme', 'dark');
-  } else if (savedTheme === 'light') {
-    body.removeAttribute('data-theme');
-  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    body.setAttribute('data-theme', 'dark');
-  }
-};
-
-const toggleTheme = () => {
-  const isDark = body.getAttribute('data-theme') === 'dark';
-  if (isDark) {
-    body.removeAttribute('data-theme');
-    localStorage.setItem('theme', 'light');
-  } else {
-    body.setAttribute('data-theme', 'dark');
-    localStorage.setItem('theme', 'dark');
-  }
-};
-
-if (themeSwitcher) {
-  themeSwitcher.addEventListener('click', toggleTheme);
-}
-
-initTheme();
+// Theme handling lives in ../theme.js (shared across all pages).

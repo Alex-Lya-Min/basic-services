@@ -1,23 +1,6 @@
 const TIMER_STORAGE_KEY = 'timeFrameTimerState';
 
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-}
-
-function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-}
-
-initializeTheme();
-
-const themeSwitcher = document.getElementById('theme-switcher');
-if (themeSwitcher) {
-    themeSwitcher.addEventListener('click', toggleTheme);
-}
+// Theme handling lives in ../theme.js (shared across all pages).
 
 const weekNumberElement = document.getElementById('weekNumber');
 const yearProgressTextElement = document.getElementById('yearProgressText');
@@ -245,10 +228,14 @@ presetButtons.forEach(button => {
 
 if (applyCustomButton && customMinutesInput) {
     applyCustomButton.addEventListener('click', () => {
-        const minutes = Number(customMinutesInput.value);
-        if (!Number.isNaN(minutes) && minutes > 0) {
+        const minutes = Math.round(Number(customMinutesInput.value));
+        const min = Number(customMinutesInput.min) || 1;
+        const max = Number(customMinutesInput.max) || 1440;
+        if (Number.isFinite(minutes) && minutes >= min && minutes <= max) {
             setDuration(minutes * 60000);
             customMinutesInput.value = '';
+        } else if (typeof customMinutesInput.reportValidity === 'function') {
+            customMinutesInput.reportValidity();
         }
     });
 }

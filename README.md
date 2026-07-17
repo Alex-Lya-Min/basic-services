@@ -7,8 +7,11 @@ A collection of useful web tools including Display Resolution Tool, Character Co
 - 📱 Display Resolution Tool
 - ✍️ Character Counter
 - 🔤 Case Converter
-- 🌓 Dark/Light Theme Support
-- 🎬 Image / Video Compressor (ffmpeg.wasm)
+- 🧹 Clean Text Editor
+- 🖥️ Device Details
+- ⏱️ Time Frame (ISO week, year progress, countdown timer)
+- 🌓 Dark/Light Theme Support (follows system preference by default)
+- 🎬 Video Compressor (ffmpeg.wasm)
 
 ## Usage
 
@@ -34,9 +37,9 @@ Then open `http://localhost:8000` in your browser.
 ## Video compressor quick start
 
 1. Open [`/video-compressor/`](./video-compressor/).
-2. Drop an mp4 file (recommended up to ~500 MB).
-3. Pick one of the ready-made presets (smaller mp4 or mp4 → webm).
-4. Click **Compress video** and keep the tab in the foreground while ffmpeg.wasm works.
+2. Drop an mp4 file (recommended up to ~150–200 MB).
+3. Click **Compress video** and keep the tab in the foreground while ffmpeg.wasm works
+   (the output is a smaller H.264 mp4, CRF 28, audio kept as-is).
 
 Compression is performed entirely in your browser, so large videos can take several minutes on low-power devices.
 

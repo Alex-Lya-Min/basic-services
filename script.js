@@ -1,21 +1,4 @@
-// Theme Switcher
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-}
-
-function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-}
-
-// Initialize theme
-initializeTheme();
-
-// Add theme switcher event listener
-document.getElementById('theme-switcher').addEventListener('click', toggleTheme);
+// Theme handling lives in theme.js (shared across all pages).
 
 // Tab Navigation
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -328,16 +311,17 @@ function countLinesByChars(textarea) {
     const scrollbarWidth = textarea.offsetWidth - textarea.clientWidth;
     const availableWidth = textarea.clientWidth - padding - scrollbarWidth;
 
-    // 2. Создаём временный элемент для измерения ширины символа
+    // 2. Создаём временный элемент для измерения средней ширины символа
     const tempSpan = document.createElement('span');
     tempSpan.style.visibility = 'hidden';
     tempSpan.style.position = 'absolute';
     tempSpan.style.fontFamily = styles.fontFamily;
     tempSpan.style.fontSize = styles.fontSize;
     tempSpan.style.whiteSpace = 'pre';
-    tempSpan.textContent = 'a'; // Измеряем по строчной букве
+    const sample = 'abcdefghijklmnopqrstuvwxyz 0123456789';
+    tempSpan.textContent = sample;
     document.body.appendChild(tempSpan);
-    const charWidth = tempSpan.getBoundingClientRect().width;
+    const charWidth = tempSpan.getBoundingClientRect().width / sample.length;
     document.body.removeChild(tempSpan);
 
     if (charWidth === 0) return 1; // Защита от деления на 0
@@ -346,12 +330,11 @@ function countLinesByChars(textarea) {
     const charsPerLine = Math.floor(availableWidth / charWidth);
     if (charsPerLine <= 0) return 1;
 
-    // 4. Считаем строки
-    const explicitBreaks = (value.match(/\n/g) || []).length; // Явные переносы
-    const implicitBreaks = Math.floor(value.length / charsPerLine); // Автоматические переносы
-    const totalLines = 1 + explicitBreaks + implicitBreaks;
-
-    return totalLines;
+    // 4. Считаем строки: каждая логическая строка занимает минимум одну
+    // визуальную, длинные строки переносятся независимо друг от друга
+    return value.split('\n').reduce((total, line) => {
+        return total + Math.max(1, Math.ceil(line.length / charsPerLine));
+    }, 0);
 }
 
 function updateCharacterCount() {

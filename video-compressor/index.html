@@ -11,6 +11,8 @@
     <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
     <script src="coi-serviceworker.js"></script>
+    <script src="../theme.js"></script>
+    <script src="../version.js" defer></script>
 </head>
 
 <body class="video-compressor-page">
@@ -102,7 +104,8 @@
 
         <footer class="vc-footer">
             <p>Powered by <code>ffmpeg.wasm</code>. No videos leave your browser.</p>
-            <p class="version-label">Version January 2026 0.0.7 || ffmpeg@0.12.15</p>
+            <p class="version-label" data-app-version data-version-suffix="|| ffmpeg@0.12.15">Version July 2026 0.0.8
+                || ffmpeg@0.12.15</p>
         </footer>
     </div>
 
