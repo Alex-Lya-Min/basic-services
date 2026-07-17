@@ -12,6 +12,7 @@ A collection of useful web tools including Display Resolution Tool, Character Co
 - ⏱️ Time Frame (ISO week, year progress, countdown timer)
 - 🌓 Dark/Light Theme Support (follows system preference by default)
 - 🎬 Video Compressor (ffmpeg.wasm)
+- 🖼️ Image Compressor (MozJPEG / OxiPNG via jSquash)
 
 ## Usage
 
@@ -42,6 +43,17 @@ Then open `http://localhost:8000` in your browser.
    (the output is a smaller H.264 mp4, CRF 28, audio kept as-is).
 
 Compression is performed entirely in your browser, so large videos can take several minutes on low-power devices.
+
+## Image compressor quick start
+
+1. Open [`/image-compressor/`](./image-compressor/).
+2. Drop JPEG or PNG files (up to 20 at once, ~50 MB each) — compression starts automatically.
+3. Adjust the JPEG quality slider if needed (default 75); PNGs are optimised losslessly.
+4. Download files one by one or grab everything as a zip.
+
+Images are processed locally in a Web Worker using WebAssembly builds of MozJPEG and OxiPNG
+(the [jSquash](https://github.com/jamsinclair/jSquash) project). Codec modules are loaded from
+esm.sh on first use, so the first compression needs a network connection.
 
 
 

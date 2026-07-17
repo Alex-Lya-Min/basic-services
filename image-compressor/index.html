@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="In-browser JPEG and PNG optimizer powered by MozJPEG and OxiPNG (WebAssembly). No uploads — images never leave your device.">
+    <title>Image Compressor | LYMN Web Tools</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖼️</text></svg>">
+    <script src="../theme.js"></script>
+    <script src="../version.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
+</head>
+
+<body class="image-compressor-page">
+    <div class="app-shell ic-shell page-shell">
+        <header class="page-header">
+            <div class="header-top">
+                <h1>Image Compressor</h1>
+                <button id="theme-switcher" class="theme-switcher" aria-label="Toggle dark/light theme">
+                    <span class="light-icon" aria-hidden="true">🌞</span>
+                    <span class="dark-icon" aria-hidden="true">🌙</span>
+                </button>
+            </div>
+            <div class="tab-navigation" role="tablist">
+                <a href="../#display-tool" class="tab-button tab-link">Display Resolution</a>
+                <a href="../#counter-tool" class="tab-button tab-link">Word Counter</a>
+                <a href="../#case-tool" class="tab-button tab-link">Case Converter</a>
+                <a href="../#clean-text" class="tab-button tab-link">Clean Text</a>
+                <a href="../#device-info" class="tab-button tab-link">Device Details</a>
+                <a href="../video-compressor/" class="tab-button tab-link">Video Compressor</a>
+                <a href="./" class="tab-button tab-link active" aria-current="page">Image Compressor</a>
+                <a href="../time-frame/" class="tab-button tab-link">Time Frame</a>
+            </div>
+            <p class="page-intro">Shrink JPEG and PNG files right in your browser — nothing is uploaded anywhere.<br>
+                JPEGs are re-encoded with MozJPEG, PNGs are optimised losslessly with OxiPNG (WebAssembly).</p>
+        </header>
+
+        <main class="ic-main">
+            <section class="module-card" aria-label="Image selection">
+                <h2><span class="step-number">1</span> Add your images</h2>
+                <p class="hint">JPEG and PNG, up to 20 files at once, ~50 MB each.</p>
+                <div class="drop-area" id="dropZone" role="button" tabindex="0" aria-describedby="dropHint">
+                    <p class="drop-title">Drop images here or click to browse</p>
+                    <p class="drop-subtitle" id="dropHint">Compression starts automatically</p>
+                    <input type="file" id="imageInput" accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple
+                        aria-label="Image input">
+                </div>
+                <p class="status-line" id="statusLine" aria-live="polite"></p>
+            </section>
+
+            <section class="module-card" aria-label="Compression settings">
+                <h2><span class="step-number">2</span> Settings</h2>
+                <label class="quality-label" for="qualitySlider">JPEG quality</label>
+                <div class="quality-row">
+                    <input type="range" id="qualitySlider" min="1" max="100" step="1" value="75">
+                    <span class="quality-value" id="qualityValue">75</span>
+                </div>
+                <p class="hint">Lower quality → smaller files. PNGs are always optimised losslessly, the slider does
+                    not affect them.</p>
+                <button id="recompressButton" class="primary ghost" disabled>Re-compress JPEGs with current
+                    quality</button>
+            </section>
+
+            <section class="module-card ic-results" aria-label="Results">
+                <h2><span class="step-number">3</span> Results</h2>
+                <div class="progress-wrapper" id="overallProgressWrapper" aria-live="polite" hidden>
+                    <progress id="overallProgress" value="0" max="1"></progress>
+                    <p id="overallLabel"></p>
+                </div>
+                <p class="empty-state" id="emptyState">Add images above to see before/after previews here.</p>
+                <div class="results-grid" id="resultsGrid"></div>
+                <div class="ic-actions">
+                    <button id="downloadAllButton" class="primary" disabled>Download all (.zip)</button>
+                    <button id="clearAllButton" class="primary ghost" disabled>Clear all</button>
+                </div>
+            </section>
+        </main>
+
+        <section class="ic-limits" aria-label="Limitations">
+            <h2>Practical limits</h2>
+            <ul>
+                <li>Supported formats: JPEG and PNG (up to 20 files, ~50 MB each).</li>
+                <li>Everything runs locally in a Web Worker — the page stays responsive.</li>
+                <li>Codec modules (~2 MB) are fetched from esm.sh on first compression, so the first file needs a
+                    network connection.</li>
+                <li>PNG optimisation is lossless; JPEG uses the quality slider (MozJPEG).</li>
+                <li>If re-encoding cannot beat the original file, the original is kept.</li>
+            </ul>
+        </section>
+
+        <footer class="ic-footer">
+            <p>Powered by <code>MozJPEG</code> and <code>OxiPNG</code> via <a href="https://github.com/jamsinclair/jSquash"
+                    rel="noopener" target="_blank">jSquash</a>. No images leave your browser.</p>
+            <p class="version-label" data-app-version data-version-suffix="|| jsquash-jpeg@1.6.0 + oxipng@2.3.0">
+                Version July 2026 0.0.9 || jsquash-jpeg@1.6.0 + oxipng@2.3.0</p>
+        </footer>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+</body>
+
+</html>
