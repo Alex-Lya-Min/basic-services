@@ -745,10 +745,6 @@ textarea:focus {
     .info-box p {
         font-size: 1.2rem;
     }
-
-    .clean-text-container {
-        height: 50vh;
-    }
 }
 
 /* Clean Text Tool */
@@ -877,6 +873,16 @@ textarea:focus-visible,
 .convert-btn:focus-visible {
     outline: 2px solid var(--accent-color);
     outline-offset: 2px;
+}
+
+/* The Clean Text editor is a composite control (line numbers + textarea):
+   focus is shown by the wrapper border (.editor-wrapper:focus-within),
+   so the inner textarea must not draw its own outline — it would start
+   after the line-number column and run the full height of the
+   auto-growing textarea. */
+.clean-text-editor:focus,
+.clean-text-editor:focus-visible {
+    outline: none;
 }
 
 /* Improved button states */
