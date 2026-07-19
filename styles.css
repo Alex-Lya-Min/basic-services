@@ -1,19 +1,30 @@
 :root {
+    /* Design language of alexlyamin.framer.website: flat surfaces,
+       1px borders, square corners, Space Grotesk / Golos Text,
+       lime #cdf46d as the single interactive accent. */
+    --font-display: "Space Grotesk", "Golos Text", system-ui, -apple-system, sans-serif;
+    --font-body: "Golos Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: "SFMono-Regular", "Fira Code", "Courier New", Courier, monospace;
+
     /* Light theme variables */
-    --bg: #f6f6f7;
+    --bg: #ffffff;
     --card: #ffffff;
-    --border: #e4e4e7;
-    --text: #0a0a0a;
-    --muted: #52525b;
-    --radius: 8px;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --border: #d6d6d6;
+    --text: #111417;
+    --muted: #6a6a6a;
+    --radius: 0px;
+    --shadow: none;
     --container: 1120px;
     --container-width: var(--container);
     --bg-primary: var(--card);
-    --bg-secondary: var(--bg);
+    --bg-secondary: #f5f5f4;
     --text-primary: var(--text);
     --text-secondary: var(--muted);
-    --accent-color: #111111;
+    --accent-color: #cdf46d;
+    --accent-contrast: #101010;
+    --accent-hover: #bfe95a;
+    --surface-hover: #f0f0ef;
+    --value-color: #111417;
     --border-color: var(--border);
     --border-radius: var(--radius);
     --shadow-main: var(--shadow);
@@ -33,26 +44,42 @@ html {
 
 [data-theme="dark"] {
     /* Dark theme variables */
-    --bg: #0f0f10;
-    --card: #1b1b1d;
-    --border: #2a2a2d;
-    --text: #fafafa;
-    --muted: #a1a1aa;
+    --bg: #000000;
+    --card: #000000;
+    --border: #2e3032;
+    --text: #ffffff;
+    --muted: #b3b3b3;
+    --bg-secondary: #131415;
     --bg-primary: var(--card);
-    --bg-secondary: var(--bg);
     --text-primary: var(--text);
     --text-secondary: var(--muted);
-    --accent-color: #ffffff;
+    --accent-color: #cdf46d;
+    --accent-contrast: #101010;
+    --accent-hover: #daf98e;
+    --surface-hover: #222426;
+    --value-color: #cdf46d;
     --border-color: var(--border);
-    --gradient-start: #0f0f10;
-    --gradient-end: #0f0f10;
+    --gradient-start: #000000;
+    --gradient-end: #000000;
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+button,
+.tab-button,
+.primary,
+.action-btn,
+.convert-btn,
+.step-number {
+    font-family: var(--font-display);
 }
 
 body {
@@ -100,7 +127,7 @@ body {
 }
 
 .theme-switcher:hover {
-    background: var(--bg);
+    background: var(--surface-hover);
 }
 
 .light-icon,
@@ -125,7 +152,7 @@ h1 {
     text-align: center;
     margin-bottom: 0;
     font-size: 2.25rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: -0.02em;
 }
 
@@ -133,7 +160,7 @@ h2 {
     color: var(--text);
     margin-bottom: 24px;
     font-size: 1.5rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: -0.01em;
 }
 
@@ -173,38 +200,40 @@ h2 {
     margin: 0 auto;
 }
 
-/* Tab Navigation */
+/* Tab Navigation — joined 1px-bordered segments, like the site header */
 .tab-navigation {
     display: flex;
-    gap: 8px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: var(--space-md);
+    gap: 0;
     flex-wrap: wrap;
     justify-content: center;
 }
 
 .tab-button {
     background: transparent;
-    border: 1px solid transparent;
-    padding: 10px 16px;
-    font-size: 0.95rem;
+    border: 1px solid var(--border-color);
+    margin: 0 -1px -1px 0;
+    padding: 12px 18px;
+    font-size: 0.9rem;
     color: var(--text-secondary);
     cursor: pointer;
-    border-radius: var(--border-radius);
+    border-radius: 0;
     transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
     font-weight: 500;
 }
 
 .tab-button:hover {
-    background: var(--bg);
+    background: var(--surface-hover);
     color: var(--text);
-    border-color: var(--border-color);
+    z-index: 1;
+    position: relative;
 }
 
 .tab-button.active {
     background: var(--accent-color);
-    color: var(--card);
+    color: var(--accent-contrast);
     border-color: var(--accent-color);
+    z-index: 1;
+    position: relative;
 }
 
 .tab-button.tab-link {
@@ -278,9 +307,10 @@ h2 {
 
 .size-box p,
 .stat-box p {
-    color: var(--accent-color);
+    color: var(--value-color);
     font-size: 1.5rem;
-    font-weight: 600;
+    font-weight: 700;
+    font-family: var(--font-display);
 }
 
 /* Device Details Tool */
@@ -315,9 +345,10 @@ h2 {
 }
 
 .info-card p {
-    color: var(--accent-color);
+    color: var(--value-color);
     font-size: 1.25rem;
-    font-weight: 600;
+    font-weight: 700;
+    font-family: var(--font-display);
     word-break: break-word;
 }
 
@@ -332,10 +363,11 @@ h2 {
 }
 
 .user-agent-box {
-    background: var(--card);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     padding: 16px;
-    font-family: "SFMono-Regular", "Fira Code", "Courier New", Courier, monospace;
+    font-family: var(--font-mono);
     font-size: 0.85rem;
     color: var(--text-secondary);
     overflow-x: auto;
@@ -521,7 +553,7 @@ textarea:focus {
 
 .convert-btn.active {
     background: var(--accent-color);
-    color: var(--bg-primary);
+    color: var(--accent-contrast);
     border-color: var(--accent-color);
 }
 
@@ -537,7 +569,7 @@ textarea:focus {
 }
 
 .convert-btn.active .example {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(16, 16, 16, 0.65);
 }
 
 .action-buttons {
@@ -549,7 +581,7 @@ textarea:focus {
 .action-btn {
     flex: 1;
     padding: 12px 16px;
-    border: 1px solid var(--accent-color);
+    border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     cursor: pointer;
     transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, transform 0.2s ease;
@@ -564,18 +596,20 @@ textarea:focus {
 }
 
 .action-btn:hover {
-    background: var(--bg);
+    background: var(--surface-hover);
     border-color: var(--text);
 }
 
 #copyButton {
     background: var(--accent-color);
-    color: var(--card);
+    color: var(--accent-contrast);
     border-color: var(--accent-color);
 }
 
 #copyButton:hover {
-    background: var(--text-primary);
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: var(--accent-contrast);
 }
 
 #clearButton {
@@ -584,7 +618,7 @@ textarea:focus {
 }
 
 #clearButton:hover {
-    background: var(--bg-secondary);
+    background: var(--surface-hover);
     border-color: var(--text-secondary);
 }
 
@@ -867,7 +901,7 @@ textarea:focus-visible,
 .editor-actions .action-btn {
     flex: 0 1 auto;
     padding: 12px 16px;
-    border: 1px solid var(--accent-color);
+    border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     cursor: pointer;
     transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, transform 0.2s ease;
@@ -882,18 +916,18 @@ textarea:focus-visible,
 }
 
 .editor-actions .action-btn:hover {
-    background: var(--bg);
+    background: var(--surface-hover);
     border-color: var(--text);
 }
 
 #wrapText {
     background: var(--bg-primary);
-    border: 1px solid var(--accent-color);
+    border: 1px solid var(--border-color);
     flex: 0 1 auto;
 }
 
 #wrapText:hover {
-    background: var(--bg);
+    background: var(--surface-hover);
     color: var(--text);
     border-color: var(--text);
 }

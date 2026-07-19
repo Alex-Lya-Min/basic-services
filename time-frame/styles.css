@@ -29,8 +29,8 @@
 .time-frame-progress {
     width: 100%;
     height: 10px;
-    background: var(--bg);
-    border-radius: 999px;
+    background: var(--surface-hover);
+    border-radius: 0;
     border: 1px solid var(--border-color);
     overflow: hidden;
 }
@@ -38,7 +38,7 @@
 .time-frame-progress-fill {
     height: 100%;
     background: var(--accent-color);
-    border-radius: 999px;
+    border-radius: 0;
     transition: width 0.4s ease;
 }
 
@@ -67,8 +67,10 @@
 
 .time-frame-timer-display {
     font-size: 2.25rem;
-    font-weight: 600;
-    color: var(--accent-color);
+    font-weight: 700;
+    font-family: var(--font-display);
+    color: var(--value-color);
+    font-variant-numeric: tabular-nums;
 }
 
 .time-frame-timer-status {
