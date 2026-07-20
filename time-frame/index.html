@@ -23,7 +23,7 @@
     <div class="dashboard-container app-shell page-shell">
         <header class="page-header">
             <div class="header-top">
-                <h1>Web Tools Dashboard</h1>
+                <h1><a class="brand-link" href="../" aria-label="Web Tools Dashboard home">Web Tools Dashboard</a></h1>
                 <button id="theme-switcher" class="theme-switcher" aria-label="Toggle dark/light theme">
                     <span class="light-icon" aria-hidden="true">🌞</span>
                     <span class="dark-icon" aria-hidden="true">🌙</span>
@@ -40,6 +40,8 @@
                 <a href="../image-compressor/" class="tab-button tab-link">Image Compressor</a>
                 <a href="./" class="tab-button tab-link active" aria-current="page">Time Frame</a>
             </div>
+
+            <div class="current-service" id="currentService">Time Frame</div>
         </header>
 
         <div class="tool-panel active time-frame-panel">
@@ -98,7 +100,11 @@
             </div>
         </div>
 
-        <footer class="dashboard-footer" aria-label="Application version" data-app-version>Version July 2026 0.0.11D</footer>
+        <footer class="dashboard-footer" aria-label="Site links and version">
+            <a class="footer-link" href="https://alexlyamin.framer.website/" target="_blank"
+                rel="noopener">Portfolio ↗</a>
+            <span class="footer-version" data-app-version>Version July 2026 0.0.12D</span>
+        </footer>
     </div>
     <script src="script.js"></script>
 </body>

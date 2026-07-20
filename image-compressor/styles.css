@@ -373,6 +373,10 @@ progress::-webkit-progress-value {
 
 .ic-footer {
     margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
     text-align: center;
     color: var(--text-secondary);
 }

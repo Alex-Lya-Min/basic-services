@@ -24,7 +24,7 @@
     <div class="app-shell ic-shell page-shell">
         <header class="page-header">
             <div class="header-top">
-                <h1>Image Compressor</h1>
+                <h1><a class="brand-link" href="../" aria-label="Web Tools Dashboard home">Web Tools Dashboard</a></h1>
                 <button id="theme-switcher" class="theme-switcher" aria-label="Toggle dark/light theme">
                     <span class="light-icon" aria-hidden="true">🌞</span>
                     <span class="dark-icon" aria-hidden="true">🌙</span>
@@ -40,6 +40,9 @@
                 <a href="./" class="tab-button tab-link active" aria-current="page">Image Compressor</a>
                 <a href="../time-frame/" class="tab-button tab-link">Time Frame</a>
             </div>
+
+            <div class="current-service" id="currentService">Image Compressor</div>
+
             <p class="page-intro">Shrink JPEG and PNG files right in your browser — nothing is uploaded anywhere.<br>
                 JPEGs are re-encoded with MozJPEG, PNGs are optimised losslessly with OxiPNG (WebAssembly).</p>
         </header>
@@ -100,8 +103,10 @@
         <footer class="ic-footer">
             <p>Powered by <code>MozJPEG</code> and <code>OxiPNG</code> via <a href="https://github.com/jamsinclair/jSquash"
                     rel="noopener" target="_blank">jSquash</a>. No images leave your browser.</p>
+            <p><a class="footer-link" href="https://alexlyamin.framer.website/" target="_blank"
+                    rel="noopener">Portfolio ↗</a></p>
             <p class="version-label" data-app-version data-version-suffix="|| jsquash-jpeg@1.6.0 + oxipng@2.3.0">
-                Version July 2026 0.0.11D || jsquash-jpeg@1.6.0 + oxipng@2.3.0</p>
+                Version July 2026 0.0.12D || jsquash-jpeg@1.6.0 + oxipng@2.3.0</p>
         </footer>
     </div>
 

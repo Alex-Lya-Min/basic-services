@@ -35,6 +35,17 @@ tabButtons.forEach(button => {
     });
 });
 
+const currentServiceElement = document.getElementById('currentService');
+
+// Reflect the active tool's name in the header "you are here" marker.
+function updateCurrentService(tabId) {
+    if (!currentServiceElement) return;
+    const activeButton = Array.from(tabButtons).find(btn => btn.dataset.tab === tabId);
+    if (activeButton) {
+        currentServiceElement.textContent = activeButton.textContent.trim();
+    }
+}
+
 function switchTab(tabId) {
     // Remove active class from all buttons and panels
     tabButtons.forEach(btn => {
@@ -52,6 +63,8 @@ function switchTab(tabId) {
             panel.classList.add('active');
         }
     });
+
+    updateCurrentService(tabId);
 }
 
 // Handle hash change for direct linking
