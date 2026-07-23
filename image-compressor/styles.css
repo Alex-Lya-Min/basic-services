@@ -9,10 +9,6 @@ body.image-compressor-page {
     padding: var(--space-lg);
 }
 
-.ic-shell {
-    min-height: auto;
-}
-
 .version-label {
     color: var(--text-secondary);
     margin: 0;

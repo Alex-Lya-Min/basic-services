@@ -9,10 +9,6 @@ body.video-compressor-page {
     padding: var(--space-lg);
 }
 
-.vc-shell {
-    min-height: auto;
-}
-
 .version-label {
     color: var(--text-secondary);
     margin: 0;

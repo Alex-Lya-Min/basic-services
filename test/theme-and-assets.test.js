@@ -73,6 +73,66 @@ test('ARIA element references point to existing ids', () => {
   }
 });
 
+test('tool URL hashes select panels without becoming browser scroll targets', () => {
+  const dashboardHtml = fs.readFileSync(path.join(projectRoot, 'index.html'), 'utf8');
+  const dashboardIds = new Set(
+    [...dashboardHtml.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1])
+  );
+  const standaloneHtml = [
+    'time-frame/index.html',
+    'image-compressor/index.html',
+    'video-compressor/index.html'
+  ].map((file) => fs.readFileSync(path.join(projectRoot, file), 'utf8')).join('\n');
+  const toolHashes = new Set(
+    [...standaloneHtml.matchAll(/href="[^"]*#([^"]+)"/g)].map((match) => match[1])
+  );
+
+  for (const hash of toolHashes) {
+    assert.ok(!dashboardIds.has(hash), `#${hash} must not match an element id and trigger scrolling`);
+    assert.ok(dashboardIds.has(`${hash}-panel`), `#${hash} must resolve to a tool panel`);
+    assert.ok(dashboardIds.has(`${hash}-tab`), `#${hash} must resolve to a labelled tab`);
+  }
+});
+
+test('design version uses the D suffix and matches every page fallback', () => {
+  const versionSource = fs.readFileSync(path.join(projectRoot, 'version.js'), 'utf8');
+  const appVersion = versionSource.match(/APP_VERSION = '([^']+)'/)?.[1];
+  const packageVersion = JSON.parse(
+    fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8')
+  ).version;
+
+  assert.ok(appVersion, 'version.js must define APP_VERSION');
+  assert.match(appVersion, /D$/, 'design versions must end in D');
+  assert.equal(appVersion, `${packageVersion}D`);
+
+  for (const relativeHtmlPath of [
+    'index.html',
+    'time-frame/index.html',
+    'image-compressor/index.html',
+    'video-compressor/index.html'
+  ]) {
+    const html = fs.readFileSync(path.join(projectRoot, relativeHtmlPath), 'utf8');
+    assert.ok(html.includes(appVersion), `${relativeHtmlPath} must use version ${appVersion}`);
+  }
+});
+
+test('tool layouts reserve stable vertical space across page changes', () => {
+  const sharedStyles = fs.readFileSync(path.join(projectRoot, 'styles.css'), 'utf8');
+  const imageStyles = fs.readFileSync(
+    path.join(projectRoot, 'image-compressor/styles.css'),
+    'utf8'
+  );
+  const videoStyles = fs.readFileSync(
+    path.join(projectRoot, 'video-compressor/styles.css'),
+    'utf8'
+  );
+
+  assert.match(sharedStyles, /html\s*\{[^}]*overflow-y:\s*scroll;/s);
+  assert.match(sharedStyles, /\.tool-panel\s*\{[^}]*min-height:\s*520px;/s);
+  assert.doesNotMatch(imageStyles, /\.ic-shell\s*\{[^}]*min-height:\s*auto;/s);
+  assert.doesNotMatch(videoStyles, /\.vc-shell\s*\{[^}]*min-height:\s*auto;/s);
+});
+
 test('all project JavaScript files pass the Node syntax check', () => {
   const files = [
     'script.js',
