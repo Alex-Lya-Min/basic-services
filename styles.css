@@ -423,27 +423,49 @@ h2 {
     padding: 10px 16px;
 }
 
-/* Footer */
-.dashboard-footer {
+/* Compact footer: portfolio and build information stay in one row. */
+.site-footer {
     margin-top: 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     text-align: center;
     color: var(--text-secondary);
-    font-size: 0.95rem;
+    font-size: 0.85rem;
+}
+
+.footer-note {
+    margin: 0;
+    line-height: 1.4;
+}
+
+.footer-note a {
+    color: inherit;
+}
+
+.footer-card-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 8px;
+    width: min(100%, 520px);
+}
+
+.footer-card {
+    min-width: 0;
+    min-height: 52px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--card);
 }
 
 /* Portfolio "business card" shown in every page footer. */
 .portfolio-card {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 16px 10px 10px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    background: var(--card);
+    gap: 10px;
+    padding: 7px 12px 7px 7px;
     text-decoration: none;
     transition: border-color 0.2s ease, background 0.2s ease;
 }
@@ -481,13 +503,62 @@ h2 {
 .portfolio-card-name {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--text);
 }
 
 .portfolio-card-label {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--text-secondary);
+}
+
+.version-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px 7px 7px;
+    text-align: left;
+}
+
+.version-card-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.version-card-text {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    line-height: 1.2;
+}
+
+.version-card-name {
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.version-card-meta {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.version-card-date::before {
+    content: " · ";
 }
 
 /* Character Counter Tool */
@@ -842,6 +913,37 @@ textarea:focus {
     .size-box p,
     .info-box p {
         font-size: 1.2rem;
+    }
+
+    .footer-card-row {
+        gap: 6px;
+    }
+
+    .portfolio-card,
+    .version-card {
+        gap: 6px;
+        padding: 6px;
+    }
+
+    .portfolio-card-avatar,
+    .version-card-mark {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+
+    .portfolio-card-name,
+    .version-card-name {
+        font-size: 0.78rem;
+    }
+
+    .portfolio-card-label,
+    .version-card-date {
+        display: none;
+    }
+
+    .version-card-meta {
+        font-size: 0.72rem;
     }
 }
 

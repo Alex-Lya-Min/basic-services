@@ -235,16 +235,27 @@
             </div>
         </div>
 
-        <footer class="dashboard-footer" aria-label="Site links and version">
-            <a class="portfolio-card" href="https://alexlyamin.framer.website/" target="_blank" rel="noopener"
-                aria-label="Alexey Lyamin — open portfolio">
-                <span class="portfolio-card-avatar" aria-hidden="true">AL</span>
-                <span class="portfolio-card-text">
-                    <span class="portfolio-card-name">Alexey Lyamin</span>
-                    <span class="portfolio-card-label">View portfolio ↗</span>
-                </span>
-            </a>
-            <span class="footer-version" data-app-version>Version July 2026 0.0.14D</span>
+        <footer class="dashboard-footer site-footer" aria-label="Site links and version">
+            <div class="footer-card-row">
+                <a class="portfolio-card footer-card" href="https://alexlyamin.framer.website/" target="_blank"
+                    rel="noopener" aria-label="Alexey Lyamin — open portfolio">
+                    <span class="portfolio-card-avatar" aria-hidden="true">AL</span>
+                    <span class="portfolio-card-text">
+                        <span class="portfolio-card-name">Alexey Lyamin</span>
+                        <span class="portfolio-card-label">View portfolio ↗</span>
+                    </span>
+                </a>
+                <div class="version-card footer-card" aria-label="Application version">
+                    <span class="version-card-mark" aria-hidden="true">V</span>
+                    <span class="version-card-text">
+                        <span class="version-card-name">Version</span>
+                        <span class="version-card-meta">
+                            <span data-app-version-value>0.0.15D</span>
+                            <span class="version-card-date" data-app-version-date>July 2026</span>
+                        </span>
+                    </span>
+                </div>
+            </div>
         </footer>
     </div>
     <script src="script.js"></script>

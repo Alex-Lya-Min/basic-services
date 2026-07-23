@@ -9,11 +9,6 @@ body.video-compressor-page {
     padding: var(--space-lg);
 }
 
-.version-label {
-    color: var(--text-secondary);
-    margin: 0;
-}
-
 .vc-main {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -281,16 +276,6 @@ progress::-webkit-progress-value {
 .limits ul {
     padding-left: 1.25rem;
     margin: 0;
-    color: var(--text-secondary);
-}
-
-.vc-footer {
-    margin-top: 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    text-align: center;
     color: var(--text-secondary);
 }
 

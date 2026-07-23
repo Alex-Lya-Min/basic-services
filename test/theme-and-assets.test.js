@@ -133,6 +133,32 @@ test('tool layouts reserve stable vertical space across page changes', () => {
   assert.doesNotMatch(videoStyles, /\.vc-shell\s*\{[^}]*min-height:\s*auto;/s);
 });
 
+test('every page uses one compact row with portfolio and version cards', () => {
+  for (const relativeHtmlPath of [
+    'index.html',
+    'time-frame/index.html',
+    'image-compressor/index.html',
+    'video-compressor/index.html'
+  ]) {
+    const html = fs.readFileSync(path.join(projectRoot, relativeHtmlPath), 'utf8');
+    const rowStart = html.indexOf('class="footer-card-row"');
+    const portfolioStart = html.indexOf('class="portfolio-card footer-card"', rowStart);
+    const versionStart = html.indexOf('class="version-card footer-card"', rowStart);
+    const rowEnd = html.indexOf('</div>', versionStart);
+
+    assert.ok(rowStart >= 0, `${relativeHtmlPath} must contain a footer card row`);
+    assert.ok(portfolioStart > rowStart, `${relativeHtmlPath} must place portfolio in the row`);
+    assert.ok(versionStart > portfolioStart, `${relativeHtmlPath} must place version beside portfolio`);
+    assert.ok(rowEnd > versionStart, `${relativeHtmlPath} must close the footer card row`);
+  }
+
+  const sharedStyles = fs.readFileSync(path.join(projectRoot, 'styles.css'), 'utf8');
+  assert.match(
+    sharedStyles,
+    /\.footer-card-row\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/s
+  );
+});
+
 test('all project JavaScript files pass the Node syntax check', () => {
   const files = [
     'script.js',
