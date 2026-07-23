@@ -1,6 +1,6 @@
 // Single source of truth for the app version shown in page footers.
-// Elements opt in with the data-app-version attribute; an optional
-// data-version-suffix is appended (e.g. the bundled ffmpeg version).
+// Full labels use data-app-version; compact cards use the value/date
+// attributes. An optional data-version-suffix extends a full label.
 (function () {
     const APP_VERSION = '0.0.15D';
     const APP_VERSION_DATE = 'July 2026';
