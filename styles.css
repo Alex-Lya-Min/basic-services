@@ -426,28 +426,67 @@ h2 {
 .dashboard-footer {
     margin-top: 24px;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    gap: 8px 16px;
+    gap: 12px;
     text-align: center;
     color: var(--text-secondary);
     font-size: 0.95rem;
 }
 
-/* Shared footer link (portfolio), reused across every page. */
-.footer-link {
-    color: var(--text-secondary);
+/* Portfolio "business card" shown in every page footer. */
+.portfolio-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px 10px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--card);
     text-decoration: none;
-    border-bottom: 1px solid var(--accent-color);
-    padding-bottom: 1px;
-    transition: color 0.2s ease;
+    transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-.footer-link:hover,
-.footer-link:focus-visible {
-    color: var(--text);
+.portfolio-card:hover,
+.portfolio-card:focus-visible {
+    border-color: var(--text);
+    background: var(--surface-hover);
     outline: none;
+}
+
+.portfolio-card-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--accent-color);
+    color: var(--accent-contrast);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+}
+
+.portfolio-card-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    line-height: 1.2;
+}
+
+.portfolio-card-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text);
+}
+
+.portfolio-card-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
 }
 
 /* Character Counter Tool */

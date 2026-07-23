@@ -2,7 +2,7 @@
 // Elements opt in with the data-app-version attribute; an optional
 // data-version-suffix is appended (e.g. the bundled ffmpeg version).
 (function () {
-    const APP_VERSION = '0.0.12D';
+    const APP_VERSION = '0.0.13D';
     const APP_VERSION_DATE = 'July 2026';
     const label = 'Version ' + APP_VERSION_DATE + ' ' + APP_VERSION;
 

@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+        rel="stylesheet" crossorigin>
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
@@ -236,9 +236,15 @@
         </div>
 
         <footer class="dashboard-footer" aria-label="Site links and version">
-            <a class="footer-link" href="https://alexlyamin.framer.website/" target="_blank"
-                rel="noopener">Portfolio ↗</a>
-            <span class="footer-version" data-app-version>Version July 2026 0.0.12D</span>
+            <a class="portfolio-card" href="https://alexlyamin.framer.website/" target="_blank" rel="noopener"
+                aria-label="Alexey Lyamin — open portfolio">
+                <span class="portfolio-card-avatar" aria-hidden="true">AL</span>
+                <span class="portfolio-card-text">
+                    <span class="portfolio-card-name">Alexey Lyamin</span>
+                    <span class="portfolio-card-label">View portfolio ↗</span>
+                </span>
+            </a>
+            <span class="footer-version" data-app-version>Version July 2026 0.0.13D</span>
         </footer>
     </div>
     <script src="script.js"></script>
