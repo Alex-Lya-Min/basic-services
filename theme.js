@@ -4,7 +4,12 @@
     const STORAGE_KEY = 'theme';
 
     function getPreferredTheme() {
-        const saved = localStorage.getItem(STORAGE_KEY);
+        let saved = null;
+        try {
+            saved = localStorage.getItem(STORAGE_KEY);
+        } catch (error) {
+            console.warn('Unable to read the saved theme.', error);
+        }
         if (saved === 'light' || saved === 'dark') {
             return saved;
         }
@@ -22,7 +27,11 @@
         const current = document.documentElement.getAttribute('data-theme');
         const next = current === 'dark' ? 'light' : 'dark';
         applyTheme(next);
-        localStorage.setItem(STORAGE_KEY, next);
+        try {
+            localStorage.setItem(STORAGE_KEY, next);
+        } catch (error) {
+            console.warn('Unable to save the selected theme.', error);
+        }
     }
 
     applyTheme(getPreferredTheme());

@@ -95,7 +95,24 @@ function loadTimerState() {
 }
 
 function saveTimerState() {
-    localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(timerState));
+    try {
+        localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(timerState));
+    } catch (error) {
+        console.error('Failed to save timer state', error);
+    }
+}
+
+function removeTimerState() {
+    try {
+        localStorage.removeItem(TIMER_STORAGE_KEY);
+    } catch (error) {
+        console.error('Failed to clear local timer state', error);
+    }
+    try {
+        sessionStorage.removeItem(TIMER_STORAGE_KEY);
+    } catch (error) {
+        console.error('Failed to clear session timer state', error);
+    }
 }
 
 function setDuration(durationMs) {
@@ -211,8 +228,7 @@ function clearTimer() {
     timerState.accumulatedPausedMs = 0;
     timerState.isRunning = false;
     timerState.isCleared = true;
-    localStorage.removeItem(TIMER_STORAGE_KEY);
-    sessionStorage.removeItem(TIMER_STORAGE_KEY);
+    removeTimerState();
     updateTimerControls();
     updateTimerDisplay();
 }

@@ -138,11 +138,16 @@ function detectOS(userAgent = navigator.userAgent) {
     if (/Windows NT 6\.3/.test(userAgent)) return 'Windows 8.1';
     if (/Windows NT 6\.2/.test(userAgent)) return 'Windows 8';
     if (/Windows NT 6\.1/.test(userAgent)) return 'Windows 7';
+    // iOS user agents contain "like Mac OS X", so this check must run
+    // before the macOS checks below.
+    if (/iPhone|iPad|iPod/.test(userAgent)
+        || (/Macintosh/.test(userAgent) && navigator.maxTouchPoints > 1)) {
+        return 'iOS';
+    }
     if (/Mac OS X (10[._]\d+[._]?\d*)/.test(userAgent)) {
         return `macOS ${userAgent.match(/Mac OS X (10[._]\d+[._]?\d*)/)[1].replace(/_/g, '.')}`;
     }
     if (/Mac OS X/.test(userAgent)) return 'macOS';
-    if (/iPhone|iPad|iPod/.test(userAgent)) return 'iOS';
     if (/Android/.test(userAgent)) return 'Android';
     if (/CrOS/.test(userAgent)) return 'Chrome OS';
     if (/Linux/.test(userAgent)) return 'Linux';
@@ -150,9 +155,13 @@ function detectOS(userAgent = navigator.userAgent) {
 }
 
 function getDeviceType(userAgent = navigator.userAgent) {
+    const isTablet = /iPad|Tablet/i.test(userAgent)
+        || (/Android/i.test(userAgent) && !/Mobile/i.test(userAgent))
+        || (/Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1);
+    if (isTablet) return 'Tablet';
+
     const isMobile = navigator.userAgentData?.mobile ?? /Mobi|Android/i.test(userAgent);
     if (isMobile) return 'Mobile';
-    if (/Tablet|iPad/i.test(userAgent)) return 'Tablet';
     return 'Desktop';
 }
 
@@ -391,21 +400,29 @@ const caseConverters = {
     upper: (text) => text.toLocaleUpperCase(),
     lower: (text) => text.toLocaleLowerCase(),
     title: (text) => {
-        return text.toLocaleLowerCase().replace(/(?:^|\s)\p{L}/gu, match => match.toLocaleUpperCase());
+        return text.toLocaleLowerCase().replace(
+            /(^|[^\p{L}\p{N}])(\p{L})/gu,
+            (_, prefix, letter) => prefix + letter.toLocaleUpperCase()
+        );
     },
     sentence: (text) => {
-        return text.toLocaleLowerCase().replace(/(^\p{L}|\.\s+\p{L})/gu, match => match.toLocaleUpperCase());
+        return text.toLocaleLowerCase().replace(
+            /(^|[.!?]\s+)(\p{L})/gu,
+            (_, prefix, letter) => prefix + letter.toLocaleUpperCase()
+        );
     },
     camel: (text) => {
         return text.toLocaleLowerCase()
-            .replace(/[^\p{L}\p{N}\s]/gu, '')
+            .replace(/[^\p{L}\p{N}]+/gu, ' ')
+            .trim()
             .replace(/\s+(\p{L})/gu, (_, char) => char.toLocaleUpperCase())
             .replace(/^\p{L}/u, char => char.toLocaleLowerCase());
     },
     pascal: (text) => {
         return text.toLocaleLowerCase()
-            .replace(/[^\p{L}\p{N}\s]/gu, '')
-            .replace(/(^\p{L}|\s+\p{L})/gu, match => match.trim().toLocaleUpperCase());
+            .replace(/[^\p{L}\p{N}]+/gu, ' ')
+            .trim()
+            .replace(/(^|\s+)(\p{L})/gu, (_, __, letter) => letter.toLocaleUpperCase());
     }
 };
 

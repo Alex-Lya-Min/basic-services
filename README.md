@@ -35,6 +35,17 @@ npx serve
 
 Then open `http://localhost:8000` in your browser.
 
+## Tests
+
+The test suite uses the Node.js built-in test runner and has no external dependencies:
+
+```bash
+npm test
+```
+
+It covers the dashboard utilities, timer logic, compressor input handling, theme fallback,
+service-worker behavior, JavaScript syntax, and local asset/ARIA references.
+
 ## Video compressor quick start
 
 1. Open [`/video-compressor/`](./video-compressor/).
@@ -54,6 +65,5 @@ Compression is performed entirely in your browser, so large videos can take seve
 Images are processed locally in a Web Worker using WebAssembly builds of MozJPEG and OxiPNG
 (the [jSquash](https://github.com/jamsinclair/jSquash) project). Codec modules are loaded from
 esm.sh on first use, so the first compression needs a network connection.
-
 
 

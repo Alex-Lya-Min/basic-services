@@ -1,0 +1,8 @@
+{
+  "name": "lymn-web-tools",
+  "version": "0.0.13",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

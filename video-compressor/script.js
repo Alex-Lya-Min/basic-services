@@ -250,7 +250,9 @@ const ensureFFmpegLoaded = async () => {
 // empty MIME type, so fall back to the file extension.
 const isMp4File = (file) => {
   if (file.type && file.type.includes('mp4')) return true;
-  if (!file.type) return /\.(mp4|m4v)$/i.test(file.name || '');
+  if (!file.type || file.type === 'application/octet-stream') {
+    return /\.(mp4|m4v)$/i.test(file.name || '');
+  }
   return false;
 };
 
@@ -413,8 +415,8 @@ dropZone.addEventListener('drop', (event) => {
   handleFiles(event.dataTransfer.files);
 });
 
-dropZone.addEventListener('click', () => {
-  fileInput.click();
+dropZone.addEventListener('click', (event) => {
+  if (event.target !== fileInput) fileInput.click();
 });
 
 dropZone.addEventListener('keydown', (event) => {

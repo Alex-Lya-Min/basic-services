@@ -26,6 +26,12 @@ if (typeof window === 'undefined') {
 
     event.respondWith((async () => {
       const response = await fetch(request);
+      // Opaque cross-origin responses have status 0 and cannot be cloned into
+      // a new Response with custom headers. Return them unchanged instead of
+      // turning a valid resource request into a service-worker error.
+      if (response.type === 'opaque') {
+        return response;
+      }
       const needHeaders = response.headers.get('Cross-Origin-Opener-Policy') === null
         || response.headers.get('Cross-Origin-Embedder-Policy') === null;
       return needHeaders ? addHeaders(response) : response;
