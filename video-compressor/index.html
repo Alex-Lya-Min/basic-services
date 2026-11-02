@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Lightweight in-browser video compressor powered by ffmpeg.wasm.">
+    <meta name="description" content="Lightweight in-browser video compressor for mp4 and mov (iPhone) videos, powered by ffmpeg.wasm.">
     <title>Video Compressor | LYMN Web Tools</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,20 +45,19 @@
 
             <div class="current-service" id="currentService">Video Compressor</div>
 
-            <p class="page-intro">Compress mp4 clips right in your browser without uploading them anywhere.<br>The tool
-                uses
-                ffmpeg.wasm and works best for clips up to ~150–200 MB.</p>
+            <p class="page-intro">Compress mp4 and mov (iPhone) clips right in your browser without uploading them
+                anywhere.<br>The tool uses ffmpeg.wasm and works best for clips up to ~150–200 MB.</p>
         </header>
 
         <main class="vc-main">
             <section class="module-card" aria-label="Video selection">
-                <h2><span class="step-number">1</span> Upload your mp4 file</h2>
-                <p class="hint">Supported input: mp4 (H.264 / HEVC). On older phones or laptops, compression may take a
-                    while.</p>
+                <h2><span class="step-number">1</span> Upload your video</h2>
+                <p class="hint">Supported input: mp4 and mov (H.264 / HEVC), including iPhone videos. The result is
+                    always an mp4. On older phones or laptops, compression may take a while.</p>
                 <div class="drop-area" id="dropZone" role="button" tabindex="0" aria-describedby="dropHint">
                     <p class="drop-title" id="dropTitle">Drop video here or click to browse</p>
                     <p class="drop-subtitle" id="dropHint">Compression starts automatically · up to ~150 MB recommended</p>
-                    <input type="file" id="videoInput" accept="video/mp4,.mp4,.m4v" aria-label="Video input">
+                    <input type="file" id="videoInput" accept="video/mp4,video/quicktime,.mp4,.m4v,.mov" aria-label="Video input">
                 </div>
                 <p class="drop-notice" id="dropNotice" role="alert" hidden></p>
                 <div class="file-status" id="fileStatus" data-state="idle">
@@ -98,7 +97,9 @@
                         <input type="radio" name="preset" value="mp4" checked>
                         <div>
                             <strong>Smaller MP4 (H.264)</strong>
-                            <p>Converts mp4 to mp4 with CRF 28 and "faster" preset. Keeps audio track.</p>
+                            <p>Converts mp4 or mov to an 8-bit H.264 mp4 with CRF 28 and "faster" preset, so it
+                                plays everywhere. Keeps the audio track; audio that mp4 cannot hold (e.g. PCM) is
+                                converted to AAC.</p>
                         </div>
                     </label>
                 </form>
@@ -115,7 +116,8 @@
         <section class="vc-limits" aria-label="Limitations">
             <h2>Practical limits</h2>
             <ul>
-                <li>Works best with mp4 files under ~150 MB.</li>
+                <li>Works best with mp4 or mov files under ~150 MB.</li>
+                <li>4K and HDR iPhone videos take much longer than 1080p ones.</li>
                 <li>Compression runs locally — keep the tab open.</li>
                 <li>Phones and low-end laptops may take several minutes.</li>
                 <li>While ffmpeg.wasm is loading, please wait for the spinner to finish.</li>
@@ -138,7 +140,7 @@
                     <span class="version-card-text">
                         <span class="version-card-name">Version</span>
                         <span class="version-card-meta">
-                            <span data-app-version-value>0.0.18D</span>
+                            <span data-app-version-value>0.0.19D</span>
                             <span class="version-card-date" data-app-version-date>November 2026</span>
                         </span>
                     </span>

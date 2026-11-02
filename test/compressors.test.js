@@ -30,21 +30,24 @@ test('image compressor detects supported formats and generates output names', ()
   assert.equal(vm.runInContext(`outputName('README')`, context), 'README.min');
 });
 
-test('video compressor accepts generic MIME types only with an mp4-compatible extension', () => {
+test('video compressor accepts mp4 and mov, using the extension for generic MIME types', () => {
   const { context } = loadScript(
     'video-compressor/script.js',
     (value) => value.replaceAll('import.meta.url', JSON.stringify('https://example.test/video-compressor/script.js'))
   );
 
   assert.equal(
-    vm.runInContext(`isMp4File({ name: 'clip.MP4', type: 'application/octet-stream' })`, context),
+    vm.runInContext(`isSupportedVideo({ name: 'clip.MP4', type: 'application/octet-stream' })`, context),
     true
   );
   assert.equal(
-    vm.runInContext(`isMp4File({ name: 'clip.exe', type: 'application/octet-stream' })`, context),
+    vm.runInContext(`isSupportedVideo({ name: 'clip.exe', type: 'application/octet-stream' })`, context),
     false
   );
-  assert.equal(vm.runInContext(`isMp4File({ name: 'clip.mov', type: 'video/quicktime' })`, context), false);
+  assert.equal(vm.runInContext(`isSupportedVideo({ name: 'IMG_0001.MOV', type: 'video/quicktime' })`, context), true);
+  assert.equal(vm.runInContext(`isSupportedVideo({ name: 'IMG_0001.MOV', type: '' })`, context), true);
+  assert.equal(vm.runInContext(`isSupportedVideo({ name: 'clip.avi', type: 'video/x-msvideo' })`, context), false);
+  assert.equal(vm.runInContext(`isSupportedVideo({ name: 'clip.webm', type: 'video/webm' })`, context), false);
 });
 
 test('clicking the nested video file input does not trigger a second click', async () => {

@@ -11,7 +11,7 @@ A collection of useful web tools including Display Resolution Tool, Character Co
 - 🖥️ Device Details
 - ⏱️ Time Frame (ISO week, year progress, countdown timer)
 - 🌓 Dark/Light Theme Support (follows system preference by default)
-- 🎬 Video Compressor (ffmpeg.wasm)
+- 🎬 Video Compressor (ffmpeg.wasm; mp4 and mov, including iPhone videos)
 - 🖼️ Image Compressor (MozJPEG / OxiPNG via jSquash)
 
 ## Usage
@@ -53,11 +53,15 @@ and checks that the theme switcher sits in the same row as the services on every
 video engine timeout, history entries, live regions, visual lines on resize, and more).
 `test/video-upload.test.js` covers the video compressor's feedback after a drop (auto-start,
 status and progress under the drop zone, engine download progress and stalls, rejected files).
+`test/video-mov.test.js` covers .mov input (8-bit output, PCM → AAC retry, readable ffmpeg errors,
+time-left estimate).
 
 ## Video compressor quick start
 
 1. Open [`/video-compressor/`](./video-compressor/).
-2. Drop an mp4 file (recommended up to ~150–200 MB) — compression starts automatically.
+2. Drop an mp4 or mov file (recommended up to ~150–200 MB) — compression starts automatically.
+   iPhone videos (HEVC, HDR/10-bit, portrait) are supported; the result is always an 8-bit H.264 mp4
+   that plays everywhere, and audio that mp4 cannot hold (e.g. PCM) is converted to AAC.
    Progress (engine download on first use, reading, compressing) is shown right under the drop zone.
 3. Keep the tab in the foreground while ffmpeg.wasm works, then download `<name>.min.mp4`
    (a smaller H.264 mp4, CRF 28, audio kept as-is).

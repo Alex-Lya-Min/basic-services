@@ -155,18 +155,18 @@ test('compression progress is mirrored next to the drop zone', async () => {
   assert.ok(seen.includes('50%'), `progress shown: ${seen.join(' | ')}`);
 });
 
-test('a non-mp4 file gets an error right under the drop zone and keeps the current file', async () => {
+test('an unsupported file gets an error right under the drop zone and keeps the current file', async () => {
   const { context, getElement } = loadVideo();
   context.__files = [fakeVideo('first.mp4')];
   await run(context, 'handleFiles(__files)');
 
-  context.__files = [fakeVideo('IMG_0001.MOV', 1000, 'video/quicktime')];
+  context.__files = [fakeVideo('clip.avi', 1000, 'video/x-msvideo')];
   const result = run(context, 'handleFiles(__files)');
   assert.equal(result, null, 'nothing is started');
   const notice = getElement('dropNotice');
   assert.equal(notice.hidden, false);
   assert.ok(notice.classList.contains('error'));
-  assert.match(notice.textContent, /"IMG_0001\.MOV" is not an mp4 video.*Still using "first\.mp4"/);
+  assert.match(notice.textContent, /"clip\.avi" is not a supported video\. Use mp4 or mov.*Still using "first\.mp4"/);
   assert.equal(run(context, 'currentFile.name'), 'first.mp4');
 });
 

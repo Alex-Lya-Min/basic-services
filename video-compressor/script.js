@@ -33,8 +33,12 @@ const ENGINE_STALL_TIMEOUT_MS = 30 * 1000;
 // Time allowed to start the engine once its files are downloaded.
 const ENGINE_LOAD_TIMEOUT_MS = 120 * 1000;
 
-const INPUT_NAME = 'input.mp4';
 const OUTPUT_NAME = 'output.mp4';
+
+// ffmpeg's error when the audio track cannot be stored in mp4 as-is (PCM
+// from cameras and screen recordings, for example); such audio is converted
+// to AAC instead.
+const MP4_AUDIO_HINT = /Could not find tag for codec|codec not currently supported in container/i;
 
 let ffmpeg = null;
 let ffmpegLoaded = false;
@@ -42,6 +46,8 @@ let ffmpegLoaded = false;
 let currentFile = null;
 let isProcessing = false;
 let lastObjectUrl = null;
+let compressStartedAt = 0;
+let ffmpegLogs = [];
 
 const readerFriendlySize = (size) => {
   if (!size && size !== 0) return '';
@@ -122,13 +128,34 @@ const resetDownloadState = () => {
 
 // --- Engine ---------------------------------------------------------------------
 
-const attachProgressHandler = (instance) => {
+const formatDuration = (ms) => {
+  const seconds = Math.max(1, Math.round(ms / 1000));
+  if (seconds < 60) return `${seconds} s`;
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes} min`;
+  return `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
+};
+
+// Remaining time, once there is enough progress to estimate it. Long 4K or
+// HEVC clips can take many minutes; a countdown shows the page is working.
+const estimateRemaining = (ratio, elapsedMs) => {
+  if (ratio < 0.02 || ratio >= 1 || elapsedMs < 3000) return '';
+  return `about ${formatDuration(elapsedMs * (1 - ratio) / ratio)} left`;
+};
+
+const attachEngineHandlers = (instance) => {
   instance.on('progress', ({ progress }) => {
     if (!isProcessing || !Number.isFinite(progress)) return;
     const p = Math.min(1, Math.max(0, progress));
     const percent = `${Math.round(p * 100)}%`;
-    showProgress(p, `Compressing… ${percent}`);
-    setStatus('busy', 'Compressing…', { progress: p, detail: percent });
+    const remaining = estimateRemaining(p, Date.now() - compressStartedAt);
+    showProgress(p, `Compressing… ${percent}${remaining ? ` · ${remaining}` : ''}`);
+    setStatus('busy', 'Compressing…', { progress: p, detail: remaining ? `${percent} · ${remaining}` : percent });
+  });
+  // Keep the tail of ffmpeg's log to explain failures.
+  instance.on('log', ({ message }) => {
+    ffmpegLogs.push(String(message));
+    if (ffmpegLogs.length > 60) ffmpegLogs.shift();
   });
 };
 
@@ -273,7 +300,7 @@ const ensureFFmpegLoaded = async () => {
 
     setStatus('busy', 'Starting compression engine…');
     ffmpeg = new FFmpegClass();
-    attachProgressHandler(ffmpeg);
+    attachEngineHandlers(ffmpeg);
     await loadWithTimeout(ffmpeg.load({ coreURL: CORE_JS_URL, wasmURL: wasmUrl, workerURL: CORE_WORKER_URL }));
 
     ffmpegLoaded = true;
@@ -298,14 +325,52 @@ const ensureFFmpegLoaded = async () => {
 
 // --- Files ----------------------------------------------------------------------
 
-// Some platforms (notably drag-and-drop on Windows) deliver files with an
-// empty MIME type, so fall back to the file extension.
-const isMp4File = (file) => {
-  if (file.type && file.type.includes('mp4')) return true;
-  if (!file.type || file.type === 'application/octet-stream') {
-    return /\.(mp4|m4v)$/i.test(file.name || '');
+// mp4 and QuickTime .mov (iPhone, cameras, screen recordings). Some
+// platforms (notably drag-and-drop on Windows) deliver files with an empty
+// MIME type, so fall back to the file extension.
+const SUPPORTED_EXTENSION = /\.(mp4|m4v|mov|qt)$/i;
+
+const isSupportedVideo = (file) => {
+  const type = (file.type || '').toLowerCase();
+  if (type.includes('mp4') || type === 'video/quicktime' || type === 'video/x-m4v') return true;
+  if (!type || type === 'application/octet-stream') {
+    return SUPPORTED_EXTENSION.test(file.name || '');
   }
   return false;
+};
+
+// Name of the input inside ffmpeg's virtual file system; keeping the real
+// container extension helps ffmpeg pick the right demuxer.
+const inputNameFor = (file) => {
+  const match = (file.name || '').match(/\.(mp4|m4v|mov|qt)$/i);
+  return `input.${match ? match[1].toLowerCase() : 'mp4'}`;
+};
+
+// -pix_fmt yuv420p: iPhone HDR / 10-bit sources would otherwise become
+// H.264 "High 10", which Safari, QuickTime, iOS and most players cannot
+// play. Colour tags (e.g. HLG) are kept, so HDR-capable players still show
+// them correctly. Rotation of portrait videos is applied while re-encoding.
+const buildCommand = (inputName, { convertAudio = false } = {}) => [
+  '-y', '-i', inputName,
+  '-c:v', 'libx264', '-preset', 'faster', '-crf', '28', '-pix_fmt', 'yuv420p',
+  ...(convertAudio ? ['-c:a', 'aac', '-b:a', '192k'] : ['-c:a', 'copy']),
+  OUTPUT_NAME
+];
+
+// Turn ffmpeg's log into a message a person can act on.
+const describeFfmpegFailure = (logs, code) => {
+  const text = logs.join('\n');
+  if (/Invalid data found when processing input|moov atom not found/i.test(text)) {
+    return 'This file could not be read. It may be damaged or not fully copied — try exporting the video again.';
+  }
+  if (/Decoder \(codec [^)]+\) not found|Unsupported codec|Could not find codec parameters/i.test(text)) {
+    return 'This video uses a codec the compressor cannot decode. mp4 or mov with H.264 or HEVC video is supported.';
+  }
+  if (/Cannot allocate memory|out of memory|OOM/i.test(text)) {
+    return 'The browser ran out of memory. Try a shorter or smaller video, or close other tabs.';
+  }
+  const lastLine = logs.filter((line) => line.trim()).slice(-1)[0];
+  return `Compression failed (ffmpeg exit code ${code})${lastLine ? `: ${lastLine.trim()}` : '.'}`;
 };
 
 // photo.mp4 -> photo.min.mp4 (same convention as the image compressor).
@@ -327,9 +392,9 @@ const handleFiles = (files) => {
     return null;
   }
 
-  if (!isMp4File(file)) {
+  if (!isSupportedVideo(file)) {
     const keeping = currentFile ? ` Still using "${currentFile.name}".` : '';
-    showNotice(`"${file.name}" is not an mp4 video. Only mp4 (H.264 / HEVC) is supported.${keeping}`, { error: true });
+    showNotice(`"${file.name}" is not a supported video. Use mp4 or mov (H.264 / HEVC).${keeping}`, { error: true });
     return null;
   }
 
@@ -358,7 +423,7 @@ const runCompression = async () => {
     return;
   }
   if (!currentFile) {
-    showNotice('Please choose an mp4 file first.', { error: true });
+    showNotice('Please choose an mp4 or mov video first.', { error: true });
     return;
   }
 
@@ -371,16 +436,29 @@ const runCompression = async () => {
   setStatus('busy', 'Starting…');
 
   const sourceFile = currentFile;
+  const inputName = inputNameFor(sourceFile);
   try {
     await ensureFFmpegLoaded();
 
     setStatus('busy', 'Reading the video…', { detail: readerFriendlySize(sourceFile.size) });
     showProgress(0, 'Reading the video…');
-    await ffmpeg.writeFile(INPUT_NAME, new Uint8Array(await sourceFile.arrayBuffer()));
+    await ffmpeg.writeFile(inputName, new Uint8Array(await sourceFile.arrayBuffer()));
 
     setStatus('busy', 'Compressing…', { progress: 0, detail: '0%' });
     showProgress(0, 'Compressing… 0%');
-    await ffmpeg.exec(['-y', '-i', INPUT_NAME, '-c:v', 'libx264', '-preset', 'faster', '-crf', '28', '-c:a', 'copy', OUTPUT_NAME]);
+    ffmpegLogs = [];
+    compressStartedAt = Date.now();
+    let code = await ffmpeg.exec(buildCommand(inputName));
+    // Audio that mp4 cannot hold fails instantly while writing the header:
+    // retry with the audio converted to AAC.
+    if (code !== 0 && code !== undefined && MP4_AUDIO_HINT.test(ffmpegLogs.join('\n'))) {
+      ffmpegLogs = [];
+      compressStartedAt = Date.now();
+      code = await ffmpeg.exec(buildCommand(inputName, { convertAudio: true }));
+    }
+    if (code !== 0 && code !== undefined) {
+      throw new Error(describeFfmpegFailure(ffmpegLogs, code));
+    }
 
     const data = await ffmpeg.readFile(OUTPUT_NAME);
     if (!data || data.length === 0) {
@@ -425,7 +503,7 @@ const runCompression = async () => {
     updateDropZone();
     if (dropNotice && dropNotice.dataset.kind === 'busy') showNotice('');
 
-    await safeDelete(INPUT_NAME);
+    await safeDelete(inputName);
     await safeDelete(OUTPUT_NAME);
   }
 };
