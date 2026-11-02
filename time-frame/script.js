@@ -108,11 +108,6 @@ function removeTimerState() {
     } catch (error) {
         console.error('Failed to clear local timer state', error);
     }
-    try {
-        sessionStorage.removeItem(TIMER_STORAGE_KEY);
-    } catch (error) {
-        console.error('Failed to clear session timer state', error);
-    }
 }
 
 function setDuration(durationMs) {

@@ -28,14 +28,21 @@ tabButtons.forEach(button => {
     button.addEventListener('click', () => {
         // If it's a link (like Video Compressor), let the default navigation happen
         if (!button.dataset.tab) return;
-
-        // Perform tab switch
-        switchTab(button.dataset.tab);
-
-        // Update URL hash without scrolling
-        history.pushState(null, null, `#${button.dataset.tab}`);
+        selectTab(button.dataset.tab);
     });
 });
+
+// Switch to a tool and record it in the history, so Back returns to the
+// previous tool. Re-selecting the open tool adds no entry: otherwise Back
+// would appear to do nothing.
+function selectTab(tabId) {
+    const activeTab = Array.from(tabButtons).find(btn => btn.dataset.tab && btn.classList.contains('active'));
+    if (activeTab && activeTab.dataset.tab === tabId) return;
+
+    switchTab(tabId);
+    // Update URL hash without scrolling
+    history.pushState(null, null, `#${tabId}`);
+}
 
 // WAI-ARIA tabs keyboard pattern: arrow keys / Home / End move between the
 // in-page tool tabs (the inactive ones are removed from the Tab order).
@@ -53,8 +60,7 @@ function handleTabKeydown(event) {
 
     event.preventDefault();
     const nextTab = tabs[nextIndex];
-    switchTab(nextTab.dataset.tab);
-    history.pushState(null, null, `#${nextTab.dataset.tab}`);
+    selectTab(nextTab.dataset.tab);
     if (typeof nextTab.focus === 'function') nextTab.focus();
 }
 
@@ -123,6 +129,10 @@ const screenResolutionElement = document.getElementById('screenResolution');
 const realResolutionElement = document.getElementById('realResolution');
 const availableSpaceElement = document.getElementById('availableSpace');
 const displayScaleElement = document.getElementById('displayScale');
+
+// Remember the initial scale so the first render does not flash the
+// "scale changed" highlight.
+displayScaleElement.dataset.lastScale = String(getDisplayScale());
 
 // Function to calculate display scale
 function getDisplayScale() {
@@ -700,6 +710,8 @@ function handleResize() {
     clearTimeout(window.resizeTimeout);
     window.resizeTimeout = setTimeout(() => {
         handleInput();
+        // The textarea width changed, so the wrapped ("visual") line count did too.
+        updateCharacterCount();
     }, 100);
 }
 
@@ -726,7 +738,10 @@ function flashButtonLabel(button, message, duration = 1500) {
 
 // Copy to clipboard functionality with error handling
 async function copyToClipboard(text, button) {
-    if (text.trim() === '') return;
+    if (text.trim() === '') {
+        flashButtonLabel(button, 'Nothing to copy');
+        return;
+    }
 
     try {
         if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {

@@ -3,6 +3,9 @@
 
 const MAX_FILES = 20;
 const MAX_FILE_BYTES = 50 * 1024 * 1024; // 50 MB per file
+// Time limit for reading the file and downloading the codec from the CDN.
+// Encoding itself is not limited: big PNGs can take minutes on slow devices.
+const CODEC_LOAD_TIMEOUT_MS = 60 * 1000;
 
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('imageInput');
@@ -23,7 +26,7 @@ const queue = [];
 let nextItemId = 1;
 let queueRunning = false;
 let worker = null;
-let currentJob = null; // { id, finish } — one file is compressed at a time
+let currentJob = null; // { id, finish, loadTimer } — one file is compressed at a time
 
 const friendlySize = (size) => {
   if (!size && size !== 0) return '';
@@ -141,8 +144,25 @@ const updateControls = () => {
   emptyState.hidden = items.size !== 0;
 };
 
+const clearLoadTimer = () => {
+  if (currentJob && currentJob.loadTimer) {
+    clearTimeout(currentJob.loadTimer);
+    currentJob.loadTimer = null;
+  }
+};
+
+// A worker that crashed, failed to load or got stuck never answers again.
+// Drop it so the next file starts a fresh worker instead of waiting forever.
+const discardWorker = () => {
+  if (worker) {
+    worker.terminate();
+    worker = null;
+  }
+};
+
 const finishJob = (id) => {
   if (currentJob && currentJob.id === id) {
+    clearLoadTimer();
     const { finish } = currentJob;
     currentJob = null;
     finish();
@@ -207,6 +227,10 @@ const onWorkerMessage = (event) => {
   const item = items.get(id);
 
   if (status === 'stage') {
+    // The codec is loaded and encoding has started: lift the load time limit.
+    if (event.data.phase === 'working' && currentJob && currentJob.id === id) {
+      clearLoadTimer();
+    }
     if (item && item.status === 'processing') {
       setItemStatus(item, stage, { spinner: true });
     }
@@ -227,12 +251,7 @@ const onWorkerMessage = (event) => {
 
 const onWorkerError = (event) => {
   event.preventDefault();
-  // A worker that failed to load or crashed never answers again. Drop it so
-  // the next file starts a fresh worker instead of waiting forever.
-  if (worker) {
-    worker.terminate();
-    worker = null;
-  }
+  discardWorker();
   if (currentJob) {
     const item = items.get(currentJob.id);
     if (item) {
@@ -254,16 +273,26 @@ const getWorker = () => {
 const compressItem = (item) => new Promise((finish) => {
   item.status = 'processing';
   setItemStatus(item, 'Reading file…', { spinner: true });
-  currentJob = { id: item.id, finish };
+  currentJob = { id: item.id, finish, loadTimer: null };
+  // If the codec download stalls, the worker would never answer and the whole
+  // queue would wait forever without telling the user anything.
+  currentJob.loadTimer = setTimeout(() => {
+    if (!currentJob || currentJob.id !== item.id) return;
+    discardWorker();
+    failItem(item, 'Compression engine did not load in time. Check your network connection and try again.');
+    finishJob(item.id);
+  }, CODEC_LOAD_TIMEOUT_MS);
 
   item.file.arrayBuffer()
     .then((buffer) => {
+      if (!currentJob || currentJob.id !== item.id) return; // already timed out
       getWorker().postMessage(
         { id: item.id, kind: item.kind, buffer, quality: Number(qualitySlider.value) },
         [buffer]
       );
     })
     .catch((error) => {
+      if (!currentJob || currentJob.id !== item.id) return; // already timed out
       failItem(item, `Could not read file: ${error.message}`);
       finishJob(item.id);
     });

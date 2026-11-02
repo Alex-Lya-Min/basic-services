@@ -31,7 +31,10 @@
     function updateSwitcherState(theme) {
         const switcher = document.getElementById('theme-switcher');
         if (switcher) {
-            switcher.setAttribute('title',theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+            // The accessible name and the tooltip both describe the action.
+            const label = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+            switcher.setAttribute('aria-label', label);
+            switcher.setAttribute('title', label);
         }
     }
 

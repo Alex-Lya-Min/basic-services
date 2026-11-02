@@ -32,8 +32,11 @@ const loadOxipngModule = () => {
   return oxipngModulePromise;
 };
 
-const postStage = (id, stage) => {
-  self.postMessage({ id, status: 'stage', stage });
+// phase 'loading' = downloading the codec (can hang on a bad network, so the
+// page puts a time limit on it); 'working' = the codec is encoding, which may
+// legitimately take long for big images and has no time limit.
+const postStage = (id, stage, phase) => {
+  self.postMessage({ id, status: 'stage', stage, phase });
 };
 
 self.addEventListener('message', async (event) => {
@@ -43,15 +46,15 @@ self.addEventListener('message', async (event) => {
     let output;
 
     if (kind === 'jpeg') {
-      postStage(id, 'Loading MozJPEG codec…');
+      postStage(id, 'Loading MozJPEG codec…', 'loading');
       const { decode, encode } = await loadJpegModule();
-      postStage(id, 'Compressing…');
+      postStage(id, 'Compressing…', 'working');
       const imageData = await decode(buffer);
       output = await encode(imageData, { quality });
     } else if (kind === 'png') {
-      postStage(id, 'Loading OxiPNG codec…');
+      postStage(id, 'Loading OxiPNG codec…', 'loading');
       const { optimise } = await loadOxipngModule();
-      postStage(id, 'Optimising…');
+      postStage(id, 'Optimising…', 'working');
       output = await optimise(buffer, { level: PNG_OPTIMISATION_LEVEL });
     } else {
       throw new Error(`Unsupported image kind: ${kind}`);

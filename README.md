@@ -49,6 +49,8 @@ service-worker behavior, JavaScript syntax, and local asset/ARIA references.
 case conversion, copy feedback, hash navigation and tab keyboard support, Clean Text undo,
 worker recovery, drag-and-drop outside the drop zone, engine-load retry, theme following the OS)
 and checks that the theme switcher sits in the same row as the services on every page.
+`test/review-fixes.test.js` covers the issues from the code review (codec-load timeout,
+video engine timeout, history entries, live regions, visual lines on resize, and more).
 
 ## Video compressor quick start
 
