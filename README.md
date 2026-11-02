@@ -45,6 +45,10 @@ npm test
 
 It covers the dashboard utilities, timer logic, compressor input handling, theme fallback,
 service-worker behavior, JavaScript syntax, and local asset/ARIA references.
+`test/bugfixes.test.js` holds regression tests for fixed bugs (word/character counting,
+case conversion, copy feedback, hash navigation and tab keyboard support, Clean Text undo,
+worker recovery, drag-and-drop outside the drop zone, engine-load retry, theme following the OS)
+and checks that the theme switcher sits in the same row as the services on every page.
 
 ## Video compressor quick start
 

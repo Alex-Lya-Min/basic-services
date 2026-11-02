@@ -17,6 +17,7 @@
     <script src="coi-serviceworker.js"></script>
     <script src="../theme.js"></script>
     <script src="../version.js" defer></script>
+    <script src="../nav.js" defer></script>
 </head>
 
 <body class="video-compressor-page">
@@ -24,20 +25,22 @@
         <header class="page-header">
             <div class="header-top">
                 <h1><a class="brand-link" href="../" aria-label="Web Tools Dashboard home">Web Tools Dashboard</a></h1>
-                <button id="theme-switcher" class="theme-switcher" aria-label="Toggle dark/light theme">
+            </div>
+            <div class="service-bar">
+                <nav class="tab-navigation" aria-label="Services">
+                    <a href="../#display-tool" class="tab-button tab-link">Display Resolution</a>
+                    <a href="../#counter-tool" class="tab-button tab-link">Word Counter</a>
+                    <a href="../#case-tool" class="tab-button tab-link">Case Converter</a>
+                    <a href="../#clean-text" class="tab-button tab-link">Clean Text</a>
+                    <a href="../#device-info" class="tab-button tab-link">Device Details</a>
+                    <a href="./" class="tab-button tab-link active" aria-current="page">Video Compressor</a>
+                    <a href="../image-compressor/" class="tab-button tab-link">Image Compressor</a>
+                    <a href="../time-frame/" class="tab-button tab-link">Time Frame</a>
+                </nav>
+                <button id="theme-switcher" class="theme-switcher" type="button" aria-label="Toggle dark/light theme">
                     <span class="light-icon" aria-hidden="true">🌞</span>
                     <span class="dark-icon" aria-hidden="true">🌙</span>
                 </button>
-            </div>
-            <div class="tab-navigation" role="tablist">
-                <a href="../#display-tool" class="tab-button tab-link">Display Resolution</a>
-                <a href="../#counter-tool" class="tab-button tab-link">Word Counter</a>
-                <a href="../#case-tool" class="tab-button tab-link">Case Converter</a>
-                <a href="../#clean-text" class="tab-button tab-link">Clean Text</a>
-                <a href="../#device-info" class="tab-button tab-link">Device Details</a>
-                <a href="./" class="tab-button tab-link active" aria-current="page">Video Compressor</a>
-                <a href="../image-compressor/" class="tab-button tab-link">Image Compressor</a>
-                <a href="../time-frame/" class="tab-button tab-link">Time Frame</a>
             </div>
 
             <div class="current-service" id="currentService">Video Compressor</div>
@@ -126,8 +129,8 @@
                     <span class="version-card-text">
                         <span class="version-card-name">Version</span>
                         <span class="version-card-meta">
-                            <span data-app-version-value>0.0.15D</span>
-                            <span class="version-card-date" data-app-version-date>July 2026</span>
+                            <span data-app-version-value>0.0.16D</span>
+                            <span class="version-card-date" data-app-version-date>November 2026</span>
                         </span>
                     </span>
                 </div>

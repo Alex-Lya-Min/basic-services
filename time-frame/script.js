@@ -173,7 +173,9 @@ function updateTimerControls() {
     const hasStarted = Boolean(timerState.startedAt);
     startButton.disabled = hasStarted;
     pauseResumeButton.disabled = !hasStarted;
-    resetButton.disabled = !hasStarted && timerState.durationMs === defaultTimerState.durationMs;
+    // Reset rewinds a started timer to its duration; before the start there
+    // is nothing to rewind, whatever duration is selected.
+    resetButton.disabled = !hasStarted;
 
     if (timerState.isRunning) {
         pauseResumeButton.textContent = 'Pause';

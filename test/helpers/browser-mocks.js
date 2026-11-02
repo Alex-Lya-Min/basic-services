@@ -104,6 +104,16 @@ class MockElement {
     return new MockElement(selector);
   }
 
+  contains(element) {
+    if (element === this) return true;
+    return this.children.some((child) => child === element
+      || (typeof child.contains === 'function' && child.contains(element)));
+  }
+
+  focus() {
+    this.focused = true;
+  }
+
   getBoundingClientRect() {
     return { width: 360, height: 20 };
   }

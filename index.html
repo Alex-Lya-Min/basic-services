@@ -16,6 +16,7 @@
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
     <script src="theme.js"></script>
     <script src="version.js" defer></script>
+    <script src="nav.js" defer></script>
 </head>
 
 <body>
@@ -23,26 +24,30 @@
         <header class="page-header">
             <div class="header-top">
                 <h1><a class="brand-link" href="./" aria-label="Web Tools Dashboard home">Web Tools Dashboard</a></h1>
-                <button id="theme-switcher" class="theme-switcher" aria-label="Toggle dark/light theme">
+            </div>
+
+            <div class="service-bar">
+                <nav class="tab-navigation" aria-label="Services">
+                    <div class="tab-group" role="tablist" aria-label="Dashboard tools">
+                        <button id="display-tool-tab" class="tab-button active" type="button" data-tab="display-tool"
+                            role="tab" aria-selected="true" aria-controls="display-tool-panel">Display Resolution</button>
+                        <button id="counter-tool-tab" class="tab-button" type="button" data-tab="counter-tool" role="tab"
+                            aria-selected="false" aria-controls="counter-tool-panel" tabindex="-1">Word Counter</button>
+                        <button id="case-tool-tab" class="tab-button" type="button" data-tab="case-tool" role="tab"
+                            aria-selected="false" aria-controls="case-tool-panel" tabindex="-1">Case Converter</button>
+                        <button id="clean-text-tab" class="tab-button" type="button" data-tab="clean-text" role="tab"
+                            aria-selected="false" aria-controls="clean-text-panel" tabindex="-1">Clean Text</button>
+                        <button id="device-info-tab" class="tab-button" type="button" data-tab="device-info" role="tab"
+                            aria-selected="false" aria-controls="device-info-panel" tabindex="-1">Device Details</button>
+                    </div>
+                    <a href="./video-compressor/" class="tab-button tab-link">Video Compressor</a>
+                    <a href="./image-compressor/" class="tab-button tab-link">Image Compressor</a>
+                    <a href="./time-frame/" class="tab-button tab-link">Time Frame</a>
+                </nav>
+                <button id="theme-switcher" class="theme-switcher" type="button" aria-label="Toggle dark/light theme">
                     <span class="light-icon" aria-hidden="true">🌞</span>
                     <span class="dark-icon" aria-hidden="true">🌙</span>
                 </button>
-            </div>
-
-            <div class="tab-navigation" role="tablist">
-                <button id="display-tool-tab" class="tab-button active" data-tab="display-tool" role="tab" aria-selected="true"
-                    aria-controls="display-tool-panel">Display Resolution</button>
-                <button id="counter-tool-tab" class="tab-button" data-tab="counter-tool" role="tab" aria-selected="false"
-                    aria-controls="counter-tool-panel">Word Counter</button>
-                <button id="case-tool-tab" class="tab-button" data-tab="case-tool" role="tab" aria-selected="false"
-                    aria-controls="case-tool-panel">Case Converter</button>
-                <button id="clean-text-tab" class="tab-button" data-tab="clean-text" role="tab" aria-selected="false"
-                    aria-controls="clean-text-panel">Clean Text</button>
-                <button id="device-info-tab" class="tab-button" data-tab="device-info" role="tab" aria-selected="false"
-                    aria-controls="device-info-panel">Device Details</button>
-                <a href="./video-compressor/" class="tab-button tab-link">Video Compressor</a>
-                <a href="./image-compressor/" class="tab-button tab-link">Image Compressor</a>
-                <a href="./time-frame/" class="tab-button tab-link">Time Frame</a>
             </div>
 
             <div class="current-service" id="currentService" aria-live="polite">Display Resolution</div>
@@ -250,8 +255,8 @@
                     <span class="version-card-text">
                         <span class="version-card-name">Version</span>
                         <span class="version-card-meta">
-                            <span data-app-version-value>0.0.15D</span>
-                            <span class="version-card-date" data-app-version-date>July 2026</span>
+                            <span data-app-version-value>0.0.16D</span>
+                            <span class="version-card-date" data-app-version-date>November 2026</span>
                         </span>
                     </span>
                 </div>

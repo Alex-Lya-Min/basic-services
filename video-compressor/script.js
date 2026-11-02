@@ -241,6 +241,21 @@ const ensureFFmpegLoaded = async () => {
     }
 
     ffmpegLoaded = true;
+  } catch (error) {
+    // Discard the half-initialised instance. Its progress handler would
+    // otherwise keep progressHandlerAttached = true, and the retry would
+    // create a new instance that never reports progress.
+    if (ffmpeg && typeof ffmpeg.terminate === 'function') {
+      try {
+        ffmpeg.terminate();
+      } catch (_) {
+        // ignore
+      }
+    }
+    ffmpeg = null;
+    ffmpegApiMode = null;
+    progressHandlerAttached = false;
+    throw error;
   } finally {
     showEngineLoader(false);
   }
@@ -256,9 +271,22 @@ const isMp4File = (file) => {
   return false;
 };
 
+// photo.mp4 -> photo.min.mp4 (same convention as the image compressor).
+const compressedFileName = (name) => {
+  const base = (name || 'video').replace(/\.[^./\\]+$/, '') || 'video';
+  return `${base}.min.mp4`;
+};
+
 const handleFiles = (files) => {
   if (!files || files.length === 0) return;
   const [file] = files;
+
+  // Swapping the file mid-run would label the running job's result with the
+  // new file and reset the progress UI under the encoder.
+  if (isProcessing) {
+    resultMessage.textContent = 'Please wait until the current compression finishes.';
+    return;
+  }
 
   if (!isMp4File(file)) {
     resultMessage.textContent = 'Only mp4 files are supported right now.';
@@ -317,15 +345,17 @@ const runCompression = async () => {
     const outputName = 'output.mp4';
 
     toggleUploadStatus(true, 'Copying file to encoder…');
-    const fileBuffer = new Uint8Array(await currentFile.arrayBuffer());
+    const sourceFile = currentFile;
 
+    // Read the file only in the branch that needs the bytes: reading it up
+    // front doubled peak memory in namespace mode (a 200 MB clip = 400 MB).
     if (ffmpegApiMode === 'namespace') {
       if (!ffmpeg.fetchFile) {
         throw new Error('ffmpeg fetchFile helper is missing.');
       }
-      ffmpeg.FS('writeFile', inputName, await ffmpeg.fetchFile(currentFile));
+      ffmpeg.FS('writeFile', inputName, await ffmpeg.fetchFile(sourceFile));
     } else {
-      await ffmpeg.writeFile(inputName, fileBuffer);
+      await ffmpeg.writeFile(inputName, new Uint8Array(await sourceFile.arrayBuffer()));
     }
 
     toggleUploadStatus(false);
@@ -354,7 +384,7 @@ const runCompression = async () => {
     lastObjectUrl = url;
 
     downloadLink.href = url;
-    downloadLink.download = 'compressed.mp4';
+    downloadLink.download = compressedFileName(sourceFile.name);
     downloadLink.hidden = false;
 
     resultMessage.textContent = 'Done! Click the button below to download the compressed video.';
@@ -407,7 +437,22 @@ dropZone.addEventListener('dragover', (event) => {
   dropZone.classList.add('dragover');
 });
 
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+// dragleave also fires when the pointer moves onto a child element of the
+// drop zone; only clear the highlight when it really leaves the zone.
+dropZone.addEventListener('dragleave', (event) => {
+  if (event.relatedTarget && dropZone.contains(event.relatedTarget)) return;
+  dropZone.classList.remove('dragover');
+});
+
+// A file dropped next to the drop zone would make the browser navigate to
+// it (and stop a running compression).
+const hasDraggedFiles = (event) => Array.from(event.dataTransfer?.types || []).includes('Files');
+window.addEventListener('dragover', (event) => {
+  if (hasDraggedFiles(event)) event.preventDefault();
+});
+window.addEventListener('drop', (event) => {
+  if (hasDraggedFiles(event) && !dropZone.contains(event.target)) event.preventDefault();
+});
 
 dropZone.addEventListener('drop', (event) => {
   event.preventDefault();

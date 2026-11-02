@@ -1,4 +1,5 @@
 :root {
+    color-scheme: light;
     /* Design language of alexlyamin.framer.website: flat surfaces,
        1px borders, square corners, Space Grotesk / Golos Text,
        lime #cdf46d as the single interactive accent. */
@@ -45,6 +46,7 @@ html {
 
 [data-theme="dark"] {
     /* Dark theme variables */
+    color-scheme: dark;
     --bg: #000000;
     --card: #000000;
     --border: #2e3032;
@@ -112,28 +114,34 @@ body {
     min-height: 900px;
 }
 
+/* Theme switcher sits at the end of the services row and matches the
+   height of the service tabs, so the whole row reads as one line. */
 .theme-switcher {
     position: static;
+    flex: 0 0 auto;
     background: var(--card);
     border: 1px solid var(--border-color);
-    padding: 8px;
+    padding: 0;
     border-radius: var(--border-radius);
-    width: 44px;
-    height: 44px;
+    width: var(--tab-height);
+    height: var(--tab-height);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--text);
     transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
 .theme-switcher:hover {
     background: var(--surface-hover);
+    border-color: var(--text-secondary);
 }
 
 .light-icon,
 .dark-icon {
-    font-size: 1.2rem;
+    font-size: 1.05rem;
+    line-height: 1;
 }
 
 .dark-icon {
@@ -174,23 +182,9 @@ h2 {
 }
 
 .header-top {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: var(--space-md);
-    position: relative;
-    padding-right: 0;
-}
-
-.header-top h1 {
-    grid-column: 2;
-}
-
-.header-top .theme-switcher {
-    grid-column: 3;
-    justify-self: end;
-    position: static;
-    transform: none;
 }
 
 .header-top h1 a {
@@ -238,8 +232,28 @@ h2 {
     margin: 0 auto;
 }
 
+/* Services row: tool tabs/links followed by the theme switcher. */
+/* On wide screens the <nav> is display: contents, so services and the theme
+   switcher wrap as one flow and the switcher always follows the last
+   service instead of drifting to the far edge when the row wraps. */
+.service-bar {
+    --tab-height: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.service-bar .theme-switcher {
+    margin-left: var(--space-xs);
+}
+
 /* Tab Navigation — joined 1px-bordered segments, like the site header */
 .tab-navigation {
+    display: contents;
+}
+
+.tab-group {
     display: flex;
     gap: 0;
     flex-wrap: wrap;
@@ -247,11 +261,16 @@ h2 {
 }
 
 .tab-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--tab-height, 40px);
     background: transparent;
     border: 1px solid var(--border-color);
     margin: 0 -1px -1px 0;
-    padding: 10px 14px;
+    padding: 0 14px;
     font-size: 0.875rem;
+    line-height: 1.2;
     color: var(--text-secondary);
     cursor: pointer;
     border-radius: 0;
@@ -853,28 +872,40 @@ textarea:focus {
         margin: 0;
     }
 
-    .header-top {
-        flex-direction: column;
-        padding-right: 0;
+    /* The services become a horizontal scroller; the theme switcher stays
+       pinned at the end of the same row. Items start at the left edge:
+       centering an overflowing flex row would push the first services out
+       of reach of the scroll container. */
+    .service-bar {
+        flex-wrap: nowrap;
     }
 
-    .header-top .theme-switcher {
-        position: static;
-        transform: none;
+    .tab-navigation,
+    .tab-group {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: var(--space-sm);
+        justify-content: flex-start;
     }
 
     .tab-navigation {
-        flex-wrap: nowrap;
-        gap: var(--space-sm);
+        flex: 1 1 auto;
+        min-width: 0;
         overflow-x: auto;
+        overscroll-behavior-x: contain;
         padding-bottom: var(--space-sm);
         margin-bottom: 0;
+    }
+
+    .tab-group {
+        flex: 0 0 auto;
     }
 
     .tab-button {
         flex: 0 0 auto;
         min-width: 140px;
-        padding: 8px 12px;
+        margin: 0;
+        padding: 0 12px;
         font-size: 0.9rem;
     }
 
@@ -1007,13 +1038,17 @@ textarea:focus {
     margin: 0;
     font-size: 1rem;
     min-height: 300px;
-    overflow: hidden;
+    /* The editor grows vertically with its content; long unwrapped lines
+       must stay reachable, so allow horizontal scrolling. */
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .clean-text-editor.wrapped {
     white-space: pre-wrap;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    overflow-x: hidden;
 }
 
 .clean-text-editor::placeholder {

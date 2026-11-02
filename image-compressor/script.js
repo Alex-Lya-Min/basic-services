@@ -37,10 +37,13 @@ const friendlySize = (size) => {
   return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
 };
 
-// photo.jpg -> photo.min.jpg
-const outputName = (name) => {
+const EXTENSION_BY_KIND = { jpeg: '.jpg', png: '.png' };
+
+// photo.jpg -> photo.min.jpg. Files without an extension (e.g. accepted by
+// MIME type) get one from their detected kind, so the download still opens.
+const outputName = (name, kind) => {
   const dot = name.lastIndexOf('.');
-  if (dot <= 0) return `${name}.min`;
+  if (dot <= 0) return `${name}.min${EXTENSION_BY_KIND[kind] || ''}`;
   return `${name.slice(0, dot)}.min${name.slice(dot)}`;
 };
 
@@ -195,7 +198,7 @@ const finalizeItem = (item, buffer) => {
   }
 
   item.els.download.href = item.resultUrl;
-  item.els.download.download = outputName(item.file.name || `image-${item.id}`);
+  item.els.download.download = outputName(item.file.name || `image-${item.id}`, item.kind);
   item.els.download.hidden = false;
 };
 
@@ -224,6 +227,12 @@ const onWorkerMessage = (event) => {
 
 const onWorkerError = (event) => {
   event.preventDefault();
+  // A worker that failed to load or crashed never answers again. Drop it so
+  // the next file starts a fresh worker instead of waiting forever.
+  if (worker) {
+    worker.terminate();
+    worker = null;
+  }
   if (currentJob) {
     const item = items.get(currentJob.id);
     if (item) {
@@ -328,12 +337,28 @@ fileInput.addEventListener('change', (event) => {
   event.target.value = '';
 });
 
+const hasDraggedFiles = (event) => Array.from(event.dataTransfer?.types || []).includes('Files');
+
 dropZone.addEventListener('dragover', (event) => {
   event.preventDefault();
   dropZone.classList.add('dragover');
 });
 
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+// dragleave also fires when the pointer moves onto a child element of the
+// drop zone; only clear the highlight when it really leaves the zone.
+dropZone.addEventListener('dragleave', (event) => {
+  if (event.relatedTarget && dropZone.contains(event.relatedTarget)) return;
+  dropZone.classList.remove('dragover');
+});
+
+// A file dropped next to the drop zone would make the browser navigate to
+// it, discarding every compressed result on the page.
+window.addEventListener('dragover', (event) => {
+  if (hasDraggedFiles(event)) event.preventDefault();
+});
+window.addEventListener('drop', (event) => {
+  if (hasDraggedFiles(event) && !dropZone.contains(event.target)) event.preventDefault();
+});
 
 dropZone.addEventListener('drop', (event) => {
   event.preventDefault();
@@ -396,7 +421,7 @@ downloadAllButton.addEventListener('click', async () => {
     const zip = new JSZip();
     const usedNames = new Set();
     for (const item of done) {
-      let name = outputName(item.file.name || `image-${item.id}`);
+      let name = outputName(item.file.name || `image-${item.id}`, item.kind);
       if (usedNames.has(name)) name = `${item.id}-${name}`;
       usedNames.add(name);
       zip.file(name, item.resultBlob);

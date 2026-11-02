@@ -22,6 +22,8 @@ const deviceInfoElements = {
 };
 const copyDeviceDetailsButton = document.getElementById('copyDeviceDetails');
 
+const DEFAULT_TAB = 'display-tool';
+
 tabButtons.forEach(button => {
     button.addEventListener('click', () => {
         // If it's a link (like Video Compressor), let the default navigation happen
@@ -33,6 +35,33 @@ tabButtons.forEach(button => {
         // Update URL hash without scrolling
         history.pushState(null, null, `#${button.dataset.tab}`);
     });
+});
+
+// WAI-ARIA tabs keyboard pattern: arrow keys / Home / End move between the
+// in-page tool tabs (the inactive ones are removed from the Tab order).
+function handleTabKeydown(event) {
+    const tabs = Array.from(tabButtons).filter(btn => btn.dataset.tab);
+    const index = tabs.indexOf(event.currentTarget);
+    if (index === -1) return;
+
+    let nextIndex = null;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (index + 1) % tabs.length;
+    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (index - 1 + tabs.length) % tabs.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = tabs.length - 1;
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+    const nextTab = tabs[nextIndex];
+    switchTab(nextTab.dataset.tab);
+    history.pushState(null, null, `#${nextTab.dataset.tab}`);
+    if (typeof nextTab.focus === 'function') nextTab.focus();
+}
+
+tabButtons.forEach(button => {
+    if (button.dataset.tab) {
+        button.addEventListener('keydown', handleTabKeydown);
+    }
 });
 
 const currentServiceElement = document.getElementById('currentService');
@@ -49,35 +78,43 @@ function updateCurrentService(tabId) {
 function switchTab(tabId) {
     // Remove active class from all buttons and panels
     tabButtons.forEach(btn => {
-        btn.classList.remove('active');
-        btn.setAttribute('aria-selected', 'false');
-        if (btn.dataset.tab === tabId) {
-            btn.classList.add('active');
-            btn.setAttribute('aria-selected', 'true');
-        }
+        // Links to standalone tools are not tabs: leave their state alone.
+        if (!btn.dataset.tab) return;
+        const isActive = btn.dataset.tab === tabId;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        btn.setAttribute('tabindex', isActive ? '0' : '-1');
     });
 
     toolPanels.forEach(panel => {
-        panel.classList.remove('active');
-        if (panel.id === tabId + '-panel') {
-            panel.classList.add('active');
-        }
+        panel.classList.toggle('active', panel.id === tabId + '-panel');
     });
 
     updateCurrentService(tabId);
+
+    if (typeof window.revealActiveService === 'function') {
+        window.revealActiveService();
+    }
 }
 
-// Handle hash change for direct linking
+// Handle hash change for direct linking. An empty or unknown hash (e.g. after
+// pressing Back to the initial URL) restores the default tool instead of
+// leaving the previously selected one on screen.
 function handleHashNavigation() {
     const hash = window.location.hash.slice(1);
     if (hash && document.getElementById(hash + '-panel')) {
         switchTab(hash); // switchTab will append -panel internally
+    } else {
+        switchTab(DEFAULT_TAB);
     }
 }
 
-// Initialize navigation
-window.addEventListener('load', handleHashNavigation);
+// Initialize navigation. script.js runs at the end of <body>, so the panels
+// already exist: select the tool right away instead of waiting for 'load'
+// (fonts and other resources), which made the default tool flash first.
+handleHashNavigation();
 window.addEventListener('hashchange', handleHashNavigation);
+window.addEventListener('popstate', handleHashNavigation);
 
 // Display Resolution Tool
 const windowWidthElement = document.getElementById('windowWidth');
@@ -98,9 +135,17 @@ function detectBrowser(userAgent = navigator.userAgent) {
     let name = 'Unknown';
     let version = 'Unknown';
 
-    if (/Edg\//.test(userAgent)) {
+    // Chromium-based browsers also include "Chrome/" (and iOS ones
+    // "Safari/"), so their own tokens must be checked first.
+    if (/Edg(?:e|A|iOS)?\//.test(userAgent)) {
         name = 'Microsoft Edge';
-        version = userAgent.match(/Edg\/([\d.]+)/)[1];
+        version = userAgent.match(/Edg(?:e|A|iOS)?\/([\d.]+)/)[1];
+    } else if (/YaBrowser\//.test(userAgent)) {
+        name = 'Yandex Browser';
+        version = userAgent.match(/YaBrowser\/([\d.]+)/)[1];
+    } else if (/SamsungBrowser\//.test(userAgent)) {
+        name = 'Samsung Internet';
+        version = userAgent.match(/SamsungBrowser\/([\d.]+)/)[1];
     } else if (/OPR\//.test(userAgent)) {
         name = 'Opera';
         version = userAgent.match(/OPR\/([\d.]+)/)[1];
@@ -144,8 +189,15 @@ function detectOS(userAgent = navigator.userAgent) {
         || (/Macintosh/.test(userAgent) && navigator.maxTouchPoints > 1)) {
         return 'iOS';
     }
-    if (/Mac OS X (10[._]\d+[._]?\d*)/.test(userAgent)) {
-        return `macOS ${userAgent.match(/Mac OS X (10[._]\d+[._]?\d*)/)[1].replace(/_/g, '.')}`;
+    const macVersionMatch = userAgent.match(/Mac OS X (10[._]\d+(?:[._]\d+)?)/);
+    if (macVersionMatch) {
+        const macVersion = macVersionMatch[1].replace(/_/g, '.');
+        // Browsers freeze the reported version at 10.15(.7) on macOS 11 and
+        // later, so that value only means "10.15 or newer".
+        if (/^10\.15(?:\.\d+)?$/.test(macVersion)) {
+            return 'macOS 10.15 or later';
+        }
+        return `macOS ${macVersion}`;
     }
     if (/Mac OS X/.test(userAgent)) return 'macOS';
     if (/Android/.test(userAgent)) return 'Android';
@@ -329,9 +381,10 @@ function countLinesByChars(textarea) {
 
     // 1. Получаем стили и размеры
     const styles = window.getComputedStyle(textarea);
-    const padding = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
-    const scrollbarWidth = textarea.offsetWidth - textarea.clientWidth;
-    const availableWidth = textarea.clientWidth - padding - scrollbarWidth;
+    const padding = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
+    // clientWidth already excludes the borders and the vertical scrollbar,
+    // so only the padding has to be subtracted.
+    const availableWidth = textarea.clientWidth - padding;
 
     // 2. Создаём временный элемент для измерения средней ширины символа
     const tempSpan = document.createElement('span');
@@ -359,23 +412,43 @@ function countLinesByChars(textarea) {
     }, 0);
 }
 
+// A word is a run of letters/digits (combining marks included, so accented
+// and Devanagari text is not split). Apostrophes and hyphens that join two
+// such runs ("don't", "it’s", "well-known") keep the word whole — the same
+// rule Word and Google Docs use. Spaced dashes, other punctuation and all
+// Unicode spaces are separators.
+const WORD_PATTERN = /[\p{L}\p{N}\p{M}]+(?:['’‐‑-][\p{L}\p{N}\p{M}]+)*/gu;
+
+function countWords(text) {
+    const matches = text.match(WORD_PATTERN);
+    return matches ? matches.length : 0;
+}
+
+// Count user-perceived characters: an emoji such as 👍🏽 or 👨‍👩‍👧 is one
+// character, not 2–8 UTF-16 code units as String#length reports.
+const graphemeSegmenter = typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function'
+    ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+    : null;
+
+function countCharacters(text) {
+    if (graphemeSegmenter) {
+        let count = 0;
+        for (const _ of graphemeSegmenter.segment(text)) count += 1;
+        return count;
+    }
+    return Array.from(text).length;
+}
+
 function updateCharacterCount() {
     const text = textInput.value;
 
     // Update character count (with spaces)
-    charCount.textContent = text.length;
+    charCount.textContent = countCharacters(text);
 
     // Update character count (without spaces)
-    charNoSpaceCount.textContent = text.replace(/\s/g, '').length;
+    charNoSpaceCount.textContent = countCharacters(text.replace(/\s/g, ''));
 
-    // Update word count - excluding en space and em space
-    const words = text.trim()
-        .replace(/[\u2002\u2003\u2000-\u200A\u202F\u205F\u3000]/g, ' ') // Replace en space (\u2002), em space (\u2003), and other Unicode spaces with regular space
-        .replace(/[—–]/g, ' ') // Replace em dash and en dash with space
-        .replace(/[^\p{L}\p{N}\s]/gu, ' ') // Replace all non-letter and non-number characters with space
-        .split(/\s+/)
-        .filter(word => word.length > 0);
-    wordCount.textContent = text.trim() === '' ? 0 : words.length;
+    wordCount.textContent = countWords(text);
 
     // Update line breaks count
     const lines = text.split(/\r\n|\r|\n/);
@@ -400,31 +473,44 @@ const caseConverters = {
     upper: (text) => text.toLocaleUpperCase(),
     lower: (text) => text.toLocaleLowerCase(),
     title: (text) => {
+        // Apostrophes do not start a new word: "don't" -> "Don't", not "Don'T".
         return text.toLocaleLowerCase().replace(
-            /(^|[^\p{L}\p{N}])(\p{L})/gu,
+            /(^|[^\p{L}\p{N}\p{M}'’])(\p{L})/gu,
             (_, prefix, letter) => prefix + letter.toLocaleUpperCase()
         );
     },
     sentence: (text) => {
+        // A sentence starts at the beginning of the text or after . ! ? …
+        // (optionally followed by closing quotes/brackets) plus whitespace;
+        // leading whitespace and opening quotes/brackets are skipped.
         return text.toLocaleLowerCase().replace(
-            /(^|[.!?]\s+)(\p{L})/gu,
+            /(^[\s"'“‘«(\[]*|[.!?…]["'”’»)\]]*\s+["'“‘«(\[]*)(\p{L})/gu,
             (_, prefix, letter) => prefix + letter.toLocaleUpperCase()
         );
     },
+    // Words are split on anything that is not a letter, digit or combining
+    // mark, then joined without separators. Words that start with a digit
+    // ("2nd") are kept as-is but still joined, so no spaces are left behind.
     camel: (text) => {
-        return text.toLocaleLowerCase()
-            .replace(/[^\p{L}\p{N}]+/gu, ' ')
-            .trim()
-            .replace(/\s+(\p{L})/gu, (_, char) => char.toLocaleUpperCase())
-            .replace(/^\p{L}/u, char => char.toLocaleLowerCase());
+        return splitIntoWords(text)
+            .map((word, index) => (index === 0 ? word : capitalizeFirst(word)))
+            .join('');
     },
     pascal: (text) => {
-        return text.toLocaleLowerCase()
-            .replace(/[^\p{L}\p{N}]+/gu, ' ')
-            .trim()
-            .replace(/(^|\s+)(\p{L})/gu, (_, __, letter) => letter.toLocaleUpperCase());
+        return splitIntoWords(text).map(capitalizeFirst).join('');
     }
 };
+
+function splitIntoWords(text) {
+    return text.toLocaleLowerCase()
+        .split(/[^\p{L}\p{N}\p{M}]+/u)
+        .filter(word => word.length > 0);
+}
+
+function capitalizeFirst(word) {
+    const [first = '', ...rest] = Array.from(word);
+    return first.toLocaleUpperCase() + rest.join('');
+}
 
 // Handle case conversion
 convertButtons.forEach(button => {
@@ -450,21 +536,7 @@ convertButtons.forEach(button => {
 
 // Copy to clipboard functionality
 copyButton.addEventListener('click', async () => {
-    const text = caseInput.value;
-    if (text.trim() !== '') {
-        try {
-            await navigator.clipboard.writeText(text);
-
-            // Show success feedback
-            const originalText = copyButton.textContent;
-            copyButton.textContent = 'Copied!';
-            setTimeout(() => {
-                copyButton.textContent = originalText;
-            }, 1500);
-        } catch (err) {
-            console.error('Failed to copy text:', err);
-        }
-    }
+    await copyToClipboard(caseInput.value, copyButton);
 });
 
 // Clear text functionality
@@ -522,8 +594,10 @@ function updateEditorSize() {
     // Reset height to auto to get the correct scrollHeight
     cleanTextArea.style.height = 'auto';
 
-    // Set the height to match the content
-    const newHeight = Math.max(cleanTextArea.scrollHeight, 300); // Minimum height of 300px
+    // Set the height to match the content. In no-wrap mode long lines get a
+    // horizontal scrollbar; add its height so it never covers the last line.
+    const scrollbarHeight = Math.max(0, (cleanTextArea.offsetHeight || 0) - (cleanTextArea.clientHeight || 0));
+    const newHeight = Math.max(cleanTextArea.scrollHeight + scrollbarHeight, 300); // Minimum height of 300px
     cleanTextArea.style.height = newHeight + 'px';
 
     // Update line numbers container height
@@ -538,39 +612,42 @@ function updateLineNumbers() {
     const lines = text.split('\n');
 
     if (isWrapped) {
-        // For wrapped text, we need to match the visual lines with logical lines
-        const lineHeight = parseInt(getComputedStyle(cleanTextArea).lineHeight);
+        // Mirror the textarea's content box and wrapping rules, then measure
+        // how many visual rows each logical line takes.
+        const styles = getComputedStyle(cleanTextArea);
+        const lineHeight = parseFloat(styles.lineHeight) || 24;
+        const padding = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
+        const contentWidth = Math.max(1, cleanTextArea.clientWidth - padding);
 
-        // Create a temporary div to measure text width
         const measureDiv = document.createElement('div');
         measureDiv.style.visibility = 'hidden';
         measureDiv.style.position = 'absolute';
-        measureDiv.style.whiteSpace = 'pre';
-        measureDiv.style.font = getComputedStyle(cleanTextArea).font;
-        measureDiv.style.lineHeight = getComputedStyle(cleanTextArea).lineHeight;
+        measureDiv.style.left = '-9999px';
+        measureDiv.style.top = '0';
+        measureDiv.style.width = contentWidth + 'px';
+        measureDiv.style.whiteSpace = 'pre-wrap';
+        measureDiv.style.overflowWrap = 'break-word';
+        measureDiv.style.wordBreak = styles.wordBreak || 'normal';
+        measureDiv.style.font = styles.font;
+        measureDiv.style.letterSpacing = styles.letterSpacing || 'normal';
+        measureDiv.style.tabSize = styles.tabSize || '4';
+        measureDiv.style.lineHeight = lineHeight + 'px';
         document.body.appendChild(measureDiv);
 
-        const lineWidth = cleanTextArea.clientWidth - 40; // Account for padding
-
-        // Generate line numbers based on actual text content
-        let lineNumbersHTML = '';
-
+        const rows = [];
         lines.forEach((line, index) => {
-            measureDiv.textContent = line;
-            const lineLength = measureDiv.offsetWidth;
-            const wrappedLines = Math.ceil(lineLength / lineWidth) || 1;
+            measureDiv.textContent = line || ' ';
+            const wrappedLines = Math.max(1, Math.round((measureDiv.offsetHeight || lineHeight) / lineHeight));
 
-            // Add the line number for the first wrapped line
-            lineNumbersHTML += (index + 1) + '\n';
-
-            // Add empty lines for the rest of the wrapped lines
+            // Number the first visual row, leave the wrapped continuation rows blank
+            rows.push(String(index + 1));
             for (let i = 1; i < wrappedLines; i++) {
-                lineNumbersHTML += '\n';
+                rows.push('');
             }
         });
 
         document.body.removeChild(measureDiv);
-        lineNumbers.textContent = lineNumbersHTML;
+        lineNumbers.textContent = rows.join('\n');
     } else {
         // For non-wrapped text, number all lines including empty ones
         const numberedLines = lines.map((_, index) => (index + 1)).join('\n');
@@ -578,51 +655,38 @@ function updateLineNumbers() {
     }
 }
 
-function handleCleanTextPaste(e) {
-    // Prevent the default paste
-    e.preventDefault();
-
-    // Get clipboard data as plain text
-    const text = e.clipboardData.getData('text/plain');
-
-    // Insert text at cursor position
-    const startPos = cleanTextArea.selectionStart;
-    const endPos = cleanTextArea.selectionEnd;
-    const textBefore = cleanTextArea.value.substring(0, startPos);
-    const textAfter = cleanTextArea.value.substring(endPos);
-
-    cleanTextArea.value = textBefore + text + textAfter;
-
-    // Update cursor position
-    cleanTextArea.selectionStart = startPos + text.length;
-    cleanTextArea.selectionEnd = startPos + text.length;
-
-    // Update line numbers
-    updateLineNumbers();
+// Insert text at the caret through the browser's editing pipeline so the
+// change lands in the undo history (Ctrl/Cmd+Z) and fires 'input'.
+function insertTextAtCursor(textarea, text) {
+    textarea.focus();
+    let inserted = false;
+    try {
+        inserted = typeof document.execCommand === 'function'
+            && document.execCommand('insertText', false, text);
+    } catch (_) {
+        inserted = false;
+    }
+    if (!inserted) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
+        textarea.selectionStart = textarea.selectionEnd = start + text.length;
+        handleInput();
+    }
 }
 
+// Plain Tab inserts four spaces. Shift+Tab and modified Tab keep their
+// default behaviour, so keyboard users can always move focus out of the
+// editor (no keyboard trap).
 function handleTab(e) {
-    if (e.key === 'Tab') {
-        e.preventDefault();
-
-        // Insert tab at cursor position
-        const startPos = cleanTextArea.selectionStart;
-        const endPos = cleanTextArea.selectionEnd;
-        const textBefore = cleanTextArea.value.substring(0, startPos);
-        const textAfter = cleanTextArea.value.substring(endPos);
-
-        cleanTextArea.value = textBefore + '    ' + textAfter;
-
-        // Update cursor position
-        cleanTextArea.selectionStart = startPos + 4;
-        cleanTextArea.selectionEnd = startPos + 4;
-    }
+    if (e.key !== 'Tab' || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
+    e.preventDefault();
+    insertTextAtCursor(cleanTextArea, '    ');
 }
 
 // Sync scroll between textarea and line numbers
 function syncScroll() {
     lineNumbers.scrollTop = cleanTextArea.scrollTop;
-    lineNumbers.scrollLeft = cleanTextArea.scrollLeft;
 }
 
 cleanTextArea.addEventListener('scroll', syncScroll);
@@ -632,16 +696,6 @@ function handleInput() {
     syncScroll();
 }
 
-function handlePaste(e) {
-    handleCleanTextPaste(e);
-    handleInput();
-}
-
-function handleKeydown(e) {
-    handleTab(e);
-    handleInput();
-}
-
 function handleResize() {
     clearTimeout(window.resizeTimeout);
     window.resizeTimeout = setTimeout(() => {
@@ -649,29 +703,40 @@ function handleResize() {
     }, 100);
 }
 
+// A textarea already pastes plain text, so no custom paste handling is
+// needed: intercepting it only broke undo. 'input' covers typing, pasting,
+// cutting, dropping and undo/redo.
 cleanTextArea.addEventListener('input', handleInput);
-cleanTextArea.addEventListener('paste', handlePaste);
-cleanTextArea.addEventListener('keydown', handleKeydown);
+cleanTextArea.addEventListener('keydown', handleTab);
 window.addEventListener('resize', handleResize);
+
+// Temporarily replace a button label with feedback. The original label is
+// remembered once, so a second click during the feedback period cannot make
+// "Copied!" the permanent label.
+function flashButtonLabel(button, message, duration = 1500) {
+    if (button.dataset.originalLabel === undefined) {
+        button.dataset.originalLabel = button.textContent.trim();
+    }
+    clearTimeout(button._labelTimer);
+    button.textContent = message;
+    button._labelTimer = setTimeout(() => {
+        button.textContent = button.dataset.originalLabel;
+    }, duration);
+}
 
 // Copy to clipboard functionality with error handling
 async function copyToClipboard(text, button) {
     if (text.trim() === '') return;
 
-    const originalText = button.textContent;
-
     try {
+        if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+            throw new Error('Clipboard API is unavailable');
+        }
         await navigator.clipboard.writeText(text);
-        button.textContent = 'Copied!';
-        setTimeout(() => {
-            button.textContent = originalText;
-        }, 1500);
+        flashButtonLabel(button, 'Copied!');
     } catch (err) {
         console.error('Failed to copy text:', err);
-        button.textContent = 'Failed to copy';
-        setTimeout(() => {
-            button.textContent = originalText;
-        }, 1500);
+        flashButtonLabel(button, 'Failed to copy');
     }
 }
 
@@ -691,7 +756,7 @@ if (copyDeviceDetailsButton) {
 // Toggle text wrapping
 wrapTextButton.addEventListener('click', () => {
     isWrapped = !isWrapped;
-    cleanTextArea.style.whiteSpace = isWrapped ? 'pre-wrap' : 'pre';
+    cleanTextArea.classList.toggle('wrapped', isWrapped);
     wrapTextButton.textContent = isWrapped ? 'Disable Word Wrap' : 'Toggle Word Wrap';
     handleInput();
 });

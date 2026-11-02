@@ -2,8 +2,8 @@
 // Full labels use data-app-version; compact cards use the value/date
 // attributes. An optional data-version-suffix extends a full label.
 (function () {
-    const APP_VERSION = '0.0.15D';
-    const APP_VERSION_DATE = 'July 2026';
+    const APP_VERSION = '0.0.16D';
+    const APP_VERSION_DATE = 'November 2026';
     const label = 'Version ' + APP_VERSION_DATE + ' ' + APP_VERSION;
 
     function applyVersion() {
