@@ -840,6 +840,13 @@ textarea:focus {
     display: none;
 }
 
+/* Components that set their own display (e.g. .primary.ghost links) would
+   otherwise override the hidden attribute and show controls that must not
+   be usable yet, like a Download button before the file is ready. */
+[hidden] {
+    display: none !important;
+}
+
 @keyframes spin {
     0% {
         transform: rotate(0deg);

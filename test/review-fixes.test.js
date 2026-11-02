@@ -145,7 +145,7 @@ test('worker reports which stages are codec loading and which are encoding', () 
 
 // --- Video compressor --------------------------------------------------------
 
-function loadVideoCompressor({ timers, load, consoleSpy } = {}) {
+function loadVideoCompressor({ timers, load, consoleSpy, fetchImpl } = {}) {
   class FakeFFmpeg {
     on() {}
     load() {
@@ -166,7 +166,7 @@ function loadVideoCompressor({ timers, load, consoleSpy } = {}) {
     globals: {
       ...(timers ? timers.globals : {}),
       FFmpegWASM: { FFmpeg: FakeFFmpeg },
-      fetch: async () => ({ ok: true, status: 200, body: null }),
+      fetch: fetchImpl || (async () => ({ ok: true, status: 200, body: null, arrayBuffer: async () => new ArrayBuffer(8) })),
       URL: Object.assign(URL, { createObjectURL: () => 'blob:test' })
     }
   });
@@ -184,16 +184,14 @@ test('video engine gets 120 seconds to load before an error is shown', async () 
   const timers = createManualTimers();
   const { context, getElement } = loadVideoCompressor({ timers, load: () => new Promise(() => {}) });
   context.__files = [fakeVideo('clip.mp4')];
-  run(context, 'handleFiles(__files)');
-
-  const done = run(context, 'runCompression()');
+  const done = run(context, 'handleFiles(__files)');
   await flush();
-  assert.deepEqual(timers.delays, [120000]);
+  assert.ok(timers.delays.includes(120000), `start timeout among ${timers.delays}`);
 
   timers.runAll();
   await done;
   assert.equal(getElement('progressLabel').textContent, 'Error');
-  assert.match(getElement('resultMessage').textContent, /did not load within 120 seconds/);
+  assert.match(getElement('resultMessage').textContent, /did not start within 120 seconds/);
 });
 
 test('video compressor does not log debug output for every visitor', () => {
@@ -214,7 +212,8 @@ test('video compressor says which file it took when several are dropped', () => 
   context.__files = [fakeVideo('one.mp4'), fakeVideo('two.mp4'), fakeVideo('three.mp4')];
   run(context, 'handleFiles(__files)');
   assert.equal(run(context, 'currentFile.name'), 'one.mp4');
-  assert.match(getElement('resultMessage').textContent, /using "one\.mp4".*2 file\(s\) were skipped/);
+  assert.match(getElement('dropNotice').textContent, /using "one\.mp4".*2 file\(s\) were skipped/);
+  assert.equal(getElement('dropNotice').hidden, false);
 });
 
 test('video compressor only uses the ffmpeg.wasm 0.12 class API it ships with', () => {

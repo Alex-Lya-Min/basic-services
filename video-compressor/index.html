@@ -56,14 +56,23 @@
                 <p class="hint">Supported input: mp4 (H.264 / HEVC). On older phones or laptops, compression may take a
                     while.</p>
                 <div class="drop-area" id="dropZone" role="button" tabindex="0" aria-describedby="dropHint">
-                    <p class="drop-title">Drop video here or click to browse</p>
-                    <p class="drop-subtitle" id="dropHint">Maximum recommended size ~150 MB</p>
-                    <input type="file" id="videoInput" accept="video/mp4" aria-label="Video input">
+                    <p class="drop-title" id="dropTitle">Drop video here or click to browse</p>
+                    <p class="drop-subtitle" id="dropHint">Compression starts automatically · up to ~150 MB recommended</p>
+                    <input type="file" id="videoInput" accept="video/mp4,.mp4,.m4v" aria-label="Video input">
                 </div>
-                <p class="selected-file" id="selectedFile">No file selected.</p>
-                <div class="upload-status" id="uploadStatus" aria-live="polite" hidden>
-                    <span class="spinner small" aria-hidden="true"></span>
-                    <span id="uploadStatusText">Preparing file…</span>
+                <p class="drop-notice" id="dropNotice" role="alert" hidden></p>
+                <div class="file-status" id="fileStatus" data-state="idle">
+                    <span class="file-status-icon" aria-hidden="true"></span>
+                    <div class="file-status-body">
+                        <p class="selected-file" id="selectedFile">No file selected.</p>
+                        <p class="file-status-line">
+                            <span id="statusText" aria-live="polite"></span>
+                            <span class="file-status-detail" id="statusDetail"></span>
+                        </p>
+                        <div class="file-status-bar" aria-hidden="true">
+                            <div class="file-status-fill" id="statusFill"></div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -76,7 +85,7 @@
                         <span id="engineLoaderText">Loading compression engine…</span>
                     </div>
                 </div>
-                <div class="progress-wrapper" aria-live="polite">
+                <div class="progress-wrapper">
                     <progress id="progressBar" value="0" max="1"></progress>
                     <p id="progressLabel">Waiting for a file…</p>
                 </div>
@@ -129,7 +138,7 @@
                     <span class="version-card-text">
                         <span class="version-card-name">Version</span>
                         <span class="version-card-meta">
-                            <span data-app-version-value>0.0.17D</span>
+                            <span data-app-version-value>0.0.18D</span>
                             <span class="version-card-date" data-app-version-date>November 2026</span>
                         </span>
                     </span>

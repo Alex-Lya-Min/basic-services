@@ -390,7 +390,7 @@ function loadVideoCompressor() {
   const browser = createBrowserContext({
     globals: {
       FFmpegWASM: { FFmpeg: FakeFFmpeg },
-      fetch: async () => ({ ok: true, status: 200, body: null }),
+      fetch: async () => ({ ok: true, status: 200, body: null, arrayBuffer: async () => new ArrayBuffer(8) }),
       URL: Object.assign(URL, { createObjectURL: () => 'blob:test' })
     }
   });
@@ -412,9 +412,7 @@ const fakeVideo = (name) => ({
 test('retrying after a failed engine load still reports progress and names the output', async () => {
   const { context, instances, getElement } = loadVideoCompressor();
   context.__files = [fakeVideo('Holiday clip.mp4')];
-  run(context, 'handleFiles(__files)');
-
-  await run(context, 'runCompression()');
+  await run(context, 'handleFiles(__files)'); // starts compression automatically
   assert.equal(getElement('progressLabel').textContent, 'Error');
   assert.equal(instances[0].terminated, true, 'the broken instance is discarded');
 

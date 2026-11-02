@@ -125,9 +125,170 @@ body.video-compressor-page {
     cursor: pointer;
 }
 
+/* Drop zone reflects the current state: file chosen / working. */
+.drop-area.has-file {
+    border-style: solid;
+}
+
+.drop-area.busy {
+    cursor: progress;
+    border-color: var(--accent-color);
+    background: var(--bg);
+}
+
+.drop-area.busy #videoInput {
+    cursor: progress;
+}
+
+.drop-notice {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--accent-color);
+    background: var(--bg-secondary);
+    color: var(--text);
+    font-size: 0.9rem;
+}
+
+.drop-notice.error {
+    border-left-color: #e5484d;
+}
+
+/* Status of the selected file, right under the drop zone where the user
+   is looking after dropping a file. */
+.file-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.file-status-icon {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    display: none;
+}
+
+.file-status[data-state="busy"] .file-status-icon {
+    display: inline-block;
+    border-radius: 50%;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--accent-color);
+    animation: spin 0.9s linear infinite;
+}
+
+.file-status[data-state="done"] .file-status-icon,
+.file-status[data-state="error"] .file-status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.file-status[data-state="done"] .file-status-icon::before {
+    content: "✓";
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-color);
+    color: var(--accent-contrast);
+}
+
+.file-status[data-state="error"] .file-status-icon::before {
+    content: "!";
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #e5484d;
+    color: #ffffff;
+}
+
+.file-status-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 .selected-file {
     color: var(--text-secondary);
-    margin-top: 12px;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.file-status[data-state="busy"] .selected-file,
+.file-status[data-state="done"] .selected-file,
+.file-status[data-state="ready"] .selected-file {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.file-status-line {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.file-status-line:empty,
+.file-status[data-state="idle"] .file-status-line {
+    display: none;
+}
+
+.file-status[data-state="error"] .file-status-line {
+    color: var(--text);
+}
+
+.file-status-detail:not(:empty)::before {
+    content: " · ";
+}
+
+.file-status-bar {
+    display: none;
+    height: 4px;
+    margin-top: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    position: relative;
+}
+
+.file-status[data-state="busy"] .file-status-bar {
+    display: block;
+}
+
+.file-status-fill {
+    height: 100%;
+    width: 0;
+    background: var(--accent-color);
+    transition: width 0.2s ease;
+}
+
+/* No measurable progress yet (reading the file, starting the encoder):
+   show a moving segment so the page never looks frozen. */
+.file-status-bar.indeterminate .file-status-fill {
+    width: 30%;
+    position: absolute;
+    left: 0;
+    animation: vc-indeterminate 1.2s ease-in-out infinite;
+}
+
+@keyframes vc-indeterminate {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(340%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .file-status-bar.indeterminate .file-status-fill {
+        animation: none;
+        width: 100%;
+        opacity: 0.5;
+    }
 }
 
 .upload-status {

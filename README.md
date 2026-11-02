@@ -51,13 +51,16 @@ worker recovery, drag-and-drop outside the drop zone, engine-load retry, theme f
 and checks that the theme switcher sits in the same row as the services on every page.
 `test/review-fixes.test.js` covers the issues from the code review (codec-load timeout,
 video engine timeout, history entries, live regions, visual lines on resize, and more).
+`test/video-upload.test.js` covers the video compressor's feedback after a drop (auto-start,
+status and progress under the drop zone, engine download progress and stalls, rejected files).
 
 ## Video compressor quick start
 
 1. Open [`/video-compressor/`](./video-compressor/).
-2. Drop an mp4 file (recommended up to ~150–200 MB).
-3. Click **Compress video** and keep the tab in the foreground while ffmpeg.wasm works
-   (the output is a smaller H.264 mp4, CRF 28, audio kept as-is).
+2. Drop an mp4 file (recommended up to ~150–200 MB) — compression starts automatically.
+   Progress (engine download on first use, reading, compressing) is shown right under the drop zone.
+3. Keep the tab in the foreground while ffmpeg.wasm works, then download `<name>.min.mp4`
+   (a smaller H.264 mp4, CRF 28, audio kept as-is).
 
 Compression is performed entirely in your browser, so large videos can take several minutes on low-power devices.
 

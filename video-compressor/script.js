@@ -4,6 +4,12 @@
 const startButton = document.getElementById('startButton');
 const fileInput = document.getElementById('videoInput');
 const dropZone = document.getElementById('dropZone');
+const dropTitle = document.getElementById('dropTitle');
+const dropNotice = document.getElementById('dropNotice');
+const fileStatus = document.getElementById('fileStatus');
+const statusText = document.getElementById('statusText');
+const statusDetail = document.getElementById('statusDetail');
+const statusFill = document.getElementById('statusFill');
 const progressBar = document.getElementById('progressBar');
 const progressLabel = document.getElementById('progressLabel');
 const selectedFileLabel = document.getElementById('selectedFile');
@@ -11,16 +17,20 @@ const engineLoader = document.getElementById('engineLoader');
 const engineLoaderText = document.getElementById('engineLoaderText');
 const downloadLink = document.getElementById('downloadLink');
 const resultMessage = document.getElementById('resultMessage');
-const uploadStatus = document.getElementById('uploadStatus');
-const uploadStatusText = document.getElementById('uploadStatusText');
 
 const CORE_JS_URL = new URL('./vendor/ffmpeg-core.js', import.meta.url).toString();
 const CORE_WASM_URL = new URL('./vendor/ffmpeg-core.wasm', import.meta.url).toString();
 const CORE_WORKER_URL = new URL('./vendor/ffmpeg-core.worker.js', import.meta.url).toString();
 const expectedFfmpegScriptUrl = new URL('./vendor/ffmpeg.js', import.meta.url).toString();
 
-// The wasm core is ~31 MB: give slow mobile connections time to download it
-// before reporting an error.
+// Uncompressed size of vendor/ffmpeg-core.wasm. Used for the download
+// percentage when the server sends no (or a compressed) Content-Length.
+const CORE_WASM_BYTES = 31739621;
+
+// The engine download fails only when it stalls (no data for this long), so
+// slow but working mobile connections are never cut off.
+const ENGINE_STALL_TIMEOUT_MS = 30 * 1000;
+// Time allowed to start the engine once its files are downloaded.
 const ENGINE_LOAD_TIMEOUT_MS = 120 * 1000;
 
 const INPUT_NAME = 'input.mp4';
@@ -31,6 +41,7 @@ let ffmpegLoaded = false;
 
 let currentFile = null;
 let isProcessing = false;
+let lastObjectUrl = null;
 
 const readerFriendlySize = (size) => {
   if (!size && size !== 0) return '';
@@ -44,14 +55,53 @@ const readerFriendlySize = (size) => {
   return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
 };
 
-const updateSelectedFile = () => {
-  if (currentFile) {
-    selectedFileLabel.textContent = `${currentFile.name} (${readerFriendlySize(currentFile.size)})`;
-    progressLabel.textContent = 'Ready to compress.';
-  } else {
-    selectedFileLabel.textContent = 'No file selected.';
-    progressLabel.textContent = 'Waiting for a file…';
+// --- Status UI ----------------------------------------------------------------
+// The status block sits right under the drop zone, where the user looks after
+// dropping a file. Card 2 mirrors the same progress in its bigger bar.
+
+const setStatus = (state, text = '', { progress = null, detail = '' } = {}) => {
+  if (fileStatus) fileStatus.dataset.state = state;
+  if (statusText && statusText.textContent !== text) statusText.textContent = text;
+  if (statusDetail) statusDetail.textContent = detail;
+  if (statusFill) {
+    const bar = statusFill.parentElement;
+    const indeterminate = state === 'busy' && progress === null;
+    if (bar && bar.classList) bar.classList.toggle('indeterminate', indeterminate);
+    statusFill.style.width = indeterminate ? '' : `${Math.round((progress || 0) * 100)}%`;
   }
+};
+
+const showProgress = (ratio, label) => {
+  progressBar.value = ratio;
+  progressLabel.textContent = label;
+};
+
+// kind 'busy' marks "please wait" notices, which are cleared automatically
+// once the running compression finishes.
+const showNotice = (message, { error = false, kind = '' } = {}) => {
+  if (!dropNotice) return;
+  dropNotice.textContent = message;
+  dropNotice.hidden = !message;
+  dropNotice.dataset.kind = message ? kind : '';
+  dropNotice.classList.toggle('error', Boolean(message) && error);
+};
+
+const BUSY_NOTICE = 'Please wait until the current video is finished, then drop the next one.';
+
+const updateDropZone = () => {
+  dropZone.classList.toggle('has-file', Boolean(currentFile));
+  dropZone.classList.toggle('busy', isProcessing);
+  dropZone.setAttribute('aria-busy', isProcessing ? 'true' : 'false');
+  if (!dropTitle) return;
+  if (isProcessing) dropTitle.textContent = 'Working… keep this tab open';
+  else if (currentFile) dropTitle.textContent = 'Drop another video or click to replace';
+  else dropTitle.textContent = 'Drop video here or click to browse';
+};
+
+const updateSelectedFile = () => {
+  selectedFileLabel.textContent = currentFile
+    ? `${currentFile.name} (${readerFriendlySize(currentFile.size)})`
+    : 'No file selected.';
 };
 
 const showEngineLoader = (show, message) => {
@@ -60,16 +110,6 @@ const showEngineLoader = (show, message) => {
     engineLoaderText.textContent = message;
   }
 };
-
-const toggleUploadStatus = (show, text) => {
-  if (!uploadStatus) return;
-  uploadStatus.hidden = !show;
-  if (typeof text === 'string' && uploadStatusText) {
-    uploadStatusText.textContent = text;
-  }
-};
-
-let lastObjectUrl = null;
 
 const resetDownloadState = () => {
   downloadLink.hidden = true;
@@ -80,18 +120,20 @@ const resetDownloadState = () => {
   }
 };
 
+// --- Engine ---------------------------------------------------------------------
+
 const attachProgressHandler = (instance) => {
   instance.on('progress', ({ progress }) => {
-    if (!Number.isFinite(progress)) return;
+    if (!isProcessing || !Number.isFinite(progress)) return;
     const p = Math.min(1, Math.max(0, progress));
-    progressBar.value = p;
-    progressLabel.textContent = `Compressing… ${Math.round(p * 100)}%`;
+    const percent = `${Math.round(p * 100)}%`;
+    showProgress(p, `Compressing… ${percent}`);
+    setStatus('busy', 'Compressing…', { progress: p, detail: percent });
   });
 };
 
 // Sanity-check that the URL serves the real asset and not an HTML 404 page.
-// Only the first chunk of the body is read, then the request is cancelled,
-// so the 30 MB wasm core is not downloaded twice.
+// Only the first chunk of the body is read, then the request is cancelled.
 const fetchHead = async (url) => {
   const response = await fetch(url, { headers: { Range: 'bytes=0-63' } });
   if (!response.ok && response.status !== 206) {
@@ -107,13 +149,86 @@ const fetchHead = async (url) => {
   }
 };
 
+// Download the ~31 MB wasm core with visible progress and hand it to ffmpeg
+// as a blob URL, so it is downloaded once. Fails if no data arrives for
+// ENGINE_STALL_TIMEOUT_MS.
+const downloadWasm = async (url, onProgress) => {
+  const controller = typeof AbortController === 'function' ? new AbortController() : null;
+  let stallTimer = null;
+  let stalled = false;
+  const armStallTimer = () => {
+    clearTimeout(stallTimer);
+    stallTimer = setTimeout(() => {
+      stalled = true;
+      if (controller) controller.abort();
+    }, ENGINE_STALL_TIMEOUT_MS);
+  };
+
+  const stallError = () => new Error(
+    'The compression engine stopped downloading. Check your connection and try again.'
+  );
+
+  try {
+    armStallTimer();
+    let response;
+    try {
+      response = await fetch(url, controller ? { signal: controller.signal } : undefined);
+    } catch (error) {
+      throw stalled ? stallError() : error;
+    }
+    if (!response.ok) {
+      throw new Error(`Failed to download the compression engine: HTTP ${response.status}`);
+    }
+
+    const declared = Number(response.headers?.get?.('Content-Length')) || 0;
+    // A gzip-encoded response declares the compressed size, while the
+    // stream yields decompressed bytes: never use a total below the real size.
+    const total = Math.max(declared, CORE_WASM_BYTES);
+
+    if (!response.body || typeof response.body.getReader !== 'function') {
+      const buffer = await response.arrayBuffer();
+      onProgress(buffer.byteLength, buffer.byteLength);
+      return URL.createObjectURL(new Blob([buffer], { type: 'application/wasm' }));
+    }
+
+    const reader = response.body.getReader();
+    const chunks = [];
+    let received = 0;
+    for (;;) {
+      let result;
+      try {
+        result = await reader.read();
+      } catch (error) {
+        throw stalled ? stallError() : error;
+      }
+      if (result.done) break;
+      armStallTimer();
+      if (received === 0) {
+        // "\0asm" magic number: anything else is an error page, not the engine.
+        const v = result.value;
+        if (!(v[0] === 0x00 && v[1] === 0x61 && v[2] === 0x73 && v[3] === 0x6d)) {
+          throw new Error(`Unexpected response for ${url}: not a WebAssembly file.`);
+        }
+      }
+      chunks.push(result.value);
+      received += result.value.length;
+      onProgress(received, Math.max(total, received));
+    }
+    if (stalled) throw stallError();
+    if (received === 0) throw new Error('The compression engine download was empty. Reload the page and try again.');
+    return URL.createObjectURL(new Blob(chunks, { type: 'application/wasm' }));
+  } finally {
+    clearTimeout(stallTimer);
+  }
+};
+
 const loadWithTimeout = (loadPromise, ms = ENGINE_LOAD_TIMEOUT_MS) => {
   let timer = null;
   const timeout = new Promise((_, reject) => {
     timer = setTimeout(() => {
       reject(
         new Error(
-          `The compression engine did not load within ${ms / 1000} seconds. Check your connection and try again.`
+          `The compression engine did not start within ${ms / 1000} seconds. Reload the page and try again.`
         )
       );
     }, ms);
@@ -140,16 +255,26 @@ const ensureFFmpegLoaded = async () => {
   }
 
   showEngineLoader(true, 'Loading compression engine…');
-  progressLabel.textContent = 'Loading engine…';
+  showProgress(0, 'Loading engine…');
+  setStatus('busy', 'Loading compression engine…', { detail: 'first run only' });
 
+  let wasmUrl = null;
   try {
     await fetchHead(CORE_JS_URL);
-    await fetchHead(CORE_WASM_URL);
     await fetchHead(CORE_WORKER_URL);
 
+    wasmUrl = await downloadWasm(CORE_WASM_URL, (received, total) => {
+      const ratio = Math.min(1, received / total);
+      const detail = `${readerFriendlySize(received)} of ${readerFriendlySize(total)}`;
+      setStatus('busy', 'Loading compression engine…', { progress: ratio, detail });
+      showEngineLoader(true, `Loading compression engine… ${Math.round(ratio * 100)}%`);
+      showProgress(ratio, `Loading engine… ${Math.round(ratio * 100)}%`);
+    });
+
+    setStatus('busy', 'Starting compression engine…');
     ffmpeg = new FFmpegClass();
     attachProgressHandler(ffmpeg);
-    await loadWithTimeout(ffmpeg.load({ coreURL: CORE_JS_URL, wasmURL: CORE_WASM_URL, workerURL: CORE_WORKER_URL }));
+    await loadWithTimeout(ffmpeg.load({ coreURL: CORE_JS_URL, wasmURL: wasmUrl, workerURL: CORE_WORKER_URL }));
 
     ffmpegLoaded = true;
   } catch (error) {
@@ -165,9 +290,13 @@ const ensureFFmpegLoaded = async () => {
     ffmpeg = null;
     throw error;
   } finally {
+    // The engine has compiled the module; the downloaded copy is not needed.
+    if (wasmUrl) URL.revokeObjectURL(wasmUrl);
     showEngineLoader(false);
   }
 };
+
+// --- Files ----------------------------------------------------------------------
 
 // Some platforms (notably drag-and-drop on Windows) deliver files with an
 // empty MIME type, so fall back to the file extension.
@@ -185,31 +314,33 @@ const compressedFileName = (name) => {
   return `${base}.min.mp4`;
 };
 
+// Selecting a valid file starts compression right away (there is a single
+// preset). Returns the running compression, if one was started.
 const handleFiles = (files) => {
-  if (!files || files.length === 0) return;
+  if (!files || files.length === 0) return null;
   const [file] = files;
 
   // Swapping the file mid-run would label the running job's result with the
   // new file and reset the progress UI under the encoder.
   if (isProcessing) {
-    resultMessage.textContent = 'Please wait until the current compression finishes.';
-    return;
+    showNotice(BUSY_NOTICE, { kind: 'busy' });
+    return null;
   }
 
   if (!isMp4File(file)) {
-    resultMessage.textContent = 'Only mp4 files are supported right now.';
-    return;
+    const keeping = currentFile ? ` Still using "${currentFile.name}".` : '';
+    showNotice(`"${file.name}" is not an mp4 video. Only mp4 (H.264 / HEVC) is supported.${keeping}`, { error: true });
+    return null;
   }
 
   currentFile = file;
   resetDownloadState();
-  progressBar.value = 0;
   updateSelectedFile();
-
-  resultMessage.textContent = files.length > 1
+  showNotice(files.length > 1
     ? `One video at a time: using "${file.name}", the other ${files.length - 1} file(s) were skipped.`
-    : 'Choose a preset and click "Compress video" to start.';
-  toggleUploadStatus(false);
+    : '');
+
+  return runCompression();
 };
 
 async function safeDelete(name) {
@@ -223,42 +354,37 @@ async function safeDelete(name) {
 
 const runCompression = async () => {
   if (isProcessing) {
-    resultMessage.textContent = 'Another compression is already running…';
-    toggleUploadStatus(false);
-    showEngineLoader(false);
+    showNotice(BUSY_NOTICE, { kind: 'busy' });
     return;
   }
   if (!currentFile) {
-    resultMessage.textContent = 'Please choose a file first.';
-    toggleUploadStatus(false);
-    showEngineLoader(false);
+    showNotice('Please choose an mp4 file first.', { error: true });
     return;
   }
 
   isProcessing = true;
   startButton.disabled = true;
   resetDownloadState();
+  updateDropZone();
+  resultMessage.textContent = 'Working… the download button will appear here.';
+  showProgress(0, 'Starting…');
+  setStatus('busy', 'Starting…');
 
-  progressBar.value = 0;
-  showEngineLoader(true, 'Loading compression engine…');
-  progressLabel.textContent = 'Loading engine…';
-
+  const sourceFile = currentFile;
   try {
     await ensureFFmpegLoaded();
-    showEngineLoader(false);
 
-    toggleUploadStatus(true, 'Copying file to encoder…');
-    const sourceFile = currentFile;
+    setStatus('busy', 'Reading the video…', { detail: readerFriendlySize(sourceFile.size) });
+    showProgress(0, 'Reading the video…');
     await ffmpeg.writeFile(INPUT_NAME, new Uint8Array(await sourceFile.arrayBuffer()));
-    toggleUploadStatus(false);
 
-    progressBar.value = 0;
-    progressLabel.textContent = 'Compressing… 0%';
+    setStatus('busy', 'Compressing…', { progress: 0, detail: '0%' });
+    showProgress(0, 'Compressing… 0%');
     await ffmpeg.exec(['-y', '-i', INPUT_NAME, '-c:v', 'libx264', '-preset', 'faster', '-crf', '28', '-c:a', 'copy', OUTPUT_NAME]);
 
     const data = await ffmpeg.readFile(OUTPUT_NAME);
     if (!data || data.length === 0) {
-      throw new Error('Compression failed to produce an output file.');
+      throw new Error('Compression failed to produce an output file. The video may be damaged or use an unsupported codec.');
     }
 
     const blob = new Blob([data], { type: 'video/mp4' });
@@ -269,26 +395,42 @@ const runCompression = async () => {
     downloadLink.download = compressedFileName(sourceFile.name);
     downloadLink.hidden = false;
 
-    resultMessage.textContent = 'Done! Click the button below to download the compressed video.';
-    progressLabel.textContent = 'Complete';
-    progressBar.value = 1;
+    const sizes = `${readerFriendlySize(sourceFile.size)} → ${readerFriendlySize(blob.size)}`;
+    if (blob.size < sourceFile.size) {
+      const saved = Math.round((1 - blob.size / sourceFile.size) * 100);
+      setStatus('done', 'Done!', { detail: `${sizes} (−${saved}%)` });
+      resultMessage.textContent = `Done! ${sizes}. Click the button below to download the compressed video.`;
+    } else {
+      setStatus('done', 'Done, but the video was already well compressed.', { detail: sizes });
+      resultMessage.textContent = `The result is not smaller than the original (${sizes}). You can keep the original file.`;
+    }
+    showProgress(1, 'Complete');
+
+    // On narrow screens the download card is below the fold.
+    if (typeof downloadLink.scrollIntoView === 'function') {
+      downloadLink.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   } catch (error) {
     console.error(error);
     const errorMessage = error instanceof Error
       ? error.message
       : 'Something went wrong while compressing the file. Please try again or refresh the page.';
     resultMessage.textContent = errorMessage;
-    progressLabel.textContent = 'Error';
+    showProgress(0, 'Error');
+    setStatus('error', errorMessage, { detail: 'press "Compress video" to retry' });
   } finally {
-    toggleUploadStatus(false);
     showEngineLoader(false);
     startButton.disabled = false;
     isProcessing = false;
+    updateDropZone();
+    if (dropNotice && dropNotice.dataset.kind === 'busy') showNotice('');
 
     await safeDelete(INPUT_NAME);
     await safeDelete(OUTPUT_NAME);
   }
 };
+
+// --- Events ---------------------------------------------------------------------
 
 startButton.addEventListener('click', (event) => {
   event.preventDefault();
@@ -333,6 +475,15 @@ dropZone.addEventListener('click', (event) => {
   if (event.target !== fileInput) fileInput.click();
 });
 
+// While a video is being compressed, picking another one is not possible:
+// keep the file dialog closed instead of silently ignoring the choice.
+fileInput.addEventListener('click', (event) => {
+  if (isProcessing) {
+    event.preventDefault();
+    showNotice(BUSY_NOTICE, { kind: 'busy' });
+  }
+});
+
 dropZone.addEventListener('keydown', (event) => {
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault();
@@ -341,5 +492,7 @@ dropZone.addEventListener('keydown', (event) => {
 });
 
 updateSelectedFile();
+updateDropZone();
+setStatus('idle');
 
 // Theme handling lives in ../theme.js (shared across all pages).
