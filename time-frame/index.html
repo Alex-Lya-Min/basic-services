@@ -4,17 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Track the current week number, year progress, and manage a lightweight countdown timer.">
-    <title>Time Frame · Web Tools Dashboard</title>
+    <title>Time Frame · LYMN Tools</title>
+    <meta name="description" content="Current ISO week, year progress and a simple countdown timer.">
+    <meta property="og:site_name" content="LYMN Tools">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Time Frame · LYMN Tools">
+    <meta property="og:description" content="Current ISO week, year progress and a simple countdown timer.">
+    <meta property="og:url" content="https://alex-lya-min.github.io/basic-services/time-frame/">
+    <meta property="og:image" content="https://alex-lya-min.github.io/basic-services/og/time-frame.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Time Frame · LYMN Tools">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
+    <link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
+    <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
         rel="stylesheet" crossorigin>
     <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../tool.css">
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
     <script src="../theme.js"></script>
     <script src="../version.js" defer></script>
     <script src="../nav.js" defer></script>
@@ -24,17 +38,27 @@
     <div class="dashboard-container app-shell page-shell">
         <header class="page-header">
             <div class="header-top">
-                <h1><a class="brand-link" href="../" aria-label="Web Tools Dashboard home">Web Tools Dashboard</a></h1>
+                <h1><a class="brand-link" href="../" aria-label="LYMN Tools home">LYMN Tools</a></h1>
             </div>
             <div class="service-bar">
-                <nav class="tab-navigation" aria-label="Services">
-                    <a href="../#display-tool" class="tab-button tab-link">Display Resolution</a>
-                    <a href="../#counter-tool" class="tab-button tab-link">Word Counter</a>
-                    <a href="../#case-tool" class="tab-button tab-link">Case Converter</a>
-                    <a href="../#clean-text" class="tab-button tab-link">Clean Text</a>
+                <nav class="tab-navigation" aria-label="Tools">
+                    <a href="../video-compressor/" class="tab-button tab-link"
+                        title="Private: your files never leave this device"><svg class="nav-lock" aria-hidden="true"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="11" width="14" height="10"></rect>
+                            <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+                        </svg>Video Compressor</a>
+                    <a href="../image-compressor/" class="tab-button tab-link"
+                        title="Private: your files never leave this device"><svg class="nav-lock" aria-hidden="true"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="11" width="14" height="10"></rect>
+                            <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+                        </svg>Image Compressor</a>
+                    <a href="../#display-tool" class="tab-button tab-link group-start">Display Resolution</a>
+                    <a href="../#text-tool" class="tab-button tab-link">Text</a>
                     <a href="../#device-info" class="tab-button tab-link">Device Details</a>
-                    <a href="../video-compressor/" class="tab-button tab-link">Video Compressor</a>
-                    <a href="../image-compressor/" class="tab-button tab-link">Image Compressor</a>
                     <a href="./" class="tab-button tab-link active" aria-current="page">Time Frame</a>
                 </nav>
                 <button id="theme-switcher" class="theme-switcher" type="button" aria-label="Toggle dark/light theme">
@@ -42,65 +66,63 @@
                     <span class="dark-icon" aria-hidden="true">🌙</span>
                 </button>
             </div>
-
-            <div class="current-service" id="currentService">Time Frame</div>
         </header>
 
-        <div class="tool-panel active time-frame-panel">
-            <h2>Time Frame</h2>
-            <p class="time-frame-intro">Keep track of the current ISO week, year progress, and countdown timers at a
-                glance.</p>
+        <main class="tool time-frame">
+            <div class="tool-intro">
+                <h2 class="tool-title">Time frame</h2>
+                <p class="tool-lead">The current ISO week, how much of the year has passed, and a simple countdown
+                    timer.</p>
+            </div>
 
-            <div class="time-frame-cards">
-                <div class="time-frame-grid">
-                    <div class="info-card time-frame-card">
-                        <h3>Current Week</h3>
-                        <p id="weekNumber">Week 00</p>
-                        <span class="info-subtext" id="weekHint">ISO-8601 week number</span>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <p class="metric-label">Current week</p>
+                    <p class="metric-value big" id="weekNumber">Week 00</p>
+                    <p class="metric-sub" id="weekRange">ISO-8601 week number</p>
+                </div>
+                <div class="metric-card">
+                    <p class="metric-label">Year progress</p>
+                    <p class="metric-value big" id="yearProgressPercent">0%</p>
+                    <div class="bar year-bar" aria-hidden="true">
+                        <div class="bar-fill" id="yearProgressBar"></div>
                     </div>
-                    <div class="info-card time-frame-card">
-                        <h3>Year Progress</h3>
-                        <p id="yearProgressText">0 days 0 hours 0 min elapsed</p>
-                        <div class="time-frame-progress">
-                            <div class="time-frame-progress-fill" id="yearProgressBar" style="width: 0%"></div>
-                        </div>
-                        <span class="info-subtext" id="yearProgressPercent">0% of the year</span>
+                    <p class="metric-sub" id="yearProgressText">0 days elapsed</p>
+                </div>
+            </div>
+
+            <section class="card time-frame-timer" aria-labelledby="timerTitle">
+                <div class="timer-head">
+                    <h3 class="section-label" id="timerTitle">Timer</h3>
+                    <span class="timer-status" id="timerStatus" aria-live="polite">Ready</span>
+                </div>
+                <p class="timer-display" id="timerDisplay">00:30:00</p>
+
+                <div class="timer-presets">
+                    <div class="toggle-group" role="group" aria-label="Duration">
+                        <button type="button" class="chip-button" data-duration="1800000" aria-pressed="true">30
+                            min</button>
+                        <button type="button" class="chip-button" data-duration="2700000" aria-pressed="false">45
+                            min</button>
+                        <button type="button" class="chip-button" data-duration="3600000" aria-pressed="false">1
+                            hour</button>
+                    </div>
+                    <div class="timer-custom">
+                        <label for="customMinutes">Custom</label>
+                        <input id="customMinutes" type="number" min="1" max="1440" step="1" inputmode="numeric"
+                            placeholder="Minutes">
+                        <button type="button" class="chip-button" id="applyCustom">Set</button>
                     </div>
                 </div>
 
-                <section class="time-frame-timer" aria-labelledby="timerTitle">
-                    <div class="time-frame-timer-header">
-                        <div>
-                            <h3 id="timerTitle">Timer</h3>
-                            <p class="time-frame-timer-display" id="timerDisplay">00:30:00</p>
-                            <span class="time-frame-timer-status" id="timerStatus">Ready</span>
-                        </div>
-                    </div>
-
-                    <div class="time-frame-timer-presets">
-                        <button class="action-btn time-frame-btn" data-duration="1800000">30 min</button>
-                        <button class="action-btn time-frame-btn" data-duration="2700000">45 min</button>
-                        <button class="action-btn time-frame-btn" data-duration="3600000">1 hour</button>
-                    </div>
-
-                    <div class="time-frame-timer-custom">
-                        <label for="customMinutes">Custom minutes</label>
-                        <div class="time-frame-custom-controls">
-                            <input id="customMinutes" type="number" min="1" max="1440" step="1"
-                                placeholder="Enter minutes" />
-                            <button class="action-btn time-frame-btn" id="applyCustom">Set</button>
-                        </div>
-                    </div>
-
-                    <div class="time-frame-timer-controls">
-                        <button class="action-btn time-frame-btn" id="clearTimer">Clear</button>
-                        <button class="action-btn time-frame-btn" id="resetTimer">Reset</button>
-                        <button class="action-btn time-frame-btn" id="pauseResumeTimer">Pause</button>
-                        <button class="action-btn time-frame-btn" id="startTimer">Start</button>
-                    </div>
-                </section>
-            </div>
-        </div>
+                <div class="actions">
+                    <button type="button" class="btn btn-primary" id="startTimer">Start</button>
+                    <button type="button" class="btn" id="pauseResumeTimer">Pause</button>
+                    <button type="button" class="btn" id="resetTimer">Reset</button>
+                    <button type="button" class="btn" id="clearTimer">Clear</button>
+                </div>
+            </section>
+        </main>
 
         <footer class="dashboard-footer site-footer" aria-label="Site links and version">
             <div class="footer-card-row">
@@ -117,7 +139,7 @@
                     <span class="version-card-text">
                         <span class="version-card-name">Version</span>
                         <span class="version-card-meta">
-                            <span data-app-version-value>0.0.22D</span>
+                            <span data-app-version-value>0.0.23D</span>
                             <span class="version-card-date" data-app-version-date>November 2026</span>
                         </span>
                     </span>

@@ -226,7 +226,7 @@ test('video compressor only uses the ffmpeg.wasm 0.12 class API it ships with', 
 
 function loadDashboard(timers) {
   const browser = createBrowserContext({ globals: timers ? timers.globals : {} });
-  const ids = ['display-tool', 'counter-tool', 'case-tool'];
+  const ids = ['display-tool', 'text-tool', 'device-info'];
   const tabs = ids.map((id) => {
     const tab = browser.getElement(`${id}-tab`);
     tab.dataset.tab = id;
@@ -251,9 +251,9 @@ test('re-selecting the open tool adds no browser history entry', async () => {
   assert.deepEqual(pushes, []);
   await tabs[1].dispatch('click');
   await tabs[1].dispatch('click');
-  assert.deepEqual(pushes, ['#counter-tool']);
+  assert.deepEqual(pushes, ['#text-tool']);
   await tabs[1].dispatch('keydown', { key: 'ArrowRight' });
-  assert.deepEqual(pushes, ['#counter-tool', '#case-tool']);
+  assert.deepEqual(pushes, ['#text-tool', '#device-info']);
 });
 
 test('visual line count is recalculated after the window is resized', () => {
@@ -278,20 +278,20 @@ test('first render does not flash the display-scale highlight', () => {
 test('copy buttons give feedback when there is nothing to copy', async () => {
   const timers = createManualTimers();
   const { getElement } = loadDashboard(timers);
-  const button = getElement('copyButton');
-  button.textContent = 'Copy to Clipboard';
-  getElement('caseInput').value = '   ';
+  const button = getElement('copyText');
+  button.textContent = 'Copy';
+  getElement('textInput').value = '   ';
 
   await button.dispatch('click');
   assert.equal(button.textContent, 'Nothing to copy');
   timers.runAll();
-  assert.equal(button.textContent, 'Copy to Clipboard');
+  assert.equal(button.textContent, 'Copy');
 });
 
 test('values that change on resize are not announced as live regions', () => {
   const html = read('index.html');
   const live = [...html.matchAll(/<[^>]*\baria-live="[^"]+"[^>]*>/g)].map((m) => m[0]);
-  assert.deepEqual(live.map((tag) => tag.match(/id="([^"]+)"/)[1]), ['currentService']);
+  assert.deepEqual(live, [], 'no live regions on the home page tools');
 });
 
 // --- Theme, timer, version -------------------------------------------------------

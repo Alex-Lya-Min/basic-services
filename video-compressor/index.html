@@ -4,8 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Lightweight in-browser video compressor for mp4 and mov (iPhone) videos, powered by ffmpeg.wasm.">
-    <title>Video Compressor | LYMN Web Tools</title>
+    <title>Video Compressor · LYMN Tools</title>
+    <meta name="description" content="Compress MP4 and MOV videos right in your browser — including iPhone videos. Nothing is uploaded.">
+    <meta property="og:site_name" content="LYMN Tools">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Video Compressor · LYMN Tools">
+    <meta property="og:description" content="Compress MP4 and MOV videos right in your browser — including iPhone videos. Nothing is uploaded.">
+    <meta property="og:url" content="https://alex-lya-min.github.io/basic-services/video-compressor/">
+    <meta property="og:image" content="https://alex-lya-min.github.io/basic-services/og/video.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Video Compressor · LYMN Tools">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
+    <link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
+    <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
@@ -13,8 +29,6 @@
     <link rel="stylesheet" href="../styles.css">
     <link rel="stylesheet" href="../tool.css">
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
     <script src="coi-serviceworker.js"></script>
     <script src="../theme.js"></script>
     <script src="../version.js" defer></script>
@@ -25,17 +39,27 @@
     <div class="app-shell vc-shell page-shell">
         <header class="page-header">
             <div class="header-top">
-                <h1><a class="brand-link" href="../" aria-label="Web Tools Dashboard home">Web Tools Dashboard</a></h1>
+                <h1><a class="brand-link" href="../" aria-label="LYMN Tools home">LYMN Tools</a></h1>
             </div>
             <div class="service-bar">
-                <nav class="tab-navigation" aria-label="Services">
-                    <a href="../#display-tool" class="tab-button tab-link">Display Resolution</a>
-                    <a href="../#counter-tool" class="tab-button tab-link">Word Counter</a>
-                    <a href="../#case-tool" class="tab-button tab-link">Case Converter</a>
-                    <a href="../#clean-text" class="tab-button tab-link">Clean Text</a>
+                <nav class="tab-navigation" aria-label="Tools">
+                    <a href="./" class="tab-button tab-link active" aria-current="page"
+                        title="Private: your files never leave this device"><svg class="nav-lock" aria-hidden="true"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="11" width="14" height="10"></rect>
+                            <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+                        </svg>Video Compressor</a>
+                    <a href="../image-compressor/" class="tab-button tab-link"
+                        title="Private: your files never leave this device"><svg class="nav-lock" aria-hidden="true"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="11" width="14" height="10"></rect>
+                            <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+                        </svg>Image Compressor</a>
+                    <a href="../#display-tool" class="tab-button tab-link group-start">Display Resolution</a>
+                    <a href="../#text-tool" class="tab-button tab-link">Text</a>
                     <a href="../#device-info" class="tab-button tab-link">Device Details</a>
-                    <a href="./" class="tab-button tab-link active" aria-current="page">Video Compressor</a>
-                    <a href="../image-compressor/" class="tab-button tab-link">Image Compressor</a>
                     <a href="../time-frame/" class="tab-button tab-link">Time Frame</a>
                 </nav>
                 <button id="theme-switcher" class="theme-switcher" type="button" aria-label="Toggle dark/light theme">
@@ -211,7 +235,7 @@
                     <span class="version-card-text">
                         <span class="version-card-name">Version</span>
                         <span class="version-card-meta">
-                            <span data-app-version-value>0.0.22D</span>
+                            <span data-app-version-value>0.0.23D</span>
                             <span class="version-card-date" data-app-version-date>November 2026</span>
                         </span>
                     </span>

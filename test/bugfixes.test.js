@@ -38,7 +38,7 @@ function createManualTimers() {
 }
 
 function createDashboardTabs(browser) {
-  const ids = ['display-tool', 'counter-tool', 'case-tool', 'clean-text', 'device-info'];
+  const ids = ['display-tool', 'text-tool', 'device-info'];
   const tabs = ids.map((id) => {
     const tab = browser.getElement(`${id}-tab`);
     tab.dataset.tab = id;
@@ -108,15 +108,15 @@ test('Sentence case handles leading whitespace and quotes', () => {
 test('copy feedback never becomes the permanent button label', async () => {
   const timers = createManualTimers();
   const { context, getElement } = loadDashboard({ globals: timers.globals });
-  const button = getElement('copyCleanText');
-  button.textContent = 'Copy Clean Text';
-  getElement('cleanTextArea').value = 'some text';
+  const button = getElement('copyText');
+  button.textContent = 'Copy';
+  getElement('textInput').value = 'some text';
 
   await button.dispatch('click');
   assert.equal(button.textContent, 'Copied!');
   await button.dispatch('click'); // second click while "Copied!" is shown
   timers.runAll();
-  assert.equal(button.textContent, 'Copy Clean Text');
+  assert.equal(button.textContent, 'Copy');
 
   // Clipboard failures show feedback and restore the label too.
   context.navigator.clipboard.writeText = async () => {
@@ -125,22 +125,36 @@ test('copy feedback never becomes the permanent button label', async () => {
   await button.dispatch('click');
   assert.equal(button.textContent, 'Failed to copy');
   timers.runAll();
-  assert.equal(button.textContent, 'Copy Clean Text');
+  assert.equal(button.textContent, 'Copy');
 });
 
 test('a tool hash is applied immediately and an empty hash restores the default tool', () => {
-  const { tabs, panels, windowListeners, window, getElement } = loadDashboard({ hash: '#case-tool' });
+  const { tabs, panels, windowListeners, window, document } = loadDashboard({ hash: '#device-info' });
 
   assert.ok(tabs[2].classList.contains('active'), 'hash tool is selected without waiting for load');
   assert.ok(panels[2].classList.contains('active'));
   assert.equal(tabs[2].getAttribute('tabindex'), '0');
   assert.equal(tabs[0].getAttribute('tabindex'), '-1');
-  assert.equal(getElement('currentService').textContent, 'case-tool');
+  assert.equal(document.title, 'device-info · LYMN Tools', 'the tab title names the open tool');
 
   window.location.hash = '';
   windowListeners.get('hashchange').forEach((listener) => listener());
   assert.ok(tabs[0].classList.contains('active'), 'Back to the bare URL shows the default tool');
   assert.ok(!panels[2].classList.contains('active'));
+});
+
+test('old Word Counter, Case Converter and Clean Text links open the Text tool', () => {
+  for (const hash of ['#counter-tool', '#case-tool', '#clean-text']) {
+    const replaced = [];
+    const browser = createBrowserContext();
+    browser.window.history.replaceState = (_, __, url) => replaced.push(url);
+    const dom = createDashboardTabs(browser);
+    browser.window.location.hash = hash;
+    vm.createContext(browser.context);
+    vm.runInContext(read('script.js'), browser.context, { filename: 'script.js' });
+    assert.ok(dom.tabs[1].classList.contains('active'), `${hash} → Text`);
+    assert.deepEqual(replaced, ['#text-tool'], 'the address is updated to the new name');
+  }
 });
 
 test('arrow keys, Home and End move between dashboard tabs', async () => {
@@ -158,23 +172,23 @@ test('arrow keys, Home and End move between dashboard tabs', async () => {
   assert.ok(tabs[1].focused);
 
   await tabs[0].dispatch('keydown', { key: 'ArrowLeft' });
-  assert.ok(tabs[4].classList.contains('active'), 'ArrowLeft wraps to the last tab');
-  await tabs[4].dispatch('keydown', { key: 'Home' });
+  assert.ok(tabs[2].classList.contains('active'), 'ArrowLeft wraps to the last tab');
+  await tabs[2].dispatch('keydown', { key: 'Home' });
   assert.ok(tabs[0].classList.contains('active'));
   await tabs[0].dispatch('keydown', { key: 'End' });
-  assert.ok(tabs[4].classList.contains('active'));
+  assert.ok(tabs[2].classList.contains('active'));
 });
 
 test('switching tabs leaves the standalone tool links untouched', () => {
   const { context, link } = loadDashboard();
-  run(context, `switchTab('clean-text')`);
+  run(context, `switchTab('text-tool')`);
   assert.equal(link.getAttribute('aria-selected'), null);
   assert.equal(link.getAttribute('tabindex'), null);
 });
 
-test('Clean Text: Tab inserts spaces, Shift+Tab still moves focus out', async () => {
+test('Text editor: Tab inserts spaces, Shift+Tab still moves focus out', async () => {
   const { getElement } = loadDashboard();
-  const editor = getElement('cleanTextArea');
+  const editor = getElement('textInput');
   editor.value = 'ab';
   editor.selectionStart = editor.selectionEnd = 1;
 
@@ -190,9 +204,9 @@ test('Clean Text: Tab inserts spaces, Shift+Tab still moves focus out', async ()
   assert.equal(editor.value, 'a    b');
 });
 
-test('Clean Text keeps the native paste so undo history survives', () => {
+test('Text editor keeps the native paste so undo history survives', () => {
   const { getElement } = loadDashboard();
-  assert.equal(getElement('cleanTextArea').listeners.has('paste'), false);
+  assert.equal(getElement('textInput').listeners.has('paste'), false);
 });
 
 test('visual line count does not subtract the scrollbar twice', () => {
@@ -532,13 +546,17 @@ test('the theme switcher sits in the same row as the services on every page', ()
 test('services navigation uses valid ARIA roles', () => {
   for (const page of PAGES) {
     const nav = extractBlock(read(page), /<nav class="tab-navigation"/);
-    assert.match(nav, /^<nav class="tab-navigation" aria-label="Services">/, `${page}: nav landmark`);
+    assert.match(nav, /^<nav class="tab-navigation" aria-label="Tools">/, `${page}: nav landmark`);
+    const labels = [...nav.matchAll(/<(?:a|button)\b[^>]*>(?:\s*<svg[\s\S]*?<\/svg>)?\s*([^<]+)</g)].map((m) => m[1].replace(/\s+/g, ' ').trim());
+    assert.deepEqual(labels, ['Video Compressor', 'Image Compressor', 'Display Resolution', 'Text', 'Device Details', 'Time Frame'],
+      `${page}: private tools first, then the web tools`);
+    assert.equal((nav.match(/class="nav-lock"/g) || []).length, 2, `${page}: private tools carry a lock`);
     const tablist = extractBlock(nav, /<div class="tab-group" role="tablist"/);
 
     if (page === 'index.html') {
       assert.ok(tablist, 'dashboard groups its in-page tools in a tablist');
       const children = [...tablist.matchAll(/<(button|a)\b[^>]*>/g)].map((m) => m[0]);
-      assert.equal(children.length, 5);
+      assert.equal(children.length, 3);
       children.forEach((tag) => assert.match(tag, /role="tab"/, 'a tablist may contain only tabs'));
       assert.doesNotMatch(nav.replace(tablist, ''), /role="tab"/);
     } else {

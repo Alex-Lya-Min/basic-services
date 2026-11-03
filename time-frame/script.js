@@ -3,6 +3,7 @@ const TIMER_STORAGE_KEY = 'timeFrameTimerState';
 // Theme handling lives in ../theme.js (shared across all pages).
 
 const weekNumberElement = document.getElementById('weekNumber');
+const weekRangeElement = document.getElementById('weekRange');
 const yearProgressTextElement = document.getElementById('yearProgressText');
 const yearProgressPercentElement = document.getElementById('yearProgressPercent');
 const yearProgressBarElement = document.getElementById('yearProgressBar');
@@ -53,10 +54,21 @@ function getISOWeekNumber(date) {
     return weekNumber;
 }
 
+// "Nov 2 – Nov 8": Monday to Sunday of the week that contains the date.
+function getWeekRange(date) {
+    const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    const format = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `${format(monday)} – ${format(sunday)}`;
+}
+
 function updateWeekNumber() {
     if (!weekNumberElement) return;
-    const weekNumber = getISOWeekNumber(new Date());
-    weekNumberElement.textContent = `Week ${padNumber(weekNumber)}`;
+    const now = new Date();
+    weekNumberElement.textContent = `Week ${padNumber(getISOWeekNumber(now))}`;
+    if (weekRangeElement) weekRangeElement.textContent = `${getWeekRange(now)} · ISO-8601`;
 }
 
 function updateYearProgress() {
@@ -73,8 +85,9 @@ function updateYearProgress() {
     const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
     const minutes = totalMinutes % 60;
 
-    yearProgressTextElement.textContent = `${days} days ${hours} hours ${minutes} min elapsed`;
-    yearProgressPercentElement.textContent = `${percent.toFixed(2)}% of the year`;
+    const daysLeft = Math.max(0, Math.ceil((startOfNextYear - now) / 86400000));
+    yearProgressTextElement.textContent = `${days} days ${hours} h ${minutes} min passed · ${daysLeft} days left`;
+    yearProgressPercentElement.textContent = `${percent.toFixed(1)}%`;
     yearProgressBarElement.style.width = `${percent.toFixed(2)}%`;
 }
 
@@ -110,6 +123,14 @@ function removeTimerState() {
     }
 }
 
+// Highlight the preset that matches the chosen duration.
+function updatePresetButtons() {
+    presetButtons.forEach(button => {
+        const pressed = Number(button.dataset.duration) === timerState.durationMs;
+        button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    });
+}
+
 function setDuration(durationMs) {
     timerState.durationMs = durationMs;
     timerState.startedAt = null;
@@ -120,6 +141,7 @@ function setDuration(durationMs) {
     saveTimerState();
     updateTimerDisplay();
     updateTimerControls();
+    updatePresetButtons();
 }
 
 function getElapsedMs() {
@@ -277,6 +299,7 @@ function updateTimer() {
 }
 
 loadTimerState();
+updatePresetButtons();
 updateWeekNumber();
 updateYearProgress();
 updateTimerControls();

@@ -4,16 +4,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LYMN Tools — private media tools and web utilities</title>
     <meta name="description"
-        content="A collection of useful web tools including display resolution checker, character counter, case converter, and text cleaner.">
-    <title>LYMN Web Tools Dashboard</title>
+        content="Compress videos and images right in your browser — files never leave your device. Plus quick web tools: display resolution, text, device details and time frame.">
+    <meta property="og:site_name" content="LYMN Tools">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="LYMN Tools — private media tools and web utilities">
+    <meta property="og:description"
+        content="Compress videos and images in your browser — nothing is uploaded. Plus quick web tools for everyday checks.">
+    <meta property="og:url" content="https://alex-lya-min.github.io/basic-services/">
+    <meta property="og:image" content="https://alex-lya-min.github.io/basic-services/og/home.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="LYMN Tools — private media tools and web utilities">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
         rel="stylesheet" crossorigin>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
+    <link rel="stylesheet" href="tool.css">
     <script src="theme.js"></script>
     <script src="version.js" defer></script>
     <script src="nav.js" defer></script>
@@ -23,25 +39,35 @@
     <div class="dashboard-container app-shell page-shell">
         <header class="page-header">
             <div class="header-top">
-                <h1><a class="brand-link" href="./" aria-label="Web Tools Dashboard home">Web Tools Dashboard</a></h1>
+                <h1><a class="brand-link" href="./" aria-label="LYMN Tools home">LYMN Tools</a></h1>
             </div>
 
             <div class="service-bar">
-                <nav class="tab-navigation" aria-label="Services">
-                    <div class="tab-group" role="tablist" aria-label="Dashboard tools">
-                        <button id="display-tool-tab" class="tab-button active" type="button" data-tab="display-tool"
-                            role="tab" aria-selected="true" aria-controls="display-tool-panel">Display Resolution</button>
-                        <button id="counter-tool-tab" class="tab-button" type="button" data-tab="counter-tool" role="tab"
-                            aria-selected="false" aria-controls="counter-tool-panel" tabindex="-1">Word Counter</button>
-                        <button id="case-tool-tab" class="tab-button" type="button" data-tab="case-tool" role="tab"
-                            aria-selected="false" aria-controls="case-tool-panel" tabindex="-1">Case Converter</button>
-                        <button id="clean-text-tab" class="tab-button" type="button" data-tab="clean-text" role="tab"
-                            aria-selected="false" aria-controls="clean-text-panel" tabindex="-1">Clean Text</button>
+                <nav class="tab-navigation" aria-label="Tools">
+                    <a href="./video-compressor/" class="tab-button tab-link"
+                        title="Private: your files never leave this device"><svg class="nav-lock" aria-hidden="true"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="11" width="14" height="10"></rect>
+                            <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+                        </svg>Video Compressor</a>
+                    <a href="./image-compressor/" class="tab-button tab-link"
+                        title="Private: your files never leave this device"><svg class="nav-lock" aria-hidden="true"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="11" width="14" height="10"></rect>
+                            <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+                        </svg>Image Compressor</a>
+                    <div class="tab-group" role="tablist" aria-label="Web tools">
+                        <button id="display-tool-tab" class="tab-button group-start active" type="button"
+                            data-tab="display-tool" role="tab" aria-selected="true"
+                            aria-controls="display-tool-panel">Display Resolution</button>
+                        <button id="text-tool-tab" class="tab-button" type="button" data-tab="text-tool" role="tab"
+                            aria-selected="false" aria-controls="text-tool-panel" tabindex="-1">Text</button>
                         <button id="device-info-tab" class="tab-button" type="button" data-tab="device-info" role="tab"
-                            aria-selected="false" aria-controls="device-info-panel" tabindex="-1">Device Details</button>
+                            aria-selected="false" aria-controls="device-info-panel" tabindex="-1">Device
+                            Details</button>
                     </div>
-                    <a href="./video-compressor/" class="tab-button tab-link">Video Compressor</a>
-                    <a href="./image-compressor/" class="tab-button tab-link">Image Compressor</a>
                     <a href="./time-frame/" class="tab-button tab-link">Time Frame</a>
                 </nav>
                 <button id="theme-switcher" class="theme-switcher" type="button" aria-label="Toggle dark/light theme">
@@ -49,196 +75,180 @@
                     <span class="dark-icon" aria-hidden="true">🌙</span>
                 </button>
             </div>
-
-            <div class="current-service" id="currentService" aria-live="polite">Display Resolution</div>
         </header>
 
-        <!-- Display Resolution Tool -->
-        <div class="tool-panel active" id="display-tool-panel" role="tabpanel" aria-labelledby="display-tool-tab">
-            <h2>Display Resolution Tool</h2>
-            <div class="size-display">
-                <div class="size-box">
-                    <h3>Window Width</h3>
-                    <p id="windowWidth">0px</p>
+        <main>
+            <!-- Display Resolution -->
+            <section class="tool-panel active" id="display-tool-panel" role="tabpanel"
+                aria-labelledby="display-tool-tab">
+                <div class="tool">
+                    <div class="tool-intro">
+                        <h2 class="tool-title">Display resolution</h2>
+                        <p class="tool-lead">Live values for this window and screen. Resize the window to watch them
+                            change.</p>
+                    </div>
+                    <div class="metric-grid">
+                        <div class="metric-card">
+                            <p class="metric-label">Window (viewport)</p>
+                            <p class="metric-value big"><span id="windowWidth">0</span> × <span
+                                    id="windowHeight">0</span><span class="metric-unit">px</span></p>
+                        </div>
+                        <div class="metric-card">
+                            <p class="metric-label">Display scale</p>
+                            <p class="metric-value big" id="displayScale">100%</p>
+                            <p class="metric-sub" id="pixelRatioNote">Device pixel ratio 1.00</p>
+                        </div>
+                    </div>
+                    <div class="metric-grid three">
+                        <div class="metric-card">
+                            <p class="metric-label">Screen resolution</p>
+                            <p class="metric-value" id="screenResolution">0 × 0</p>
+                            <p class="metric-sub">CSS pixels</p>
+                        </div>
+                        <div class="metric-card">
+                            <p class="metric-label">Real resolution</p>
+                            <p class="metric-value" id="realResolution">0 × 0</p>
+                            <p class="metric-sub">Physical pixels</p>
+                        </div>
+                        <div class="metric-card">
+                            <p class="metric-label">Available space</p>
+                            <p class="metric-value" id="availableSpace">0 × 0</p>
+                            <p class="metric-sub">Without the taskbar or dock</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="size-box">
-                    <h3>Window Height</h3>
-                    <p id="windowHeight">0px</p>
-                </div>
-            </div>
-            <div class="additional-info">
-                <div class="info-box">
-                    <h3>Screen Resolution</h3>
-                    <p id="screenResolution">0 x 0</p>
-                </div>
-                <div class="info-box">
-                    <h3>Real Display Resolution</h3>
-                    <p id="realResolution">0 x 0</p>
-                </div>
-                <div class="info-box">
-                    <h3>Available Screen Space</h3>
-                    <p id="availableSpace">0 x 0</p>
-                </div>
-                <div class="info-box">
-                    <h3>Display Scale</h3>
-                    <p id="displayScale">100%</p>
-                </div>
-            </div>
-            <p class="tip">Resize your window to see the values update in real-time!</p>
-        </div>
+            </section>
 
-        <!-- Character Counter Tool -->
-        <div class="tool-panel" id="counter-tool-panel" role="tabpanel" aria-labelledby="counter-tool-tab">
-            <h2>Word Counter</h2>
-            <div class="counter-container">
-                <div class="input-area">
-                    <textarea id="textInput" placeholder="Type or paste your text here..." rows="8"></textarea>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <h3>Words</h3>
-                        <p id="wordCount">0</p>
+            <!-- Text: word counter, case converter and clean up in one editor -->
+            <section class="tool-panel" id="text-tool-panel" role="tabpanel" aria-labelledby="text-tool-tab">
+                <div class="tool">
+                    <div class="tool-intro">
+                        <h2 class="tool-title">Text</h2>
+                        <p class="tool-lead">Count words, change case and clean up text. It stays in this tab.</p>
                     </div>
-                    <div class="stat-box">
-                        <h3>Characters</h3>
-                        <p id="charCount">0</p>
-                        <span class="label">(with spaces)</span>
-                    </div>
-                    <div class="stat-box">
-                        <h3>Characters</h3>
-                        <p id="charNoSpaceCount">0</p>
-                        <span class="label">(without spaces)</span>
-                    </div>
-                    <div class="stat-box">
-                        <h3>Lines</h3>
-                        <p id="lineCount">0</p>
-                    </div>
-                    <div class="stat-box">
-                        <h3>Visual Lines</h3>
-                        <p id="visualLineCount">0</p>
-                        <span class="label">(including wrapped)</span>
-                    </div>
-                    <div class="stat-box">
-                        <h3>Paragraphs</h3>
-                        <p id="paragraphCount">0</p>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Case Converter Tool -->
-        <div class="tool-panel" id="case-tool-panel" role="tabpanel" aria-labelledby="case-tool-tab">
-            <h2>Case Converter</h2>
-            <div class="case-converter-container">
-                <div class="input-area">
-                    <textarea id="caseInput" placeholder="Type or paste your text here to convert its case..."
-                        rows="8"></textarea>
-                </div>
-                <div class="button-grid">
-                    <button class="convert-btn" data-case="upper">
-                        UPPERCASE
-                        <span class="example">hello → HELLO</span>
-                    </button>
-                    <button class="convert-btn" data-case="lower">
-                        lowercase
-                        <span class="example">HELLO → hello</span>
-                    </button>
-                    <button class="convert-btn" data-case="title">
-                        Title Case
-                        <span class="example">hello world → Hello World</span>
-                    </button>
-                    <button class="convert-btn" data-case="sentence">
-                        Sentence case
-                        <span class="example">hello world → Hello world</span>
-                    </button>
-                    <button class="convert-btn" data-case="camel">
-                        camelCase
-                        <span class="example">hello world → helloWorld</span>
-                    </button>
-                    <button class="convert-btn" data-case="pascal">
-                        PascalCase
-                        <span class="example">hello world → HelloWorld</span>
-                    </button>
-                </div>
-                <div class="action-buttons">
-                    <button id="copyButton" class="action-btn">
-                        Copy to Clipboard
-                    </button>
-                    <button id="clearButton" class="action-btn">
-                        Clear Text
-                    </button>
-                </div>
-            </div>
-        </div>
+                    <div class="editor-card">
+                        <div class="editor-toolbar">
+                            <div class="toggle-group">
+                                <button type="button" class="chip-button" id="wrapToggle" aria-pressed="true">Wrap
+                                    lines</button>
+                                <button type="button" class="chip-button" id="lineNumbersToggle"
+                                    aria-pressed="false">Line numbers</button>
+                            </div>
+                            <div class="toggle-group">
+                                <button type="button" class="chip-button chip-primary" id="copyText">Copy</button>
+                                <button type="button" class="chip-button" id="clearText">Clear</button>
+                            </div>
+                        </div>
+                        <div class="editor" id="editor">
+                            <div class="line-numbers" id="lineNumbers" aria-hidden="true" hidden>1</div>
+                            <textarea id="textInput" aria-label="Text" placeholder="Type or paste text here…"></textarea>
+                        </div>
+                    </div>
 
-        <!-- Clean Text Tool -->
-        <div class="tool-panel" id="clean-text-panel" role="tabpanel" aria-labelledby="clean-text-tab">
-            <h2>Clean Text</h2>
-            <div class="clean-text-container">
-                <div class="editor-wrapper">
-                    <div class="line-numbers" id="lineNumbers"></div>
-                    <textarea id="cleanTextArea" class="clean-text-editor" spellcheck="false"
-                        placeholder="Paste your text here to clean formatting..."></textarea>
-                </div>
-                <div class="editor-actions">
-                    <button id="wrapText" class="action-btn">
-                        Toggle Word Wrap
-                    </button>
-                    <button id="copyCleanText" class="action-btn">
-                        Copy Clean Text
-                    </button>
-                    <button id="clearCleanText" class="action-btn">
-                        Clear
-                    </button>
-                </div>
-            </div>
-        </div>
+                    <div class="stats-grid" aria-label="Text statistics">
+                        <div class="stat">
+                            <span class="stat-value" id="wordCount">0</span>
+                            <span class="stat-label">Words</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value" id="charCount">0</span>
+                            <span class="stat-label">Characters</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value" id="charNoSpaceCount">0</span>
+                            <span class="stat-label">No spaces</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value" id="lineCount">0</span>
+                            <span class="stat-label">Lines</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value" id="visualLineCount">0</span>
+                            <span class="stat-label">Visual lines</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value" id="paragraphCount">0</span>
+                            <span class="stat-label">Paragraphs</span>
+                        </div>
+                    </div>
+                    <p class="metric-sub" id="readingTime">Reading time: under a minute</p>
 
-        <!-- Device Details Tool -->
-        <div class="tool-panel" id="device-info-panel" role="tabpanel" aria-labelledby="device-info-tab">
-            <h2>Device Details</h2>
-            <p class="device-info-intro">Share this information when reporting issues so we can reproduce bugs faster.
-            </p>
-            <div class="device-info-grid">
-                <div class="info-card">
-                    <h3>Browser</h3>
-                    <p id="browserName">—</p>
-                    <span class="info-subtext" id="browserVersion">Version: —</span>
+                    <div class="text-actions">
+                        <div class="action-group">
+                            <h3 class="section-label">Change case</h3>
+                            <div class="action-row">
+                                <button type="button" class="chip-button convert-btn" data-case="upper">UPPERCASE</button>
+                                <button type="button" class="chip-button convert-btn" data-case="lower">lowercase</button>
+                                <button type="button" class="chip-button convert-btn" data-case="title">Title Case</button>
+                                <button type="button" class="chip-button convert-btn" data-case="sentence">Sentence case</button>
+                                <button type="button" class="chip-button convert-btn" data-case="camel">camelCase</button>
+                                <button type="button" class="chip-button convert-btn" data-case="pascal">PascalCase</button>
+                            </div>
+                        </div>
+                        <div class="action-group">
+                            <h3 class="section-label">Clean up</h3>
+                            <div class="action-row">
+                                <button type="button" class="chip-button clean-btn" data-clean="spaces">Remove extra
+                                    spaces</button>
+                                <button type="button" class="chip-button clean-btn" data-clean="empty-lines">Remove empty
+                                    lines</button>
+                                <button type="button" class="chip-button clean-btn" data-clean="join">Join lines</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="info-card">
-                    <h3>Operating System</h3>
-                    <p id="osName">—</p>
-                    <span class="info-subtext" id="deviceType">Device: —</span>
+            </section>
+
+            <!-- Device Details -->
+            <section class="tool-panel" id="device-info-panel" role="tabpanel" aria-labelledby="device-info-tab">
+                <div class="tool">
+                    <div class="tool-intro">
+                        <h2 class="tool-title">Device details</h2>
+                        <p class="tool-lead">Browser, system and screen in one place — copy it into a bug report.</p>
+                    </div>
+                    <div class="metric-grid three">
+                        <div class="metric-card">
+                            <p class="metric-label">Browser</p>
+                            <p class="metric-value" id="browserName">—</p>
+                            <p class="metric-sub" id="browserVersion">Version: —</p>
+                        </div>
+                        <div class="metric-card">
+                            <p class="metric-label">Operating system</p>
+                            <p class="metric-value" id="osName">—</p>
+                            <p class="metric-sub" id="deviceType">Device: —</p>
+                        </div>
+                        <div class="metric-card">
+                            <p class="metric-label">Platform</p>
+                            <p class="metric-value" id="platformInfo">—</p>
+                            <p class="metric-sub" id="hardwareConcurrency">CPU: —</p>
+                        </div>
+                        <div class="metric-card">
+                            <p class="metric-label">Memory</p>
+                            <p class="metric-value" id="deviceMemory">—</p>
+                            <p class="metric-sub" id="language">Language: —</p>
+                        </div>
+                        <div class="metric-card">
+                            <p class="metric-label">Screen</p>
+                            <p class="metric-value" id="deviceScreenResolution">—</p>
+                            <p class="metric-sub" id="pixelRatio">Pixel ratio: —</p>
+                        </div>
+                        <div class="metric-card">
+                            <p class="metric-label">Viewport</p>
+                            <p class="metric-value" id="viewportSize">—</p>
+                            <p class="metric-sub" id="timeZone">Time zone: —</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="section-label">User agent</h3>
+                        <pre class="code-box" id="userAgent">—</pre>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-primary" id="copyDeviceDetails">Copy device summary</button>
+                    </div>
                 </div>
-                <div class="info-card">
-                    <h3>Platform</h3>
-                    <p id="platformInfo">—</p>
-                    <span class="info-subtext" id="hardwareConcurrency">CPU: —</span>
-                </div>
-                <div class="info-card">
-                    <h3>Memory</h3>
-                    <p id="deviceMemory">—</p>
-                    <span class="info-subtext" id="language">Language: —</span>
-                </div>
-                <div class="info-card">
-                    <h3>Screen Resolution</h3>
-                    <p id="deviceScreenResolution">—</p>
-                    <span class="info-subtext" id="pixelRatio">Pixel Ratio: —</span>
-                </div>
-                <div class="info-card">
-                    <h3>Viewport Size</h3>
-                    <p id="viewportSize">—</p>
-                    <span class="info-subtext" id="timeZone">Time Zone: —</span>
-                </div>
-            </div>
-            <div class="user-agent-section">
-                <h3>User Agent</h3>
-                <pre id="userAgent" class="user-agent-box">—</pre>
-            </div>
-            <div class="device-actions">
-                <button id="copyDeviceDetails" class="action-btn">Copy Device Summary</button>
-            </div>
-        </div>
+            </section>
+        </main>
 
         <footer class="dashboard-footer site-footer" aria-label="Site links and version">
             <div class="footer-card-row">
@@ -255,7 +265,7 @@
                     <span class="version-card-text">
                         <span class="version-card-name">Version</span>
                         <span class="version-card-meta">
-                            <span data-app-version-value>0.0.22D</span>
+                            <span data-app-version-value>0.0.23D</span>
                             <span class="version-card-date" data-app-version-date>November 2026</span>
                         </span>
                     </span>

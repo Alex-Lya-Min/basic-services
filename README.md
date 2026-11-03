@@ -1,18 +1,26 @@
-# Web Tools Dashboard
+# LYMN Tools
 
-A collection of useful web tools including Display Resolution Tool, Character Counter, and Case Converter.
+Private media tools that run right in your browser, plus handy web utilities.
+LYMN is short for Lyamin — made by [Alexey Lyamin](https://alexlyamin.framer.website/).
 
-## Features
+Live: <https://alex-lya-min.github.io/basic-services/>
 
-- 📱 Display Resolution Tool
-- ✍️ Character Counter
-- 🔤 Case Converter
-- 🧹 Clean Text Editor
-- 🖥️ Device Details
-- ⏱️ Time Frame (ISO week, year progress, countdown timer)
-- 🌓 Dark/Light Theme Support (follows system preference by default)
-- 🎬 Video Compressor (ffmpeg.wasm; mp4 and mov, including iPhone videos)
-- 🖼️ Image Compressor (MozJPEG / OxiPNG via jSquash)
+## Tools
+
+Private — files never leave your device:
+
+- 🎬 **Video Compressor** — MP4 and MOV, including iPhone videos (ffmpeg.wasm)
+- 🖼️ **Image Compressor** — JPEG and PNG, up to 20 at a time (MozJPEG / OxiPNG via jSquash)
+
+Web tools:
+
+- 📐 **Display Resolution** — window, screen, real resolution and display scale
+- ✍️ **Text** — word and character counts, change case, clean up (one editor)
+- 🖥️ **Device Details** — browser, system and screen, copyable for bug reports
+- ⏱️ **Time Frame** — ISO week, year progress, countdown timer
+
+Every page supports light and dark themes (following the system by default), works on phones,
+and has Open Graph previews and a web app manifest.
 
 ## Usage
 

@@ -939,3 +939,302 @@
         animation: none;
     }
 }
+
+/* =========================================================================
+   Web tools (Display resolution, Text, Device details, Time frame)
+   ========================================================================= */
+
+.section-label {
+    margin: 0 0 10px;
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    font-weight: 600;
+}
+
+/* --- Metric cards ------------------------------------------------------- */
+
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.metric-grid.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metric-card {
+    min-width: 0;
+    border: 1px solid var(--border-color);
+    background: var(--card);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: background 0.2s ease;
+}
+
+.metric-card.highlight {
+    background: var(--bg-secondary);
+}
+
+.metric-label {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.metric-value {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+}
+
+.metric-value.big {
+    font-size: 2.5rem;
+    letter-spacing: -0.03em;
+}
+
+.metric-unit {
+    margin-left: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--text-secondary);
+}
+
+.metric-sub {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.code-box {
+    margin: 0;
+    padding: 14px 16px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--muted-strong);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* --- Chip buttons and toggles ---------------------------------------------- */
+
+.chip-button {
+    height: 36px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--card);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.chip-button:hover {
+    background: var(--surface-hover);
+    border-color: var(--text-secondary);
+}
+
+.chip-button[aria-pressed="true"] {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--bg);
+}
+
+.chip-button.chip-primary {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--accent-contrast);
+}
+
+.chip-button.chip-primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+.chip-button:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+.toggle-group,
+.action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* --- Text editor ------------------------------------------------------------ */
+
+.editor-card {
+    border: 1px solid var(--border-color);
+    background: var(--card);
+    transition: border-color 0.2s ease;
+}
+
+.editor-card:focus-within {
+    border-color: var(--text);
+}
+
+.editor-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.editor {
+    display: flex;
+    height: 240px;
+    min-height: 140px;
+    resize: vertical;
+    overflow: hidden;
+}
+
+.editor textarea {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 16px;
+    border: 0;
+    border-radius: 0;
+    resize: none;
+    background: transparent;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow: auto;
+    tab-size: 4;
+}
+
+/* The card shows focus for the whole editor (gutter + text). */
+.editor textarea:focus,
+.editor textarea:focus-visible {
+    outline: none;
+}
+
+.editor textarea::placeholder {
+    color: var(--text-secondary);
+}
+
+.editor.no-wrap textarea {
+    white-space: pre;
+    overflow-wrap: normal;
+}
+
+.line-numbers {
+    flex-shrink: 0;
+    min-width: 44px;
+    padding: 14px 8px;
+    border-right: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.5;
+    text-align: right;
+    white-space: pre;
+    overflow: hidden;
+    user-select: none;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.stat {
+    min-width: 0;
+    border: 1px solid var(--border-color);
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-align: center;
+}
+
+.stat-value {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+}
+
+#readingTime {
+    margin-top: -10px;
+}
+
+.text-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+@media (max-width: 600px) {
+    .metric-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .metric-grid.three {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .metric-grid.three .metric-card {
+        padding: 14px;
+    }
+
+    .metric-grid.three .metric-value {
+        font-size: 1.25rem;
+    }
+
+    .metric-value.big {
+        font-size: 2rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .text-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .editor {
+        height: 200px;
+    }
+}
+
+@media (min-width: 601px) and (max-width: 768px) {
+    .metric-grid.three {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
