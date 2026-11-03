@@ -190,8 +190,8 @@ test('video engine gets 120 seconds to load before an error is shown', async () 
 
   timers.runAll();
   await done;
-  assert.equal(getElement('progressLabel').textContent, 'Error');
-  assert.match(getElement('resultMessage').textContent, /did not start within 120 seconds/);
+  assert.equal(getElement('tool').dataset.state, 'error');
+  assert.match(getElement('errorMessage').textContent, /did not start within 120 seconds/);
 });
 
 test('video compressor does not log debug output for every visitor', () => {

@@ -1,0 +1,899 @@
+/* Shared UI for the single-card tools (video and image compressors):
+   intro + chips, drop card, quality choice, progress / result / error
+   cards. Colours come from the theme variables in styles.css, so light
+   and dark themes both work. */
+
+:root {
+    --danger: #b42318;
+    --danger-contrast: #ffffff;
+    --muted-strong: #3d3d3d;
+    --drop-border: #a8a8a8;
+    --bar-muted: #c4c4c4;
+    --thumb-bg: #1d2024;
+}
+
+[data-theme="dark"] {
+    --danger: #ff7b6e;
+    --danger-contrast: #101010;
+    --muted-strong: #d0d0d0;
+    --drop-border: #5b5f63;
+    --bar-muted: #4a4d50;
+    --thumb-bg: #1d2024;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.tool {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    text-align: left;
+    transition: outline-color 0.15s ease;
+    outline: 2px dashed transparent;
+    outline-offset: 10px;
+}
+
+/* Files can be dropped anywhere on the tool, also when the drop card is
+   replaced by a progress or result card. */
+.tool.dragover {
+    outline-color: var(--accent-color);
+}
+
+.icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* --- Intro ------------------------------------------------------------ */
+
+.tool-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tool-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 2.125rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.tool-lead {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.tool-chips {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tool-chips li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border-color);
+    padding: 7px 12px;
+    font-size: 0.875rem;
+}
+
+/* --- Buttons ---------------------------------------------------------- */
+
+.btn {
+    height: 48px;
+    padding: 0 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--card);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.btn:hover {
+    background: var(--surface-hover);
+    border-color: var(--text-secondary);
+    color: var(--text);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--accent-contrast);
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: var(--accent-contrast);
+}
+
+.btn-lg {
+    height: 56px;
+    padding: 0 28px;
+    font-size: 1.0625rem;
+}
+
+.btn:focus-visible,
+.link-button:focus-visible,
+.drop-card:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+.link-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+/* --- Drop card ---------------------------------------------------------- */
+
+.drop-card {
+    border: 2px dashed var(--drop-border);
+    background: var(--bg-secondary);
+    padding: 56px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.drop-card:hover,
+.tool.dragover .drop-card {
+    border-color: var(--accent-color);
+    background: var(--bg);
+}
+
+.drop-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--accent-color);
+    color: var(--accent-contrast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drop-icon svg {
+    width: 30px;
+    height: 30px;
+}
+
+.drop-title {
+    margin: 6px 0 0;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.drop-or,
+.drop-hint {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+}
+
+.drop-hint {
+    font-size: 0.875rem;
+    margin-top: 4px;
+}
+
+.drop-touch-hint {
+    display: none;
+}
+
+.drop-notice {
+    margin: -12px 0 0;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text);
+    font-size: 0.9375rem;
+}
+
+.drop-notice.error {
+    border-color: var(--danger);
+}
+
+/* --- Quality choice ------------------------------------------------------ */
+
+.quality {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+.quality legend {
+    padding: 0;
+    margin-bottom: 12px;
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    font-weight: 600;
+}
+
+.quality-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.quality-option {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    border: 1px solid var(--border-color);
+    background: var(--card);
+    cursor: pointer;
+}
+
+.quality-option.is-selected {
+    border: 2px solid var(--text);
+    padding: 13px 15px;
+    background: var(--bg-secondary);
+}
+
+.quality-option:focus-within {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+.quality-option-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.quality-option input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--text);
+}
+
+.quality-option-hint {
+    padding-left: 28px;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+}
+
+.quality-note {
+    margin: 10px 0 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.quality-note-selected {
+    display: none;
+}
+
+.quality-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    border: 1px solid var(--border-color);
+    padding: 14px 20px;
+    font-size: 0.9375rem;
+}
+
+.quality-summary .label,
+.quality-summary .state {
+    color: var(--text-secondary);
+}
+
+.quality-summary strong {
+    font-family: var(--font-display);
+}
+
+/* --- Cards ------------------------------------------------------------------ */
+
+.card {
+    border: 1px solid var(--border-color);
+    background: var(--card);
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.card-strong {
+    border: 2px solid var(--text);
+}
+
+.card-danger {
+    border: 2px solid var(--danger);
+}
+
+.file-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.file-thumb {
+    width: 104px;
+    height: 64px;
+    flex-shrink: 0;
+    background: var(--thumb-bg);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-thumb svg {
+    width: 26px;
+    height: 26px;
+}
+
+.file-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.file-name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.file-meta {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+}
+
+/* Steps: done / current / pending */
+.steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+}
+
+.step-mark {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    border: 2px solid var(--border-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step-mark svg {
+    display: none;
+    width: 14px;
+    height: 14px;
+}
+
+.step.is-done {
+    color: var(--text);
+}
+
+.step.is-done .step-mark {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--accent-contrast);
+}
+
+.step.is-done .step-mark svg {
+    display: block;
+}
+
+.step.is-current {
+    background: transparent;
+    border: 1px solid var(--text);
+    padding: 11px 13px;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.step.is-current .step-mark {
+    border: 3px solid var(--border-color);
+    border-top-color: var(--text);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+.step-count {
+    display: none;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+.progress-block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.progress-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.progress-value {
+    font-family: var(--font-display);
+    font-size: 3.25rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.progress-note {
+    font-size: 1.0625rem;
+    color: var(--muted-strong);
+}
+
+.bar {
+    position: relative;
+    height: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    width: 0;
+    background: var(--accent-color);
+    transition: width 0.2s ease;
+}
+
+/* Unknown progress (reading a file, starting the encoder): a moving
+   segment, so the page never looks frozen. */
+.bar.indeterminate .bar-fill {
+    position: absolute;
+    left: 0;
+    width: 30%;
+    animation: tool-indeterminate 1.2s ease-in-out infinite;
+}
+
+@keyframes tool-indeterminate {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(340%); }
+}
+
+.tip {
+    text-align: left;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--bg-secondary);
+    padding: 14px 16px;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+}
+
+.tip .icon {
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+}
+
+/* Result / error */
+.result-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.result-head.top {
+    align-items: flex-start;
+}
+
+.result-badge {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    background: var(--accent-color);
+    color: var(--accent-contrast);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.result-badge svg {
+    width: 22px;
+    height: 22px;
+}
+
+.result-badge.danger {
+    background: var(--danger);
+    color: var(--danger-contrast);
+}
+
+.result-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.result-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.result-sub,
+.result-message {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    overflow-wrap: anywhere;
+}
+
+.result-message {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--muted-strong);
+}
+
+.savings {
+    display: flex;
+    align-items: flex-end;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+
+.savings-number {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.savings-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.savings-value {
+    font-family: var(--font-display);
+    font-size: 4rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.compare {
+    flex: 1;
+    min-width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.compare-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.compare-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.9375rem;
+}
+
+.compare-label strong {
+    font-family: var(--font-display);
+}
+
+.compare-bar {
+    height: 14px;
+    background: var(--bar-muted);
+}
+
+.compare-bar.after {
+    box-sizing: border-box;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+}
+
+.compare-fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent-color);
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.result-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--border-color);
+    padding-top: 18px;
+    font-size: 0.9375rem;
+    color: var(--muted-strong);
+}
+
+.tech-details {
+    border-top: 1px solid var(--border-color);
+    padding-top: 16px;
+}
+
+.tech-details summary {
+    cursor: pointer;
+    font-size: 0.9375rem;
+    color: var(--muted-strong);
+}
+
+.tech-details pre {
+    margin: 12px 0 0;
+    padding: 12px 14px;
+    max-height: 200px;
+    overflow: auto;
+    background: var(--bg-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    white-space: pre-wrap;
+    color: var(--muted-strong);
+}
+
+/* --- Good to know ------------------------------------------------------------ */
+
+.good-to-know {
+    border: 1px solid var(--border-color);
+    padding: 16px 20px;
+}
+
+.good-to-know summary {
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.good-to-know ul {
+    margin: 14px 0 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--muted-strong);
+}
+
+.tool-footnote {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.tool-footnote a {
+    color: inherit;
+}
+
+/* --- Small screens --------------------------------------------------------------- */
+
+@media (max-width: 600px) {
+    .tool {
+        gap: 22px;
+    }
+
+    .tool-title {
+        font-size: 1.6875rem;
+    }
+
+    .tool-lead {
+        font-size: 0.9375rem;
+    }
+
+    .drop-card {
+        padding: 28px 18px;
+    }
+
+    .drop-card .btn,
+    .actions .btn {
+        width: 100%;
+    }
+
+    .quality-options {
+        gap: 0;
+    }
+
+    .quality-option {
+        flex-direction: row;
+        justify-content: center;
+        padding: 0 6px;
+        min-height: 44px;
+        align-items: center;
+    }
+
+    .quality-option.is-selected {
+        padding: 0 5px;
+    }
+
+    .quality-option-title {
+        gap: 6px;
+        font-size: 0.875rem;
+    }
+
+    .quality-option-hint,
+    .quality-option .long,
+    .btn .long {
+        display: none;
+    }
+
+    .quality-summary {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .quality-note-selected {
+        display: block;
+    }
+
+    .card {
+        padding: 18px 16px;
+        gap: 18px;
+    }
+
+    .file-row {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .file-thumb {
+        width: 56px;
+        height: 56px;
+    }
+
+    .file-row .btn {
+        order: 3;
+        width: 100%;
+    }
+
+    .file-name {
+        font-size: 1rem;
+    }
+
+    .steps {
+        grid-template-columns: 1fr;
+    }
+
+    .step:not(.is-current) {
+        display: none;
+    }
+
+    .step.is-current {
+        border: 0;
+        padding: 0;
+    }
+
+    .step-count {
+        display: inline;
+    }
+
+    .progress-value {
+        font-size: 2.75rem;
+    }
+
+    .savings {
+        gap: 16px;
+    }
+
+    .savings-value {
+        font-size: 3rem;
+    }
+
+    .compare {
+        min-width: 100%;
+    }
+
+    .result-title {
+        font-size: 1.25rem;
+    }
+
+    .btn-lg {
+        height: 56px;
+    }
+}
+
+/* Phones and tablets have nothing to drag: lead with the button. */
+@media (hover: none) and (pointer: coarse) {
+    .drop-title,
+    .drop-or {
+        display: none;
+    }
+
+    .drop-touch-hint {
+        display: block;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bar.indeterminate .bar-fill {
+        animation: none;
+        width: 100%;
+        opacity: 0.5;
+    }
+
+    .step.is-current .step-mark {
+        animation: none;
+    }
+}

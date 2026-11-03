@@ -1,3 +1,6 @@
+/* Image compressor page. The shared tool UI lives in ../tool.css; this
+   file adds the page rules and the list of images. */
+
 body.image-compressor-page {
     margin: 0;
     background: var(--bg);
@@ -9,390 +12,185 @@ body.image-compressor-page {
     padding: var(--space-lg);
 }
 
-.ic-main {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
+.tool-footnote code {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
 }
 
-.ic-results {
-    grid-column: 1 / -1;
-}
+/* --- List of images ---------------------------------------------------- */
 
-.module-card {
-    flex: 1 1 0;
-    min-width: 0;
-    background: var(--card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    padding: 24px;
-    box-shadow: var(--shadow);
-}
-
-.module-card h2 {
-    margin-top: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.step-number {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    background: var(--accent-color);
-    color: var(--accent-contrast);
-    border-radius: var(--border-radius);
-    border: 1px solid transparent;
-    font-size: 0.9rem;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.hint {
-    margin-top: -8px;
-    color: var(--text-secondary);
-}
-
-.drop-area {
-    border: 2px dashed var(--border-color);
-    border-radius: var(--border-radius);
-    padding: 24px;
-    text-align: center;
-    position: relative;
-    background: var(--bg-secondary);
-    cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-    outline: none;
-}
-
-.drop-area:hover {
-    border-color: var(--text);
-    background: var(--bg);
-    box-shadow: var(--shadow);
-}
-
-.drop-area.dragover {
-    border-color: var(--accent-color);
-    background: var(--bg);
-}
-
-.drop-area:focus-visible {
-    border-color: var(--accent-color);
-    background: var(--bg);
-    box-shadow: var(--shadow);
-}
-
-.drop-title {
-    margin: 0;
-    font-weight: 600;
-}
-
-.drop-subtitle {
-    margin: 8px 0 0;
-    color: var(--text-secondary);
-}
-
-#imageInput {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-}
-
-.status-line {
-    color: var(--text-secondary);
-    margin: 12px 0 0;
-    min-height: 1.2em;
-    overflow-wrap: anywhere;
-}
-
-.quality-label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-.quality-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.quality-row input[type="range"] {
-    flex: 1;
-    accent-color: var(--accent-color);
-}
-
-.quality-value {
-    font-weight: 700;
-    min-width: 2.5ch;
-    text-align: right;
-    font-family: var(--font-display);
-    color: var(--value-color);
-}
-
-.results-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 16px;
-    margin-top: 16px;
-}
-
-.image-card {
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    padding: 16px;
-    background: var(--bg-secondary);
+.image-list-block {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
 }
 
-.thumb-pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+.image-list-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
 }
 
-.thumb-pair figure {
+.image-list-title {
     margin: 0;
-    min-width: 0;
-}
-
-.thumb-pair img {
-    width: 100%;
-    height: 120px;
-    object-fit: contain;
-    background: var(--card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    display: block;
-}
-
-.thumb-pair img[hidden] {
-    display: none;
-}
-
-.thumb-pair figcaption {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-top: 4px;
-    text-align: center;
-}
-
-.file-name {
-    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
     font-weight: 600;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
-.file-status {
+.image-list {
+    list-style: none;
     margin: 0;
-    color: var(--text-secondary);
+    padding: 0;
+    border: 1px solid var(--border-color);
+}
+
+.image-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    min-height: 20px;
-    font-size: 0.9rem;
-    overflow-wrap: anywhere;
+    gap: 14px;
+    padding: 12px 14px;
+    border-top: 1px solid var(--border-color);
 }
 
-.file-status.error {
-    color: #dc2626;
+.image-row:first-child {
+    border-top: 0;
 }
 
-[data-theme="dark"] .file-status.error {
-    color: #f87171;
+.image-thumb {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    object-fit: cover;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    box-sizing: border-box;
 }
 
-.savings {
-    font-weight: 700;
-}
-
-.savings.positive {
-    color: #4d7c0f;
-}
-
-[data-theme="dark"] .savings.positive {
-    color: #cdf46d;
-}
-
-.savings.zero {
-    color: var(--text-secondary);
-}
-
-.empty-state {
-    color: var(--text-secondary);
-    margin: 16px 0 0;
-}
-
-.ic-actions {
+.image-info {
+    flex: 1;
+    min-width: 0;
     display: flex;
-    gap: 12px;
-    margin-top: 16px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 3px;
 }
 
-.primary {
+.image-name {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.image-status {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.image-status.error {
+    color: var(--danger);
+}
+
+.spinner-inline {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--text);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+.image-badge {
+    flex-shrink: 0;
+    padding: 4px 8px;
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+    font-weight: 700;
+    white-space: nowrap;
     background: var(--accent-color);
     color: var(--accent-contrast);
-    border: 1px solid var(--accent-color);
-    padding: 12px 16px;
-    border-radius: var(--border-radius);
-    font-size: 0.95rem;
+}
+
+.image-badge.zero {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--muted-strong);
     font-weight: 600;
-    cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-    text-decoration: none;
 }
 
-.primary:hover,
-.primary:focus-visible {
-    background: var(--accent-hover);
-    color: var(--accent-contrast);
-    border-color: var(--accent-hover);
+.image-download {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    padding: 0;
 }
 
-.primary:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    background: var(--surface-hover);
-    border-color: var(--border-color);
-    color: var(--text-secondary);
-    transform: none;
-    box-shadow: none;
-}
-
-.primary.ghost {
-    background: transparent;
-    color: var(--text);
-    border-color: var(--border-color);
-    text-align: center;
-    display: inline-block;
-}
-
-.primary.ghost:hover {
-    background: var(--surface-hover);
-    color: var(--text);
-    border-color: var(--text);
-}
-
-.download-one {
-    padding: 8px 12px;
-    font-size: 0.85rem;
-    align-self: flex-start;
-}
-
-.spinner {
+.image-download svg {
     width: 20px;
     height: 20px;
-    border-radius: 50%;
-    border: 3px solid var(--border-color);
-    border-top-color: var(--accent-color);
-    animation: spin 0.9s linear infinite;
+}
+
+/* --- Quality ---------------------------------------------------------------- */
+
+.quality:disabled .quality-option {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.quality-apply {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: var(--bg-secondary);
+    font-size: 0.9375rem;
+}
+
+.quality-apply .btn {
+    height: 44px;
     flex-shrink: 0;
 }
 
-.spinner.small {
-    width: 14px;
-    height: 14px;
-    border-width: 2px;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
+@media (max-width: 768px) {
+    body.image-compressor-page {
+        padding: var(--space-md);
     }
-}
-
-progress {
-    width: 100%;
-    height: 12px;
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    appearance: none;
-}
-
-progress::-webkit-progress-bar {
-    background: var(--surface-hover);
-}
-
-progress::-webkit-progress-value {
-    background: var(--accent-color);
-}
-
-.progress-wrapper {
-    margin-bottom: 8px;
-}
-
-.progress-wrapper[hidden] {
-    display: none;
-}
-
-.progress-wrapper p {
-    margin: 8px 0 0;
-    color: var(--text-secondary);
-}
-
-.ic-limits {
-    margin-top: 24px;
-    background: var(--card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    padding: 24px;
-    box-shadow: var(--shadow);
-}
-
-.ic-limits h2 {
-    margin-top: 0;
-    margin-bottom: 16px;
-}
-
-.ic-limits ul {
-    padding-left: 1.25rem;
-    margin: 0;
-    color: var(--text-secondary);
 }
 
 @media (max-width: 600px) {
-    body.image-compressor-page {
-        padding: 16px;
+    .image-row {
+        gap: 10px;
+        padding: 10px;
     }
 
-    .ic-main {
-        grid-template-columns: 1fr;
+    .image-thumb {
+        width: 48px;
+        height: 48px;
     }
 
-    .ic-actions {
+    .quality-apply {
         flex-direction: column;
         align-items: stretch;
     }
 
-    .primary {
+    .quality-apply .btn {
         width: 100%;
-        text-align: center;
-    }
-
-    .download-one {
-        width: auto;
-        align-self: stretch;
     }
 }
 
-@media (max-width: 768px) {
-    .module-card {
-        width: 100%;
-    }
-
-    .drop-area {
-        padding: 20px;
+@media (prefers-reduced-motion: reduce) {
+    .spinner-inline {
+        animation: none;
     }
 }

@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
         rel="stylesheet" crossorigin>
     <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../tool.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖼️</text></svg>">
@@ -43,68 +44,141 @@
                     <span class="dark-icon" aria-hidden="true">🌙</span>
                 </button>
             </div>
-
-            <div class="current-service" id="currentService">Image Compressor</div>
-
-            <p class="page-intro">Shrink JPEG and PNG files right in your browser — nothing is uploaded anywhere.<br>
-                JPEGs are re-encoded with MozJPEG, PNGs are optimised losslessly with OxiPNG (WebAssembly).</p>
         </header>
 
-        <main class="ic-main">
-            <section class="module-card" aria-label="Image selection">
-                <h2><span class="step-number">1</span> Add your images</h2>
-                <p class="hint">JPEG and PNG, up to 20 files at once, ~50 MB each.</p>
-                <div class="drop-area" id="dropZone" role="button" tabindex="0" aria-describedby="dropHint">
-                    <p class="drop-title">Drop images here or click to browse</p>
-                    <p class="drop-subtitle" id="dropHint">Compression starts automatically</p>
-                    <input type="file" id="imageInput" accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple
-                        aria-label="Image input">
-                </div>
-                <p class="status-line" id="statusLine" aria-live="polite"></p>
+        <main class="tool" id="tool" data-state="empty">
+            <div class="tool-intro">
+                <h2 class="tool-title">Compress images</h2>
+                <p class="tool-lead">Make JPEG and PNG images smaller, up to 20 at a time. PNGs keep every pixel.</p>
+                <ul class="tool-chips" aria-label="How it works">
+                    <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Never uploaded — stays on your device</li>
+                    <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="14" height="14"></rect><path d="M3 17V3h14"></path></svg>Up to 20 images at once</li>
+                    <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3 5 14h6l-1 7 8-11h-6z"></path></svg>Starts as soon as you add files</li>
+                </ul>
+            </div>
+
+            <input type="file" id="imageInput" class="visually-hidden" tabindex="-1"
+                accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple aria-label="Choose images">
+
+            <section class="drop-card" id="dropZone" aria-label="Add images">
+                <div class="drop-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 15v5h16v-5"></path></svg></div>
+                <p class="drop-title">Drop images here</p>
+                <p class="drop-or">or</p>
+                <button type="button" class="btn btn-primary" id="chooseButton">Choose images</button>
+                <p class="drop-hint" id="dropHint"><span class="drop-touch-hint">From Photos or Files · </span>JPEG or PNG ·
+                    up to 20 files, about 50 MB each</p>
             </section>
 
-            <section class="module-card" aria-label="Compression settings">
-                <h2><span class="step-number">2</span> Settings</h2>
-                <label class="quality-label" for="qualitySlider">JPEG quality</label>
-                <div class="quality-row">
-                    <input type="range" id="qualitySlider" min="1" max="100" step="1" value="75">
-                    <span class="quality-value" id="qualityValue">75</span>
+            <p class="drop-notice" id="dropNotice" role="alert" hidden></p>
+
+            <section class="card" id="jobCard" aria-labelledby="jobTitle" hidden>
+                <div class="file-row">
+                    <div class="file-info">
+                        <h3 class="file-name" id="jobTitle">Compressing images</h3>
+                        <p class="file-meta" id="jobMeta"></p>
+                    </div>
+                    <button type="button" class="btn" id="cancelButton">Cancel</button>
                 </div>
-                <p class="hint">Lower quality → smaller files. PNGs are always optimised losslessly, the slider does
-                    not affect them.</p>
-                <button id="recompressButton" class="primary ghost" disabled>Re-compress JPEGs with current
-                    quality</button>
+                <div class="progress-block">
+                    <div class="progress-head">
+                        <span class="progress-value" id="progressValue">0%</span>
+                        <span class="progress-note" id="progressNote">Starting…</span>
+                    </div>
+                    <div class="bar" id="progressBar" role="progressbar" aria-label="Progress" aria-valuemin="0"
+                        aria-valuemax="100" aria-valuenow="0">
+                        <div class="bar-fill" id="progressFill"></div>
+                    </div>
+                </div>
+                <p class="tip"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg><span>Keep this tab open until all images are done. You can add more images at
+                        any time.</span></p>
             </section>
 
-            <section class="module-card ic-results" aria-label="Results">
-                <h2><span class="step-number">3</span> Results</h2>
-                <div class="progress-wrapper" id="overallProgressWrapper" aria-live="polite" hidden>
-                    <progress id="overallProgress" value="0" max="1"></progress>
-                    <p id="overallLabel"></p>
+            <section class="card card-strong" id="resultCard" aria-labelledby="resultTitle" hidden>
+                <div class="result-head">
+                    <span class="result-badge"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"></path></svg></span>
+                    <div class="result-text">
+                        <h3 class="result-title" id="resultTitle">Your images are ready</h3>
+                        <p class="result-sub" id="resultSub"></p>
+                    </div>
                 </div>
-                <p class="empty-state" id="emptyState">Add images above to see before/after previews here.</p>
-                <div class="results-grid" id="resultsGrid"></div>
-                <div class="ic-actions">
-                    <button id="downloadAllButton" class="primary" disabled>Download all (.zip)</button>
-                    <button id="clearAllButton" class="primary ghost" disabled>Clear all</button>
+                <div class="savings">
+                    <div class="savings-number">
+                        <span class="savings-label" id="savingsLabel">Smaller by</span>
+                        <span class="savings-value" id="savingsValue">0%</span>
+                    </div>
+                    <div class="compare">
+                        <div class="compare-row">
+                            <div class="compare-label"><span>Original</span><strong id="beforeSize">—</strong></div>
+                            <div class="compare-bar" aria-hidden="true"></div>
+                        </div>
+                        <div class="compare-row">
+                            <div class="compare-label"><span>Compressed</span><strong id="afterSize">—</strong></div>
+                            <div class="compare-bar after" aria-hidden="true"><span class="compare-fill" id="afterFill"></span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button type="button" class="btn btn-primary btn-lg" id="downloadAllButton"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg><span
+                            id="downloadLabel"><span id="downloadWhat">Download all</span><span class="long"
+                                id="downloadZip"> (.zip)</span> · <span id="downloadSize">—</span></span></button>
+                    <button type="button" class="btn btn-lg" id="addMoreButton">Add more images</button>
+                </div>
+                <div class="result-foot">
+                    <span id="resultStats"></span>
+                    <span id="smallerHint">Still too big? <button type="button" class="link-button"
+                            id="smallerButton">Make JPEGs smaller</button></span>
                 </div>
             </section>
+
+            <section class="image-list-block" id="listBlock" aria-labelledby="listTitle" hidden>
+                <div class="image-list-head">
+                    <h3 class="image-list-title" id="listTitle">Images</h3>
+                    <button type="button" class="link-button" id="clearAllButton">Clear all</button>
+                </div>
+                <ul class="image-list" id="imageList"></ul>
+            </section>
+
+            <fieldset class="quality" id="qualityGroup">
+                <legend>Quality</legend>
+                <div class="quality-options">
+                    <label class="quality-option">
+                        <span class="quality-option-title"><input type="radio" name="quality" value="small"><span>Smaller<span class="long"> files</span></span></span>
+                        <span class="quality-option-hint">For messengers and email</span>
+                    </label>
+                    <label class="quality-option is-selected">
+                        <span class="quality-option-title"><input type="radio" name="quality" value="balanced" checked><span>Balanced</span></span>
+                        <span class="quality-option-hint">Recommended for most images</span>
+                    </label>
+                    <label class="quality-option">
+                        <span class="quality-option-title"><input type="radio" name="quality" value="better"><span>Better<span class="long"> quality</span></span></span>
+                        <span class="quality-option-hint">Sharper detail, bigger files</span>
+                    </label>
+                </div>
+                <p class="quality-note quality-note-selected" id="qualityNote">Recommended for most images</p>
+                <p class="quality-note">Applies to JPEGs. PNGs are always optimised without losing any detail.</p>
+                <div class="quality-apply" id="qualityApply" hidden>
+                    <span id="qualityApplyText"></span>
+                    <button type="button" class="btn" id="recompressButton">Apply</button>
+                </div>
+            </fieldset>
+
+            <p class="visually-hidden" id="liveStatus" aria-live="polite"></p>
+
+            <details class="good-to-know">
+                <summary>Good to know</summary>
+                <ul>
+                    <li>Everything runs in this tab. Keep it open until all images are done.</li>
+                    <li>The first image loads the compression codecs (about 2 MB) from esm.sh, so it needs a
+                        connection.</li>
+                    <li>If an image cannot get smaller, the original is kept — you never get a bigger file.</li>
+                    <li>PNG optimisation is lossless: no detail is lost, only wasted bytes.</li>
+                    <li>Up to 20 images at once, about 50 MB each.</li>
+                </ul>
+            </details>
         </main>
 
-        <section class="ic-limits" aria-label="Limitations">
-            <h2>Practical limits</h2>
-            <ul>
-                <li>Supported formats: JPEG and PNG (up to 20 files, ~50 MB each).</li>
-                <li>Everything runs locally in a Web Worker — the page stays responsive.</li>
-                <li>Codec modules (~2 MB) are fetched from esm.sh on first compression, so the first file needs a
-                    network connection.</li>
-                <li>PNG optimisation is lossless; JPEG uses the quality slider (MozJPEG).</li>
-                <li>If re-encoding cannot beat the original file, the original is kept.</li>
-            </ul>
-        </section>
-
         <footer class="ic-footer site-footer" aria-label="Image compressor details and version">
-            <p class="footer-note">Powered by <code>MozJPEG 1.6.0</code> and <code>OxiPNG 2.3.0</code> via
+            <p class="footer-note tool-footnote">Powered by <code>MozJPEG 1.6.0</code> and <code>OxiPNG 2.3.0</code> via
                 <a href="https://github.com/jamsinclair/jSquash" rel="noopener" target="_blank">jSquash</a>. No images
                 leave your browser.</p>
             <div class="footer-card-row">
@@ -121,7 +195,7 @@
                     <span class="version-card-text">
                         <span class="version-card-name">Version</span>
                         <span class="version-card-meta">
-                            <span data-app-version-value>0.0.20D</span>
+                            <span data-app-version-value>0.0.21D</span>
                             <span class="version-card-date" data-app-version-date>November 2026</span>
                         </span>
                     </span>

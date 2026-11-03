@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
         rel="stylesheet" crossorigin>
     <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../tool.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
@@ -42,90 +43,156 @@
                     <span class="dark-icon" aria-hidden="true">🌙</span>
                 </button>
             </div>
-
-            <div class="current-service" id="currentService">Video Compressor</div>
-
-            <p class="page-intro">Compress mp4 and mov (iPhone) clips right in your browser without uploading them
-                anywhere.<br>The tool uses ffmpeg.wasm and works best for clips up to ~150–200 MB.</p>
         </header>
 
-        <main class="vc-main">
-            <section class="module-card" aria-label="Video selection">
-                <h2><span class="step-number">1</span> Upload your video</h2>
-                <p class="hint">Supported input: mp4 and mov (H.264 / HEVC), including iPhone videos. The result is
-                    always an mp4. On older phones or laptops, compression may take a while.</p>
-                <div class="drop-area" id="dropZone" role="button" tabindex="0" aria-describedby="dropHint">
-                    <p class="drop-title" id="dropTitle">Drop video here or click to browse</p>
-                    <p class="drop-subtitle" id="dropHint">Compression starts automatically · up to ~150 MB recommended</p>
-                    <input type="file" id="videoInput" accept="video/mp4,video/quicktime,.mp4,.m4v,.mov" aria-label="Video input">
-                </div>
-                <p class="drop-notice" id="dropNotice" role="alert" hidden></p>
-                <div class="file-status" id="fileStatus" data-state="idle">
-                    <span class="file-status-icon" aria-hidden="true"></span>
-                    <div class="file-status-body">
-                        <p class="selected-file" id="selectedFile">No file selected.</p>
-                        <p class="file-status-line">
-                            <span id="statusText" aria-live="polite"></span>
-                            <span class="file-status-detail" id="statusDetail"></span>
-                        </p>
-                        <div class="file-status-bar" aria-hidden="true">
-                            <div class="file-status-fill" id="statusFill"></div>
-                        </div>
-                    </div>
-                </div>
+        <main class="tool" id="tool" data-state="empty">
+            <div class="tool-intro">
+                <h2 class="tool-title">Compress a video</h2>
+                <p class="tool-lead">Make MP4 and MOV files smaller, including iPhone videos. You get an MP4 that plays
+                    on any phone or computer.</p>
+                <ul class="tool-chips" aria-label="How it works">
+                    <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Never uploaded — stays on your device</li>
+                    <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14"></rect><path d="M10 9.5v5l4-2.5z"></path></svg>Plays everywhere</li>
+                    <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3 5 14h6l-1 7 8-11h-6z"></path></svg>Starts as soon as you add a file</li>
+                </ul>
+            </div>
+
+            <input type="file" id="videoInput" class="visually-hidden" tabindex="-1"
+                accept="video/mp4,video/quicktime,.mp4,.m4v,.mov" aria-label="Choose a video">
+
+            <section class="drop-card" id="dropZone" aria-label="Add a video">
+                <div class="drop-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 15v5h16v-5"></path></svg></div>
+                <p class="drop-title" id="dropTitle">Drop a video here</p>
+                <p class="drop-or">or</p>
+                <button type="button" class="btn btn-primary" id="chooseButton">Choose video</button>
+                <p class="drop-hint" id="dropHint"><span class="drop-touch-hint">From Photos or Files · </span>MP4 or MOV ·
+                    works best up to about 150 MB</p>
             </section>
 
-            <section class="module-card" aria-label="Compression controls">
-                <h2><span class="step-number">2</span> Compress</h2>
-                <div class="actions">
-                    <button id="startButton" class="primary">Compress video</button>
-                    <div class="engine-loader" id="engineLoader" aria-live="polite" hidden>
-                        <span class="spinner" aria-hidden="true"></span>
-                        <span id="engineLoaderText">Loading compression engine…</span>
-                    </div>
-                </div>
-                <div class="progress-wrapper">
-                    <progress id="progressBar" value="0" max="1"></progress>
-                    <p id="progressLabel">Waiting for a file…</p>
-                </div>
-            </section>
+            <p class="drop-notice" id="dropNotice" role="alert" hidden></p>
 
-            <section class="module-card" aria-label="Compression settings">
-                <h2><span class="step-number">3</span> Preset that will be used</h2>
-                <form class="preset-list" id="presetForm">
-                    <label class="preset-option">
-                        <input type="radio" name="preset" value="mp4" checked>
-                        <div>
-                            <strong>Smaller MP4 (H.264)</strong>
-                            <p>Converts mp4 or mov to an 8-bit H.264 mp4 with CRF 28 and "veryfast" preset, so it
-                                plays everywhere. Keeps the audio track; audio that mp4 cannot hold (e.g. PCM) is
-                                converted to AAC.</p>
-                        </div>
+            <fieldset class="quality" id="qualityGroup">
+                <legend>Quality</legend>
+                <div class="quality-options">
+                    <label class="quality-option">
+                        <span class="quality-option-title"><input type="radio" name="quality" value="small"><span>Smaller<span class="long"> file</span></span></span>
+                        <span class="quality-option-hint">For messengers and email</span>
                     </label>
-                </form>
-                <p class="disclaimer">Tip: H.264 MP4 provides good compression and wide compatibility.</p>
+                    <label class="quality-option is-selected">
+                        <span class="quality-option-title"><input type="radio" name="quality" value="balanced" checked><span>Balanced</span></span>
+                        <span class="quality-option-hint">Recommended for most videos</span>
+                    </label>
+                    <label class="quality-option">
+                        <span class="quality-option-title"><input type="radio" name="quality" value="better"><span>Better<span class="long"> quality</span></span></span>
+                        <span class="quality-option-hint">Sharper detail, bigger file</span>
+                    </label>
+                </div>
+                <p class="quality-note quality-note-selected" id="qualityNote">Recommended for most videos</p>
+            </fieldset>
+
+            <section class="card" id="jobCard" aria-label="Compression progress" hidden>
+                <div class="file-row">
+                    <div class="file-thumb"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14"></rect><path d="M3 9h18M3 15h18M8 5v4M16 5v4M8 15v4M16 15v4"></path></svg></div>
+                    <div class="file-info">
+                        <h3 class="file-name" id="jobName">video.mp4</h3>
+                        <p class="file-meta" id="jobMeta"></p>
+                    </div>
+                    <button type="button" class="btn" id="cancelButton">Cancel</button>
+                </div>
+                <ol class="steps" aria-label="Steps">
+                    <li class="step" id="stepEngine"><span class="step-mark"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"></path></svg></span><span>Engine ready</span><span class="step-count">· step 1 of 3</span></li>
+                    <li class="step" id="stepRead"><span class="step-mark"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"></path></svg></span><span>Video read</span><span class="step-count">· step 2 of 3</span></li>
+                    <li class="step" id="stepCompress"><span class="step-mark"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"></path></svg></span><span>Compressing</span><span class="step-count">· step 3 of 3</span></li>
+                </ol>
+                <div class="progress-block">
+                    <div class="progress-head">
+                        <span class="progress-value" id="progressValue">0%</span>
+                        <span class="progress-note" id="progressNote">Starting…</span>
+                    </div>
+                    <div class="bar" id="progressBar" role="progressbar" aria-label="Progress" aria-valuemin="0"
+                        aria-valuemax="100" aria-valuenow="0">
+                        <div class="bar-fill" id="progressFill"></div>
+                    </div>
+                </div>
+                <p class="tip"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg><span>Keep this tab open — closing it stops compression. On a phone, keep the page
+                        on screen.</span></p>
             </section>
 
-            <section class="module-card" aria-label="Result">
-                <h2><span class="step-number">4</span> Download</h2>
-                <p id="resultMessage">Your compressed video will appear here.</p>
-                <a id="downloadLink" class="primary ghost" href="#" download hidden>Download result</a>
+            <div class="quality-summary" id="qualitySummary" hidden>
+                <span><span class="label">Quality:</span> <strong id="qualitySummaryName">Balanced</strong></span>
+                <span class="state">Locked while compressing</span>
+            </div>
+
+            <section class="card card-strong" id="resultCard" aria-labelledby="resultTitle" hidden>
+                <div class="result-head">
+                    <span class="result-badge"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"></path></svg></span>
+                    <div class="result-text">
+                        <h3 class="result-title" id="resultTitle">Your video is ready</h3>
+                        <p class="result-sub" id="resultSub"></p>
+                    </div>
+                </div>
+                <div class="savings">
+                    <div class="savings-number">
+                        <span class="savings-label" id="savingsLabel">Smaller by</span>
+                        <span class="savings-value" id="savingsValue">0%</span>
+                    </div>
+                    <div class="compare">
+                        <div class="compare-row">
+                            <div class="compare-label"><span>Original</span><strong id="beforeSize">—</strong></div>
+                            <div class="compare-bar" aria-hidden="true"></div>
+                        </div>
+                        <div class="compare-row">
+                            <div class="compare-label"><span>Compressed</span><strong id="afterSize">—</strong></div>
+                            <div class="compare-bar after" aria-hidden="true"><span class="compare-fill" id="afterFill"></span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="actions">
+                    <a class="btn btn-primary btn-lg" id="downloadLink" href="#" download hidden><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg><span
+                            id="downloadLabel">Download<span class="long"> video</span> · <span id="downloadSize">—</span></span></a>
+                    <button type="button" class="btn btn-lg" id="anotherButton">Compress another video</button>
+                </div>
+                <div class="result-foot">
+                    <span id="resultStats"></span>
+                    <span id="smallerHint">Still too big? <button type="button" class="link-button"
+                            id="smallerButton">Make it smaller</button></span>
+                </div>
             </section>
+
+            <section class="card card-danger" id="errorCard" aria-labelledby="errorTitle" hidden>
+                <div class="result-head top">
+                    <span class="result-badge danger"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 6v8M12 18h.01"></path></svg></span>
+                    <div class="result-text">
+                        <h3 class="result-title" id="errorTitle">Something went wrong</h3>
+                        <p class="result-message" id="errorMessage"></p>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button type="button" class="btn btn-primary" id="errorChooseButton">Choose another video</button>
+                    <button type="button" class="btn" id="retryButton">Try again</button>
+                </div>
+                <details class="tech-details" id="errorDetails">
+                    <summary>Technical details</summary>
+                    <pre id="errorLog"></pre>
+                </details>
+            </section>
+
+            <p class="visually-hidden" id="liveStatus" aria-live="polite"></p>
+
+            <details class="good-to-know">
+                <summary>Good to know</summary>
+                <ul>
+                    <li>Everything runs in this tab. Keep it open until the download button appears.</li>
+                    <li>The first video also loads the compression engine (about 30 MB), once.</li>
+                    <li>4K and HDR iPhone videos take longest: plan on minutes, not seconds.</li>
+                    <li>Already small videos may not get smaller. You will see that in the result.</li>
+                    <li>The result is an H.264 MP4 (8-bit), so it plays on any device. HDR colour info is kept.</li>
+                </ul>
+            </details>
         </main>
 
-        <section class="vc-limits" aria-label="Limitations">
-            <h2>Practical limits</h2>
-            <ul>
-                <li>Works best with mp4 or mov files under ~150 MB.</li>
-                <li>4K and HDR iPhone videos take much longer than 1080p ones.</li>
-                <li>Compression runs locally — keep the tab open.</li>
-                <li>Phones and low-end laptops may take several minutes.</li>
-                <li>While ffmpeg.wasm is loading, please wait for the spinner to finish.</li>
-            </ul>
-        </section>
-
         <footer class="vc-footer site-footer" aria-label="Video compressor details and version">
-            <p class="footer-note">Powered by <code>ffmpeg.wasm 0.12.15</code>. No videos leave your browser.</p>
+            <p class="footer-note tool-footnote">Powered by <code>ffmpeg.wasm 0.12.15</code>. No videos leave your browser.</p>
             <div class="footer-card-row">
                 <a class="portfolio-card footer-card" href="https://alexlyamin.framer.website/" target="_blank"
                     rel="noopener" aria-label="Alexey Lyamin — open portfolio">
@@ -140,7 +207,7 @@
                     <span class="version-card-text">
                         <span class="version-card-name">Version</span>
                         <span class="version-card-meta">
-                            <span data-app-version-value>0.0.20D</span>
+                            <span data-app-version-value>0.0.21D</span>
                             <span class="version-card-date" data-app-version-date>November 2026</span>
                         </span>
                     </span>

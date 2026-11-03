@@ -84,7 +84,7 @@ test('an iPhone .mov is compressed into an mp4 named after it', async () => {
   assert.deepEqual(calls.find((call) => call[0] === 'writeFile'), ['writeFile', 'input.mov']);
   const [args] = execCalls(calls);
   assert.equal(args[args.indexOf('-i') + 1], 'input.mov');
-  assert.equal(getElement('fileStatus').dataset.state, 'done');
+  assert.equal(getElement('tool').dataset.state, 'done');
   assert.equal(getElement('downloadLink').download, 'IMG_4821.min.mp4');
   assert.ok(calls.some((call) => call[0] === 'deleteFile' && call[1] === 'input.mov'), 'temporary input is removed');
 });
@@ -119,7 +119,7 @@ test('audio that mp4 cannot hold (PCM) is converted to AAC automatically', async
   assert.equal(runs.length, 2);
   assert.equal(runs[0][runs[0].indexOf('-c:a') + 1], 'copy');
   assert.deepEqual(Array.from(runs[1].slice(runs[1].indexOf('-c:a'), runs[1].indexOf('-c:a') + 4)), ['-c:a', 'aac', '-b:a', '192k']);
-  assert.equal(getElement('fileStatus').dataset.state, 'done');
+  assert.equal(getElement('tool').dataset.state, 'done');
 });
 
 test('a failing ffmpeg run shows a clear error instead of a file-system error', async () => {
@@ -133,8 +133,8 @@ test('a failing ffmpeg run shows a clear error instead of a file-system error', 
     context.__files = [video('broken.mov')];
     await run(context, 'handleFiles(__files)');
     assert.equal(execCalls(calls).length, 1, 'no pointless retry');
-    assert.equal(getElement('fileStatus').dataset.state, 'error');
-    assert.match(getElement('statusText').textContent, expected);
+    assert.equal(getElement('tool').dataset.state, 'error');
+    assert.match(getElement('errorMessage').textContent, expected);
     assert.equal(getElement('downloadLink').hidden, true);
   }
 });
@@ -152,7 +152,7 @@ test('long compressions show the estimated time left', async () => {
     }]
   });
   const details = [];
-  const detail = getElement('statusDetail');
+  const detail = getElement('progressNote');
   let value = '';
   Object.defineProperty(detail, 'textContent', {
     get: () => value,
@@ -164,9 +164,9 @@ test('long compressions show the estimated time left', async () => {
   context.__files = [video('IMG_4K.MOV')];
   await run(context, 'handleFiles(__files)');
 
-  assert.ok(details.includes('1%'), details.join(' | '));
-  assert.ok(details.includes('25% · about 3 min left'), details.join(' | '));
-  assert.match(getElement('progressLabel').textContent, /Complete/);
+  assert.ok(details.includes('Compressing…'), `too early for an estimate: ${details.join(' | ')}`);
+  assert.ok(details.includes('About 3 min left'), details.join(' | '));
+  assert.equal(getElement('tool').dataset.state, 'done');
 });
 
 test('duration formatting for the estimate', () => {
@@ -180,6 +180,7 @@ test('duration formatting for the estimate', () => {
 test('the page offers and describes mov support', () => {
   const html = read('video-compressor/index.html');
   assert.match(html, /accept="video\/mp4,video\/quicktime,\.mp4,\.m4v,\.mov"/);
-  assert.match(html, /Supported input: mp4 and mov/);
+  assert.match(html, /Make MP4 and MOV files smaller, including iPhone videos/);
+  assert.match(html, /MP4 or MOV ·/);
   assert.doesNotMatch(html, /Upload your mp4 file/);
 });

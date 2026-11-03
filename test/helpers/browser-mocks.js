@@ -104,6 +104,16 @@ class MockElement {
     return new MockElement(selector);
   }
 
+  querySelectorAll() {
+    return this.queryAllResult || [];
+  }
+
+  closest() {
+    return null;
+  }
+
+  scrollIntoView() {}
+
   contains(element) {
     if (element === this) return true;
     return this.children.some((child) => child === element

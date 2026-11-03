@@ -345,9 +345,9 @@ test('compressors stop files dropped outside the drop zone from replacing the pa
   }
 });
 
-test('drop zone highlight survives moving over its own children', async () => {
+test('drop highlight survives moving over the tool’s own children', async () => {
   const { getElement } = loadImageCompressor();
-  const dropZone = getElement('dropZone');
+  const dropZone = getElement('tool'); // the whole tool accepts dropped files
   const child = new MockElement('child');
   dropZone.appendChild(child);
   dropZone.classList.add('dragover');
@@ -413,13 +413,13 @@ test('retrying after a failed engine load still reports progress and names the o
   const { context, instances, getElement } = loadVideoCompressor();
   context.__files = [fakeVideo('Holiday clip.mp4')];
   await run(context, 'handleFiles(__files)'); // starts compression automatically
-  assert.equal(getElement('progressLabel').textContent, 'Error');
+  assert.equal(getElement('tool').dataset.state, 'error');
   assert.equal(instances[0].terminated, true, 'the broken instance is discarded');
 
   await run(context, 'runCompression()');
   assert.equal(instances.length, 2);
   assert.equal(instances[1].progressListeners, 1, 'the retry instance gets a progress handler');
-  assert.equal(getElement('progressLabel').textContent, 'Complete');
+  assert.equal(getElement('tool').dataset.state, 'done');
   assert.equal(getElement('downloadLink').download, 'Holiday clip.min.mp4');
 });
 
