@@ -95,6 +95,8 @@ test('output is always 8-bit 4:2:0 H.264 so HDR / 10-bit sources play everywhere
   await run(context, 'handleFiles(__files)');
   const [args] = execCalls(calls);
   assert.equal(args[args.indexOf('-c:v') + 1], 'libx264');
+  assert.equal(args[args.indexOf('-preset') + 1], 'veryfast', 'fast preset: wasm encoding is slow');
+  assert.equal(args[args.indexOf('-crf') + 1], '28');
   assert.equal(args[args.indexOf('-pix_fmt') + 1], 'yuv420p');
   assert.equal(args[args.indexOf('-c:a') + 1], 'copy', 'compatible audio is kept as-is');
   assert.equal(args[args.length - 1], 'output.mp4');

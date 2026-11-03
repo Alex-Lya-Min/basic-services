@@ -64,7 +64,7 @@ time-left estimate).
    that plays everywhere, and audio that mp4 cannot hold (e.g. PCM) is converted to AAC.
    Progress (engine download on first use, reading, compressing) is shown right under the drop zone.
 3. Keep the tab in the foreground while ffmpeg.wasm works, then download `<name>.min.mp4`
-   (a smaller H.264 mp4, CRF 28, audio kept as-is).
+   (a smaller H.264 mp4, CRF 28, "veryfast" preset, audio kept as-is).
 
 Compression is performed entirely in your browser, so large videos can take several minutes on low-power devices.
 
