@@ -64,7 +64,7 @@ function loadImages({ storage, now } = {}) {
   };
 
   const options = {};
-  const radios = ['small', 'balanced', 'better'].map((value) => {
+  const radios = ['small', 'balanced', 'better', 'custom'].map((value) => {
     const radio = new MockElement(`quality-${value}`);
     radio.name = 'quality';
     radio.value = value;
@@ -199,6 +199,56 @@ test('the chosen quality is sent to MozJPEG and remembered', async () => {
   assert.equal(again.radios[0].checked, true);
 });
 
+test('Custom shows a JPEG quality slider that starts from the preset and is remembered', async () => {
+  const browser = loadImages();
+  const { context, getElement } = browser;
+  assert.equal(getElement('qualityCustom').hidden, true);
+
+  await getElement('qualityGroup').dispatch('change', { target: browser.radios[3] });
+  assert.equal(getElement('qualityCustom').hidden, false);
+  assert.ok(browser.options.custom.classList.contains('is-selected'));
+  assert.equal(getElement('customQuality').value, '75', 'starts from Balanced');
+  assert.equal(getElement('customQualityValue').textContent, '75');
+
+  getElement('customQuality').value = '40';
+  await getElement('customQuality').dispatch('input');
+  assert.equal(getElement('customQualityValue').textContent, '40');
+  assert.match(getElement('qualityNote').textContent, /^JPEG quality 40: lower gives smaller files/);
+  assert.equal(context.localStorage.getItem('imageCompressorQuality'), 'custom');
+  assert.equal(context.localStorage.getItem('imageCompressorCustomQuality'), '40');
+
+  context.__files = [image('a.jpg')];
+  run(context, 'addFiles(__files)');
+  await flush();
+  assert.equal(browser.workers[0].messages[0].quality, 40);
+
+  const again = loadImages({ storage: context.localStorage });
+  assert.equal(again.radios[3].checked, true);
+  assert.equal(again.getElement('qualityCustom').hidden, false);
+  assert.equal(again.getElement('customQuality').value, '40');
+});
+
+test('moving the slider after compressing offers to re-compress at that quality', async () => {
+  const browser = loadImages();
+  const { context, getElement } = browser;
+  await getElement('qualityGroup').dispatch('change', { target: browser.radios[3] });
+  context.__files = [image('a.jpg', 400 * KB)];
+  run(context, 'addFiles(__files)');
+  await answer(browser, 200 * KB);
+  assert.equal(getElement('qualityApply').hidden, true);
+  assert.equal(getElement('smallerHint').hidden, false, 'quality 75 can still go to Smaller (60)');
+
+  getElement('customQuality').value = '50';
+  await getElement('customQuality').dispatch('input');
+  assert.equal(getElement('qualityApply').hidden, false);
+  assert.equal(getElement('qualityApplyText').textContent, 'Re-compress 1 JPEG at quality 50');
+  await getElement('recompressButton').dispatch('click');
+  await flush();
+  assert.equal(browser.workers[0].messages.at(-1).quality, 50);
+  await answer(browser, 150 * KB);
+  assert.equal(getElement('smallerHint').hidden, true, 'no preset is smaller than quality 50');
+});
+
 test('changing the quality afterwards offers to re-compress the JPEGs', async () => {
   const browser = loadImages();
   const { context, getElement } = browser;
@@ -328,6 +378,11 @@ test('page markup matches the video compressor layout', () => {
   for (const id of ['jobCard', 'resultCard', 'listBlock', 'qualityApply']) {
     assert.match(html, new RegExp(`id="${id}"[^>]*hidden`), `${id} starts hidden`);
   }
-  assert.equal((html.match(/name="quality"/g) || []).length, 3);
+  assert.equal((html.match(/name="quality"/g) || []).length, 4, 'three presets and Custom');
+  assert.match(html, /value="custom"><span>Custom<\/span>/);
+  assert.match(html, /<div class="quality-custom" id="qualityCustom" hidden>/);
+  assert.match(html, /<input type="range" id="customQuality" min="1" max="100"/);
+  assert.equal((html.match(/<li><svg class="icon"/g) || []).length, 3, 'three short chips');
+  assert.doesNotMatch(html, /class="drop-or"/);
   assert.doesNotMatch(html, /qualitySlider|step-number|Practical limits/);
 });

@@ -111,7 +111,7 @@ function loadVideo({ wasmResponse, outputBytes = 4 * MB, exec = [], timers, stor
 
   // Quality radios inside the fieldset.
   const options = {};
-  const radios = ['small', 'balanced', 'better'].map((value) => {
+  const radios = ['small', 'balanced', 'better', 'custom'].map((value) => {
     const radio = new MockElement(`quality-${value}`);
     radio.name = 'quality';
     radio.value = value;
@@ -236,6 +236,45 @@ test('the chosen quality sets the CRF and is remembered', async () => {
   again.context.__files = [video('b.mp4')];
   await run(again.context, 'handleFiles(__files)');
   assert.equal(crfOf(again.execArgs[0]), 23);
+});
+
+test('Custom level maps 1–100 onto CRF 40–18', () => {
+  const { context } = loadVideo();
+  assert.equal(run(context, 'levelToCrf(1)'), 40);
+  assert.equal(run(context, 'levelToCrf(100)'), 18);
+  assert.equal(run(context, 'levelToCrf(55)'), 28);
+  assert.equal(run(context, 'crfToLevel(28)'), 55);
+});
+
+test('Custom shows a level slider that drives the CRF and is remembered', async () => {
+  const browser = loadVideo();
+  const { context, getElement, execArgs } = browser;
+  assert.equal(getElement('qualityCustom').hidden, true);
+
+  await getElement('qualityGroup').dispatch('change', { target: browser.radios[3] });
+  assert.equal(getElement('qualityCustom').hidden, false);
+  assert.equal(getElement('customQuality').value, '55', 'starts from Balanced (CRF 28)');
+  assert.match(getElement('qualityNote').textContent, /^Your own level/);
+
+  getElement('customQuality').value = '100';
+  await getElement('customQuality').dispatch('input');
+  assert.equal(getElement('customQualityValue').textContent, '100');
+  assert.equal(context.localStorage.getItem('videoCompressorCustomLevel'), '100');
+
+  context.__files = [video('a.mp4')];
+  const running = run(context, 'handleFiles(__files)');
+  assert.equal(getElement('qualitySummaryName').textContent, 'Custom · 100');
+  await running;
+  assert.equal(crfOf(execArgs[0]), 18);
+
+  // "Make it smaller" from a custom level goes to the next smaller preset.
+  assert.equal(getElement('smallerHint').hidden, false);
+  await getElement('smallerButton').dispatch('click');
+  await flush();
+  assert.equal(crfOf(execArgs[1]), 23, 'Better quality');
+
+  const again = loadVideo({ storage: context.localStorage });
+  assert.equal(again.getElement('customQuality').value, '100');
 });
 
 test('"Make it smaller" compresses again one step smaller, then disappears', async () => {
@@ -446,7 +485,12 @@ test('page markup: one tool with cards instead of numbered steps', () => {
     assert.match(html, new RegExp(`id="${id}"[^>]*hidden`), `${id} starts hidden`);
   }
   assert.match(html, /<a class="btn btn-primary btn-lg" id="downloadLink"[^>]*\bhidden\b/);
-  assert.equal((html.match(/name="quality"/g) || []).length, 3);
+  assert.equal((html.match(/name="quality"/g) || []).length, 4, 'three presets and Custom');
+  assert.match(html, /value="custom"><span>Custom<\/span>/);
+  assert.match(html, /<div class="quality-custom" id="qualityCustom" hidden>/);
+  assert.match(html, /<input type="range" id="customQuality" min="1" max="100"/);
+  assert.equal((html.match(/<li><svg class="icon"/g) || []).length, 3, 'three short chips');
+  assert.doesNotMatch(html, /class="drop-or"/);
   assert.doesNotMatch(html, /step-number|Preset that will be used|Practical limits/);
   assert.match(read('styles.css'), /\[hidden\]\s*\{\s*display:\s*none\s*!important;\s*\}/);
 });

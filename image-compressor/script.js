@@ -19,8 +19,8 @@ const QUALITY = {
   balanced: { jpeg: 75, name: 'Balanced', hint: 'Recommended for most images' },
   better: { jpeg: 88, name: 'Better quality', hint: 'Sharper detail, bigger files' }
 };
-const QUALITY_ORDER = ['better', 'balanced', 'small'];
 const QUALITY_STORAGE_KEY = 'imageCompressorQuality';
+const CUSTOM_QUALITY_STORAGE_KEY = 'imageCompressorCustomQuality';
 
 const tool = $('tool');
 const dropZone = $('dropZone');
@@ -55,6 +55,9 @@ const imageList = $('imageList');
 const clearAllButton = $('clearAllButton');
 const qualityGroup = $('qualityGroup');
 const qualityNote = $('qualityNote');
+const qualityCustom = $('qualityCustom');
+const customQuality = $('customQuality');
+const customQualityValue = $('customQualityValue');
 const qualityApply = $('qualityApply');
 const qualityApplyText = $('qualityApplyText');
 const recompressButton = $('recompressButton');
@@ -71,7 +74,14 @@ let currentJob = null; // { id, finish, loadTimer } — one file is compressed a
 let currentStage = '';
 let durations = []; // seconds per finished image in this run, for the estimate
 let quality = 'balanced';
+let customJpeg = null; // null until the user opens "Custom"
 let lastView = 'empty';
+
+const effectiveJpeg = () => (quality === 'custom' ? customJpeg : QUALITY[quality].jpeg);
+
+// The next preset that gives smaller JPEGs than the current setting.
+const nextSmallerPreset = () => ['better', 'balanced', 'small']
+  .find((key) => QUALITY[key].jpeg < effectiveJpeg()) || null;
 
 const DOWNLOAD_ICON = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>';
 
@@ -132,38 +142,62 @@ const showNotice = (message, { error = false } = {}) => {
   dropNotice.classList.toggle('error', Boolean(message) && error);
 };
 
+const store = (key, value) => {
+  try {
+    localStorage.setItem(key, String(value));
+  } catch (_) {
+    // storage unavailable: the choice still applies to this page view
+  }
+};
+
+const updateQualityNote = () => {
+  qualityNote.textContent = quality === 'custom'
+    ? `JPEG quality ${customJpeg}: lower gives smaller files. PNGs are always lossless.`
+    : `${QUALITY[quality].hint} · JPEG quality ${QUALITY[quality].jpeg}. PNGs are always lossless.`;
+};
+
+const setCustomJpeg = (value, { persist = true } = {}) => {
+  customJpeg = Math.min(100, Math.max(1, Math.round(Number(value) || 75)));
+  customQuality.value = String(customJpeg);
+  customQualityValue.textContent = String(customJpeg);
+  if (persist) store(CUSTOM_QUALITY_STORAGE_KEY, customJpeg);
+  if (quality === 'custom') updateQualityNote();
+};
+
 const selectQuality = (value, { persist = true } = {}) => {
-  if (!QUALITY[value]) return;
+  if (!QUALITY[value] && value !== 'custom') return;
+  // Opening "Custom" for the first time starts from the current preset.
+  if (value === 'custom' && customJpeg === null) {
+    setCustomJpeg(QUALITY[quality] ? QUALITY[quality].jpeg : QUALITY.balanced.jpeg, { persist });
+  }
   quality = value;
   qualityGroup.querySelectorAll('input[name="quality"]').forEach((input) => {
     input.checked = input.value === value;
     const option = input.closest('.quality-option');
     if (option) option.classList.toggle('is-selected', input.value === value);
   });
-  if (qualityNote) qualityNote.textContent = QUALITY[value].hint;
-  if (persist) {
-    try {
-      localStorage.setItem(QUALITY_STORAGE_KEY, value);
-    } catch (_) {
-      // storage unavailable: the choice still applies to this page view
-    }
-  }
+  qualityCustom.hidden = value !== 'custom';
+  updateQualityNote();
+  if (persist) store(QUALITY_STORAGE_KEY, value);
 };
 
 const loadSavedQuality = () => {
   try {
+    const custom = Number(localStorage.getItem(CUSTOM_QUALITY_STORAGE_KEY));
+    if (custom >= 1 && custom <= 100) setCustomJpeg(custom, { persist: false });
     const saved = localStorage.getItem(QUALITY_STORAGE_KEY);
-    if (QUALITY[saved]) return saved;
+    if (QUALITY[saved] || saved === 'custom') return saved;
   } catch (_) {
     // ignore
   }
   return 'balanced';
 };
 
-// Finished JPEGs that were compressed with another quality than the chosen one.
+// Finished JPEGs that were compressed with another JPEG quality than the
+// current setting.
 const jpegsAtOtherQuality = () => Array.from(items.values()).filter((item) => item.kind === 'jpeg'
   && (item.status === 'done' || item.status === 'error')
-  && item.quality !== quality);
+  && item.quality !== effectiveJpeg());
 
 // --- Rows ------------------------------------------------------------------------
 
@@ -307,7 +341,7 @@ const updateResult = (c) => {
   resultStats.textContent = smaller
     ? `Saved ${friendlySize(c.before - c.after)}`
     : 'Already well compressed — originals kept';
-  smallerHint.hidden = c.jpegDone === 0 || quality === 'small';
+  smallerHint.hidden = c.jpegDone === 0 || nextSmallerPreset() === null;
 };
 
 const updateView = () => {
@@ -328,7 +362,9 @@ const updateView = () => {
   const other = view === 'done' ? jpegsAtOtherQuality() : [];
   qualityApply.hidden = other.length === 0;
   if (other.length) {
-    qualityApplyText.textContent = `Re-compress ${plural(other.length, 'JPEG', 'JPEGs')} as “${QUALITY[quality].name}”`;
+    qualityApplyText.textContent = quality === 'custom'
+      ? `Re-compress ${plural(other.length, 'JPEG', 'JPEGs')} at quality ${customJpeg}`
+      : `Re-compress ${plural(other.length, 'JPEG', 'JPEGs')} as “${QUALITY[quality].name}”`;
   }
 
   if (view !== lastView) {
@@ -465,7 +501,7 @@ const getWorker = () => {
 
 const compressItem = (item) => new Promise((finish) => {
   item.status = 'processing';
-  item.quality = quality;
+  item.quality = effectiveJpeg();
   item.startedAt = Date.now();
   currentStage = 'Reading file…';
   setItemStatus(item, 'Reading file…', { spinner: true });
@@ -484,7 +520,7 @@ const compressItem = (item) => new Promise((finish) => {
     .then((buffer) => {
       if (!currentJob || currentJob.id !== item.id) return; // timed out or cancelled
       getWorker().postMessage(
-        { id: item.id, kind: item.kind, buffer, quality: QUALITY[item.quality].jpeg },
+        { id: item.id, kind: item.kind, buffer, quality: item.quality },
         [buffer]
       );
     })
@@ -712,8 +748,13 @@ qualityGroup.addEventListener('change', (event) => {
 
 recompressButton.addEventListener('click', () => requeue(jpegsAtOtherQuality()));
 
+customQuality.addEventListener('input', () => {
+  setCustomJpeg(customQuality.value);
+  updateView();
+});
+
 smallerButton.addEventListener('click', () => {
-  const next = QUALITY_ORDER[QUALITY_ORDER.indexOf(quality) + 1];
+  const next = nextSmallerPreset();
   if (!next) return;
   selectQuality(next);
   requeue(jpegsAtOtherQuality());

@@ -14,6 +14,9 @@ const chooseButton = $('chooseButton');
 const dropNotice = $('dropNotice');
 const qualityGroup = $('qualityGroup');
 const qualityNote = $('qualityNote');
+const qualityCustom = $('qualityCustom');
+const customQuality = $('customQuality');
+const customQualityValue = $('customQualityValue');
 const jobCard = $('jobCard');
 const jobName = $('jobName');
 const jobMeta = $('jobMeta');
@@ -77,8 +80,13 @@ const QUALITY = {
   balanced: { crf: 28, name: 'Balanced', hint: 'Recommended for most videos' },
   better: { crf: 23, name: 'Better quality', hint: 'Sharper detail, bigger file' }
 };
-const QUALITY_ORDER = ['better', 'balanced', 'small'];
 const QUALITY_STORAGE_KEY = 'videoCompressorQuality';
+const CUSTOM_LEVEL_STORAGE_KEY = 'videoCompressorCustomLevel';
+
+// "Custom" uses a 1–100 quality level (like JPEG quality) instead of CRF:
+// 1 → CRF 40 (smallest file), 100 → CRF 18 (visually lossless).
+const levelToCrf = (level) => Math.round(40 - ((level - 1) * 22) / 99);
+const crfToLevel = (crf) => Math.round(1 + ((40 - crf) * 99) / 22);
 
 const pageTitle = document.title;
 
@@ -93,6 +101,14 @@ let ffmpegLogs = [];
 let mediaInfo = {};
 let job = null;
 let quality = 'balanced';
+let customLevel = null; // null until the user opens "Custom"
+
+const effectiveCrf = () => (quality === 'custom' ? levelToCrf(customLevel) : QUALITY[quality].crf);
+const qualityLabel = () => (quality === 'custom' ? `Custom · ${customLevel}` : QUALITY[quality].name);
+
+// The next preset that gives a smaller file than the current setting.
+const nextSmallerPreset = () => ['better', 'balanced', 'small']
+  .find((key) => QUALITY[key].crf > effectiveCrf()) || null;
 
 class CancelledError extends Error {
   constructor() {
@@ -254,28 +270,51 @@ const showProgress = (value, note, ratio) => {
   else progressBar.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
 };
 
+const store = (key, value) => {
+  try {
+    localStorage.setItem(key, String(value));
+  } catch (_) {
+    // storage unavailable: the choice still applies to this page view
+  }
+};
+
+const updateQualityNote = () => {
+  qualityNote.textContent = quality === 'custom'
+    ? 'Your own level: lower gives a smaller file, higher keeps more detail.'
+    : QUALITY[quality].hint;
+};
+
+const setCustomLevel = (level, { persist = true } = {}) => {
+  const value = Math.min(100, Math.max(1, Math.round(Number(level) || 55)));
+  customLevel = value;
+  customQuality.value = String(value);
+  customQualityValue.textContent = String(value);
+  if (persist) store(CUSTOM_LEVEL_STORAGE_KEY, value);
+};
+
 const selectQuality = (value, { persist = true } = {}) => {
-  if (!QUALITY[value]) return;
+  if (!QUALITY[value] && value !== 'custom') return;
+  // Opening "Custom" for the first time starts from the current preset.
+  if (value === 'custom' && customLevel === null) {
+    setCustomLevel(crfToLevel(QUALITY[quality] ? QUALITY[quality].crf : QUALITY.balanced.crf), { persist });
+  }
   quality = value;
   qualityGroup.querySelectorAll('input[name="quality"]').forEach((input) => {
     input.checked = input.value === value;
     const option = input.closest('.quality-option');
     if (option) option.classList.toggle('is-selected', input.value === value);
   });
-  if (qualityNote) qualityNote.textContent = QUALITY[value].hint;
-  if (persist) {
-    try {
-      localStorage.setItem(QUALITY_STORAGE_KEY, value);
-    } catch (_) {
-      // storage unavailable: the choice still applies to this page view
-    }
-  }
+  qualityCustom.hidden = value !== 'custom';
+  updateQualityNote();
+  if (persist) store(QUALITY_STORAGE_KEY, value);
 };
 
 const loadSavedQuality = () => {
   try {
+    const level = Number(localStorage.getItem(CUSTOM_LEVEL_STORAGE_KEY));
+    if (level >= 1 && level <= 100) setCustomLevel(level, { persist: false });
     const saved = localStorage.getItem(QUALITY_STORAGE_KEY);
-    if (QUALITY[saved]) return saved;
+    if (QUALITY[saved] || saved === 'custom') return saved;
   } catch (_) {
     // ignore
   }
@@ -629,7 +668,7 @@ const showResult = (sourceFile, blob, elapsedMs) => {
   resultStats.textContent = smaller
     ? `Saved ${readerFriendlySize(before - after)} · took ${formatElapsed(elapsedMs)}`
     : `Took ${formatElapsed(elapsedMs)} · you can keep the original file`;
-  smallerHint.hidden = quality === 'small';
+  smallerHint.hidden = nextSmallerPreset() === null;
 };
 
 const runCompression = async () => {
@@ -667,7 +706,7 @@ const runCompression = async () => {
 
   jobName.textContent = sourceFile.name;
   jobMeta.textContent = describeFile(sourceFile);
-  qualitySummaryName.textContent = QUALITY[quality].name;
+  qualitySummaryName.textContent = qualityLabel();
   cancelButton.disabled = false;
   setStep(ffmpegLoaded ? 1 : 0);
   showProgress('0%', 'Starting…', null);
@@ -686,7 +725,7 @@ const runCompression = async () => {
     showProgress('0%', 'Starting the encoder…', null);
     ffmpegLogs = [];
     compressStartedAt = Date.now();
-    const crf = QUALITY[quality].crf;
+    const crf = effectiveCrf();
     let code = await guard(ffmpeg.exec(buildCommand(inputName, { crf })));
     // Audio that mp4 cannot hold fails instantly while writing the header:
     // retry with the audio converted to AAC.
@@ -783,7 +822,7 @@ errorChooseButton.addEventListener('click', openFileDialog);
 retryButton.addEventListener('click', () => runCompression());
 
 smallerButton.addEventListener('click', () => {
-  const next = QUALITY_ORDER[QUALITY_ORDER.indexOf(quality) + 1];
+  const next = nextSmallerPreset();
   if (!next) return;
   selectQuality(next);
   runCompression();
@@ -792,6 +831,8 @@ smallerButton.addEventListener('click', () => {
 qualityGroup.addEventListener('change', (event) => {
   if (event.target && event.target.name === 'quality') selectQuality(event.target.value);
 });
+
+customQuality.addEventListener('input', () => setCustomLevel(customQuality.value));
 
 // Files can be dropped anywhere on the tool, whatever card is shown.
 tool.addEventListener('dragover', (event) => {

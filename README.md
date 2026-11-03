@@ -61,7 +61,8 @@ time-left estimate).
 
 1. Open [`/video-compressor/`](./video-compressor/).
 2. Pick a quality — **Smaller file**, **Balanced** (default) or **Better quality** (x264 CRF 32 / 28 / 23,
-   "veryfast" preset). The choice is remembered.
+   "veryfast" preset), or **Custom**: a 1–100 level slider (1 → CRF 40, 100 → CRF 18). The choice is
+   remembered.
 3. Drop an mp4 or mov file (recommended up to ~150–200 MB) or press **Choose video** — compression starts
    automatically. iPhone videos (HEVC, HDR/10-bit, portrait) are supported; the result is always an 8-bit
    H.264 mp4 that plays everywhere, and audio that mp4 cannot hold (e.g. PCM) is converted to AAC.
@@ -77,12 +78,13 @@ Compression is performed entirely in your browser, so large videos can take seve
 
 1. Open [`/image-compressor/`](./image-compressor/).
 2. Pick a quality — **Smaller files**, **Balanced** (default) or **Better quality** (MozJPEG quality
-   60 / 75 / 88). It applies to JPEGs; PNGs are always optimised losslessly. The choice is remembered.
+   60 / 75 / 88), or **Custom** with a JPEG quality slider (1–100). It applies to JPEGs; PNGs are always
+   optimised losslessly. The choice is remembered.
 3. Drop JPEG or PNG files (up to 20 at once, ~50 MB each) or press **Choose images** — compression starts
    automatically, with overall progress, time left and **Cancel**.
 4. The result card shows the total savings; download everything as a zip (or the single image), or each
    image from its row. **Make JPEGs smaller**, or picking another quality and pressing **Apply**,
-   compresses the JPEGs again.
+   compresses the JPEGs again (also after moving the Custom slider).
 
 Images are processed locally in a Web Worker using WebAssembly builds of MozJPEG and OxiPNG
 (the [jSquash](https://github.com/jamsinclair/jSquash) project). Codec modules are loaded from

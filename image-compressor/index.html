@@ -51,9 +51,9 @@
                 <h2 class="tool-title">Compress images</h2>
                 <p class="tool-lead">Make JPEG and PNG images smaller, up to 20 at a time. PNGs keep every pixel.</p>
                 <ul class="tool-chips" aria-label="How it works">
-                    <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Never uploaded — stays on your device</li>
-                    <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="14" height="14"></rect><path d="M3 17V3h14"></path></svg>Up to 20 images at once</li>
-                    <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3 5 14h6l-1 7 8-11h-6z"></path></svg>Starts as soon as you add files</li>
+                    <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg><span>Never uploaded<span class="long"> — stays on your device</span></span></li>
+                    <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="14" height="14"></rect><path d="M3 17V3h14"></path></svg>Up to 20 at once</li>
+                    <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3 5 14h6l-1 7 8-11h-6z"></path></svg>Starts automatically</li>
                 </ul>
             </div>
 
@@ -61,9 +61,10 @@
                 accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple aria-label="Choose images">
 
             <section class="drop-card" id="dropZone" aria-label="Add images">
-                <div class="drop-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 15v5h16v-5"></path></svg></div>
-                <p class="drop-title">Drop images here</p>
-                <p class="drop-or">or</p>
+                <div class="drop-head">
+                    <div class="drop-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 15v5h16v-5"></path></svg></div>
+                    <p class="drop-title">Drop images here</p>
+                </div>
                 <button type="button" class="btn btn-primary" id="chooseButton">Choose images</button>
                 <p class="drop-hint" id="dropHint"><span class="drop-touch-hint">From Photos or Files · </span>JPEG or PNG ·
                     up to 20 files, about 50 MB each</p>
@@ -141,21 +142,24 @@
             <fieldset class="quality" id="qualityGroup">
                 <legend>Quality</legend>
                 <div class="quality-options">
-                    <label class="quality-option">
-                        <span class="quality-option-title"><input type="radio" name="quality" value="small"><span>Smaller<span class="long"> files</span></span></span>
-                        <span class="quality-option-hint">For messengers and email</span>
-                    </label>
-                    <label class="quality-option is-selected">
-                        <span class="quality-option-title"><input type="radio" name="quality" value="balanced" checked><span>Balanced</span></span>
-                        <span class="quality-option-hint">Recommended for most images</span>
-                    </label>
-                    <label class="quality-option">
-                        <span class="quality-option-title"><input type="radio" name="quality" value="better"><span>Better<span class="long"> quality</span></span></span>
-                        <span class="quality-option-hint">Sharper detail, bigger files</span>
-                    </label>
+                    <label class="quality-option"><input class="visually-hidden" type="radio" name="quality"
+                            value="small"><span>Smaller<span class="long"> files</span></span></label>
+                    <label class="quality-option is-selected"><input class="visually-hidden" type="radio"
+                            name="quality" value="balanced" checked><span>Balanced</span></label>
+                    <label class="quality-option"><input class="visually-hidden" type="radio" name="quality"
+                            value="better"><span>Better<span class="long"> quality</span></span></label>
+                    <label class="quality-option"><input class="visually-hidden" type="radio" name="quality"
+                            value="custom"><span>Custom</span></label>
                 </div>
-                <p class="quality-note quality-note-selected" id="qualityNote">Recommended for most images</p>
-                <p class="quality-note">Applies to JPEGs. PNGs are always optimised without losing any detail.</p>
+                <p class="quality-note" id="qualityNote">Recommended for most images · JPEG quality 75. PNGs are always lossless.</p>
+                <div class="quality-custom" id="qualityCustom" hidden>
+                    <label for="customQuality">JPEG quality</label>
+                    <span class="quality-end" aria-hidden="true">Smaller</span>
+                    <input type="range" id="customQuality" min="1" max="100" step="1" value="75"
+                        aria-describedby="qualityNote">
+                    <span class="quality-end" aria-hidden="true">Better</span>
+                    <output class="quality-value" id="customQualityValue" for="customQuality">75</output>
+                </div>
                 <div class="quality-apply" id="qualityApply" hidden>
                     <span id="qualityApplyText"></span>
                     <button type="button" class="btn" id="recompressButton">Apply</button>
@@ -195,7 +199,7 @@
                     <span class="version-card-text">
                         <span class="version-card-name">Version</span>
                         <span class="version-card-meta">
-                            <span data-app-version-value>0.0.21D</span>
+                            <span data-app-version-value>0.0.22D</span>
                             <span class="version-card-date" data-app-version-date>November 2026</span>
                         </span>
                     </span>
